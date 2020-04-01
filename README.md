@@ -18,7 +18,9 @@ p2p-common-util：
 p2p-service-util：
 p2p-web-util：
 p2p-manage：后台管理，端口：9081
+http://localhost:9081/
 p2p-crm：客户关系管理，端口：9082
+http://localhost:9082/crm/init
 p2p-invest-sale：投资销售管理，端口：9083
 p2p-invest：投资管理，端口：9084
 p2p-match：撮合管理，端口：9085

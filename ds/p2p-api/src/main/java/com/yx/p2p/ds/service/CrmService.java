@@ -17,4 +17,6 @@ public interface CrmService {
     public List<Crm> getCrmListByPagination(CrmVo crmVo, Integer currentPage, Integer pageSize);
 
     public Integer add(CrmVo crmVo);
+
+    public CrmVo getCrmVoById(Integer id);
 }

@@ -78,4 +78,26 @@ public class CrmServiceImpl implements CrmService {
         return crm;
     }
 
+    public CrmVo getCrmVoById(Integer id){
+        //1.查询参数
+        Crm crmParam = new Crm();
+        crmParam.setId(id);
+        //2.查询数据库
+        Crm crm = crmMapper.selectOne(crmParam);
+        //3.封装前台对象
+        //3.1拷贝属性
+        CrmVo crmVo = new CrmVo();
+        try {
+            BeanUtils.copyProperties(crmVo,crm);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        //3.2特殊值设置
+        String birthdayStr = DateUtil.date2Str(crm.getBirthday());
+        crmVo.setBirthdayStr(birthdayStr);
+        return crmVo;
+    }
+
 }

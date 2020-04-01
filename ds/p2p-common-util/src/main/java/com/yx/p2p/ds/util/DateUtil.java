@@ -25,4 +25,10 @@ public class DateUtil {
         }
         return date;
     }
+
+    public static String date2Str(Date date){
+        SimpleDateFormat formatter = new SimpleDateFormat(ymdPattern);
+        String dateString = formatter.format(date);
+        return dateString;
+    }
 }
