@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>后台管理</title>
+</head>
+<body class="easyui-layout">
+<div region="north" title="North Title" split="true" style="height:100px;">
+    <div>角色：，用户：，欢迎您！</div><br/>
+    <div>首页，退出</div>
+</div>
+
+<div region="south" title="South Title" split="true" style="height:100px;">
+    2020年
+</div>
+
+<div region="west" split="true" title="导航菜单" style="width:200px;">
+    <div class="easyui-accordion">
+        <div title="客户管理">
+            <div class="easyui-panel">
+                <ul class="easyui-tree">
+                    <li><span><a title="http://localhost:9082/crm/init">客户列表</a></span></li>
+                    <li><span><a>同步客户</a></span></li>
+                </ul>
+            </div>
+        </div>
+        <div title="证书管理">
+            <div class="easyui-panel">
+                <ul class="easyui-tree">
+                    <li><span><a>证书列表</a></span></li>
+                    <li><span><a>同步证书</a></span></li>
+                </ul>
+            </div>
+        </div>
+        <div title="电签管理">
+            <div class="easyui-panel">
+                <ul class="easyui-tree">
+                    <li><span><a>电签列表</a></span></li>
+                    <li><span><a>同步电签</a></span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div region="center" style="padding:0px">
+    <div class="easyui-tabs" fit="true" id="tt">
+    </div>
+</div>
+</body>
+
+<script type="text/javascript">
+
+    $(function(){
+        var ttVar = $("#tt");
+        ttVar.tabs('add',{
+            id : 'tt1',
+            title:'项目介绍',
+            content : "<iframe scrolling='no' frameborder='0' src='/manage/welcome' style='width:100%;height:99%;'></iframe>"
+        });
+
+
+        $("a[title]").click(function(){
+            var src = $(this).attr('title');
+            var title = $(this).html();
+            if(ttVar.tabs('exists',title)){
+                ttVar.tabs('select',title);
+            }else{
+                ttVar.tabs('add',{
+                    title : title,
+                    content : "<iframe frameborder='0' style='width:100%;height:100%'  src='" + src + "'></iframe>",
+                    closable:true
+                });
+            }
+        });
+
+
+    });
+</script>
+</html>

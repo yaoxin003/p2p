@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yx.p2p.ds.crm.mapper.CrmMapper">
+
+    <sql id="crmField">
+        a.id,a.name,a.gender,a.birthday,a.id_card,a.create_time,a.update_time,a.creator,a.reviser
+    </sql>
+
+    <sql id="crmCondition">
+        <if test="crmVo != null">
+            <if test="crmVo.name != null and crmVo.name != '' ">
+                <bind name="pattern1" value="'%' + crmVo.name + '%'"/>
+                and a.name like #{pattern1}
+            </if>
+            <if test="crmVo.gender != null">
+                and a.gender = #{crmVo.gender}
+            </if>
+            <if test="crmVo.birthdayStr != null and crmVo.birthdayStr != ''">
+                and a.birthday=str_to_date(#{crmVo.birthdayStr},'%Y-%m-%d')
+            </if>
+            <if test="crmVo.idCard != null and crmVo.idCard != ''">
+                and a.id_card = #{crmVo.idCard}
+            </if>
+        </if>
+    </sql>
+
+
+    <select id="queryCrmListByPagination" resultType="Crm">
+      select <include refid="crmField"/>
+        from p2p_crm a
+        where 1=1
+        <include refid="crmCondition"/>
+        <if test="offset > 0 and limit != null">
+            limit #{offset},#{limit}
+        </if>
+        <if test="offset == 0 and limit != null">
+            limit #{limit}
+        </if>
+    </select>
+
+    <select id="queryCrmCount" resultType="int">
+        select count(a.id) from p2p_crm a
+        where 1=1
+        <include refid="crmCondition"/>
+    </select>
+
+</mapper>

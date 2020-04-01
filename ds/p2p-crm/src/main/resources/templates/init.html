@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>CRM列表页面</title>
+</head>
+<body>
+
+<table id="dg"></table>
+
+
+<div id="searchDiv">
+    <form id="searchForm" action="" method="post">
+        姓名<input class="easyui-textbox" name="name"/>
+        性别<select class="easyui-combobox" name="gender" style="width:120px">
+        <option value="">请选择性别</option>
+        <option value="1">男</option>
+        <option value="0">女</option>
+    </select>
+        生日<input class="easyui-datebox" name="birthdayStr"/>
+        身份证号码<input class="easyui-textbox" name="idCard"/>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询客户</a>
+    </form>
+</div>
+
+
+<div id="mydialog" class="easyui-dialog" title="添加客户" style="width:300px;display:none;" draggable="false"
+    data-options="modal:true,closed:true">
+    <form id="addForm" action="" method="post">
+        <table>
+            <tr>
+                <td>姓名</td>
+                <td><input type="text" name="name" class="easyui-textbox" data-options="required:true"/></td>
+            </tr>
+            <tr>
+                <td>性别</td>
+                <td>男<input type="radio" checked="checked" name="gender" value="1"/>
+                    女<input type="radio" name="gender" value="0"/>
+                </td>
+            </tr>
+            <tr>
+                <td>生日</td>
+                <td><input id="birthdayAdd" type="text" name="birthdayStr"  class="easyui-datebox" data-options="required:true"/></td>
+            </tr>
+            <tr>
+                <td>身份证号码</td>
+                <td><input type="text" name="idCard" class="easyui-textbox" data-options="required:true,validType:'length[18,21]'"/></td>
+            </tr>
+            <tr align="center">
+                <td colspan="2">
+                    <a id="btn1" class="easyui-linkbutton">保存</a>
+                    <a id="btn2" class="easyui-linkbutton">关闭</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+
+
+</body>
+<script type="text/javascript">
+//--------------------列表功能--------------------
+    $("#dg").datagrid({
+        idField : 'id',
+        title : 'CRM列表',
+        width: 1200,
+        url : "/crm/list",
+        fitColumns:true,
+        rownumbers:true,
+        striped:true,//隔行变色
+        toolbar : [{
+            text:'新增客户',
+            iconCls : 'icon-add',
+            handler : function(){
+                $("#mydialog").dialog("open");
+            }
+        },{
+            text:'修改客户',
+            iconCls : 'icon-edit',
+            handler : function(){
+                alert('edit');
+            }
+        },{
+            text:'删除客户',
+            iconCls : 'icon-remove',
+            handler : function(){
+                alert('remove');
+            }
+        }],
+        columns : [[
+            {field:'ck',checkbox:true,width:50},
+            {field:'id',hidden:true},
+            {field:'name',title:'姓名',width:100},
+            {field:'gender',title:'性别',width:100,
+                formatter:function(value){
+                    return genderStr(value);
+                }
+            },
+            {field:'birthday',title:'生日',width:100,
+                formatter:function(value){
+                    return dateStr(value);
+                }
+            },
+            {field:'idCard',title:'身份证号码',width:200},
+            {field:'createTime',title:'创建时间',width:150,
+                formatter:function(value){
+                    return dateTimeStr(value);
+                }
+            },
+            {field:'creator',title:'创建人',width:100},
+            {field:'updateTime',title:'修改时间',width:150,
+                formatter:function(value){
+                    return dateTimeStr(value);
+                }
+            },
+            {field:'reviser',title:'修改人',width:100}
+        ]],
+        loadMsg : '数据正在加载，请耐心等待……',
+        pagination : true,
+        pageList:[1,2,5,10,20,50]
+    });
+
+    //查询
+    $('#searchDiv').appendTo('.datagrid-toolbar');
+
+    function doSearch(){
+        $("#dg").datagrid('load',datagridForm($("#searchForm")));
+    }
+
+    function datagridForm(form){
+        var obj = {};
+        $.each(form.serializeArray(),function(index){
+            obj[this['name']] = this['value'];
+        });
+        return obj;
+    }
+
+    //--------------------添加功能表单校验--------------------
+   //添加窗口
+    $("#btn1").click(function(){
+        var formObj = $("#addForm");
+        if(formObj.form("validate")){
+            $.ajax({
+                type: "post",
+                url : "/crm/add",
+                data: formObj.serialize(),
+                dataType : 'json',
+                success:function(result){
+                    $("#mydialog").dialog("close");
+                    $.messager.show({
+                       title:result.status,
+                       msg:result.message
+                    });
+                }
+            });
+        }else{
+            $.message.show({
+                title:"提示信息",
+                msg:"数据验证不通过，不能保存"
+            });
+        }
+    });
+    //关闭窗口
+    $("#btn2").click(function(){
+        $("#mydialog").dialog("close");
+    });
+
+
+</script>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head">
+    <title>系统环境</title>
+</head>
+<body>
+
+<table class="easyui-datagrid" title="系统环境"
+       data-options="singleSelect:true">
+    <thead>
+        <tr>
+            <th data-options="field:'code'" width="10%">开发工具：</th>
+            <th data-options="field:'name'" width="90%">IntelliJ IDEA</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Java版本：</td>
+            <td>JDK1.8.0_131</td>
+        </tr>
+        <tr>
+            <td>服务器：</td>
+            <td>Tomcat8.5.15</td>
+        </tr>
+        <tr>
+            <td>数据库：</td>
+            <td>MySQL5.1.42</td>
+        </tr>
+        <tr>
+            <td>系统技术：</td>
+            <td>SpringBoot1.4.7+Mybatis3.5.3+EasyUI1.7.0+JQuery1.12.4+thymeleaf1.4.7，
+                Redis+Nginx
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
