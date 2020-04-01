@@ -26,3 +26,42 @@ function genderStr(value){
         return "未知";
     }
 }
+
+function ajaxSubmit(formId,dialogId,dgId,type,url){
+    $.ajax({
+        type: type,
+        url : url,
+        data: $("#" + formId).serialize(),
+        dataType : 'json',
+        cache : false,
+        success:function(result){
+            //1.关闭窗口
+            $("#" + dialogId).dialog("close");
+            //2.刷新datagrid
+            $("#"+dgId).datagrid('reload');
+            //3.提示信息
+            $.messager.show({
+                title:result.status,
+                msg:result.message
+            });
+        }
+    });
+}
+
+function ajaxModifyOpen(id,formId,dialogId,type,url){
+    $.ajax({
+        type: type,
+        url : url,
+        data: {"id":id},
+        dataType : 'json',
+        cache : false,
+        success:function(result){
+            var formObj = $("#" + formId);
+            formObj.form('reset');
+            //显示信息
+            formObj.form('load',result);
+            //打开窗口
+            $("#" + dialogId).dialog("open");
+        }
+    });
+}
