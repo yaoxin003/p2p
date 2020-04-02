@@ -33,11 +33,6 @@ public class CrmController {
         return "init";
     }
 
-    @RequestMapping("init1")
-    public String init1(){
-        return "init1";
-    }
-
     @RequestMapping("list")
     @ResponseBody
     public Map<String,Object> list(Integer page, Integer rows, CrmVo crmVo){
@@ -67,6 +62,20 @@ public class CrmController {
         logger.debug("【id=】" + id);
         CrmVo crmVo = crmService.getCrmVoById(id);
         return crmVo;
+    }
+
+    @RequestMapping("update")
+    @ResponseBody
+    public Result update(CrmVo crmVo) throws Exception{
+        Result result = null;
+        logger.debug("【crmVo=】" + crmVo);
+        try{
+            crmService.update(crmVo);
+            return Result.success();
+        }catch (Exception e){
+            logger.error(e.toString(),e);
+            return Result.error();
+        }
     }
 }
 

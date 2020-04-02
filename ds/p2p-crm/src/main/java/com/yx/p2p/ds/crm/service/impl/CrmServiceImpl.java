@@ -12,10 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tk.mybatis.mapper.entity.Example;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description:
@@ -60,12 +63,13 @@ public class CrmServiceImpl implements CrmService {
     private Crm buildAddCrmModel(CrmVo crmVo) {
         Crm crm = new Crm();
         //1.设置时间和操作人
-        BeanHelper.setDefaultTimeField(crmVo);
-        crmVo.setCreator(SysConstant.operator);
-        crmVo.setReviser(SysConstant.operator);
+        BeanHelper.setDefaultTimeField(crmVo,"createTime","updateTime");
+        Map<String,Integer> operatorMap = new HashMap<>();
+        operatorMap.put("creator",SysConstant.operator);
+        operatorMap.put("reviser",SysConstant.operator);
+        BeanHelper.setDefaultOperatorField(crmVo,operatorMap);
 
         //对象拷贝
-        crm.setBirthday(DateUtil.str2Date(crmVo.getBirthdayStr()));
         try {
             BeanUtils.copyProperties(crm,crmVo);
         } catch (IllegalAccessException e) {
@@ -98,6 +102,35 @@ public class CrmServiceImpl implements CrmService {
         String birthdayStr = DateUtil.date2Str(crm.getBirthday());
         crmVo.setBirthdayStr(birthdayStr);
         return crmVo;
+    }
+
+    public Integer update(CrmVo crmVo){
+        logger.debug("【crmVo=】" + crmVo);
+        Crm crm = this.buildUpdateCrmModel(crmVo);
+        Example example = new Example(Crm.class);
+        example.createCriteria().andEqualTo("id",crm.getId());
+        return crmMapper.updateByExampleSelective(crm,example);
+    }
+
+    private Crm buildUpdateCrmModel(CrmVo crmVo) {
+        Crm crm = new Crm();
+        //1.设置时间和操作人
+        BeanHelper.setDefaultTimeField(crmVo,"updateTime");
+        Map<String,Integer> operatorMap = new HashMap<>();
+        operatorMap.put("reviser",SysConstant.operator);
+        BeanHelper.setDefaultOperatorField(crmVo,operatorMap);
+
+        //对象拷贝
+        try {
+            BeanUtils.copyProperties(crm,crmVo);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        //特殊值设置
+        crm.setBirthday(DateUtil.str2Date(crmVo.getBirthdayStr()));
+        return crm;
     }
 
 }

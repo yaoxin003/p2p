@@ -2,6 +2,8 @@ package com.yx.p2p.ds.helper;
 
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @description:
@@ -10,9 +12,16 @@ import java.util.Date;
  */
 public class BeanHelper {
 
-    public static<T> void setDefaultTimeField(T target){
-        setField(target,"updateTime",new Date());
-        setField(target,"createTime",new Date());
+    public static<T> void setDefaultTimeField(T target,String ... filedNames){
+        for(String filedName : filedNames){
+            setField(target,filedName,new Date());
+        }
+    }
+
+    public static<T> void setDefaultOperatorField(T target,Map<String,Integer> map){
+        for( String key: map.keySet()){
+            setField(target,key,map.get(key));
+        }
     }
 
     /**

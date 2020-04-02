@@ -25,7 +25,7 @@
 <div id="mydialog" class="easyui-dialog" title="添加客户" style="width:300px;display:none;" draggable="false"
     data-options="modal:true,closed:true">
     <form id="myForm" action="" method="post">
-        <input type="hidden" name="id" />
+        <span  style="display:none;" ><input name="id" class="easyui-textbox" data-options="hidden:true" /></span>
         <table>
             <tr>
                 <td>姓名</td>
@@ -61,6 +61,7 @@
 
 </body>
 <script type="text/javascript">
+    var flag;//添加/修改标志位
 //--------------------列表功能--------------------
     $("#dg").datagrid({
         idField : 'id',
@@ -74,6 +75,7 @@
             text:'添加客户',
             iconCls : 'icon-add',
             handler : function(){
+                flag = "add";//添加/修改标志位
                 $("#myForm").form('reset');
                 $("#mydialog").dialog({
                     id:'mydialog',
@@ -85,6 +87,7 @@
             text:'修改客户',
             iconCls : 'icon-edit',
             handler : function(){
+                flag = "update";//添加/修改标志位
                 var arr = $("#dg").datagrid('getSelections');
                 if(arr.length != 1){
                     $.messager.show({
@@ -156,11 +159,12 @@
     }
 
     //--------------------添加功能表单校验--------------------
-   //添加窗口
+   //添加/修改窗口
     $("#btn1").click(function(){
         var formObj = $("#myForm");
         if(formObj.form("validate")){
-            ajax('myForm','mydialog','dg','post','/crm/add');
+            var url = flag == "add" ? "/crm/add" : "/crm/update";
+            ajaxSubmit('myForm','mydialog','dg','post',url);
         }else{
             $.message.show({
                 title:"提示信息",

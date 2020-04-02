@@ -19,4 +19,6 @@ public interface CrmService {
     public Integer add(CrmVo crmVo);
 
     public CrmVo getCrmVoById(Integer id);
+
+    public Integer update(CrmVo crmVo);
 }
