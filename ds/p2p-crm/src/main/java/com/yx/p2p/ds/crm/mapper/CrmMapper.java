@@ -16,5 +16,7 @@ public interface CrmMapper extends Mapper<Crm>{
     public List<Crm> queryCrmListByPagination(@Param("crmVo") CrmVo crmVo,
                                               @Param("offset") int offset, @Param("limit")  int limit);
 
-    public int queryCrmCount(@Param("crmVo") CrmVo crmVo);
+    public Integer queryCrmCount(@Param("crmVo") CrmVo crmVo);
+
+    public Integer deleteBatchByIdArr(Integer[] array);
 }

@@ -133,4 +133,8 @@ public class CrmServiceImpl implements CrmService {
         return crm;
     }
 
+    public Integer deleteBatchByIdArr(Integer[] idArr){
+        return crmMapper.deleteBatchByIdArr(idArr);
+    }
+
 }

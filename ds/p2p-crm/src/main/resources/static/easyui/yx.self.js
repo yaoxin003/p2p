@@ -27,7 +27,7 @@ function genderStr(value){
     }
 }
 
-function ajaxSubmit(formId,dialogId,dgId,type,url){
+function ajaxAddUpdate(formId,dialogId,dgId,type,url){
     $.ajax({
         type: type,
         url : url,
@@ -63,5 +63,17 @@ function ajaxModifyOpen(id,formId,dialogId,type,url){
             //打开窗口
             $("#" + dialogId).dialog("open");
         }
+    });
+}
+
+function postDelete(ps,url,dgId){
+    $.post(url,ps,function(result){
+        //1.刷新数据
+        $("#"+dgId).datagrid("reload");
+        //2.提示信息
+        $.messager.show({
+            title:"提示信息",
+            msg : "操作成功！"
+        });
     });
 }

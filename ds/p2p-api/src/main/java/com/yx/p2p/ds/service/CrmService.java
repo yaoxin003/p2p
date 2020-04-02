@@ -21,4 +21,6 @@ public interface CrmService {
     public CrmVo getCrmVoById(Integer id);
 
     public Integer update(CrmVo crmVo);
+
+    public Integer deleteBatchByIdArr(Integer[] idArr);
 }
