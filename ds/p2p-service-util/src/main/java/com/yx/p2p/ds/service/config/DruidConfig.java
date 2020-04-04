@@ -1,4 +1,4 @@
-package com.yx.p2p.ds.service.util.config;
+package com.yx.p2p.ds.service.config;
 
 import com.alibaba.druid.filter.Filter;
 import com.alibaba.druid.filter.stat.StatFilter;

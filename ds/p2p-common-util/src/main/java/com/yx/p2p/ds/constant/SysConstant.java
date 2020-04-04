@@ -7,4 +7,8 @@ package com.yx.p2p.ds.constant;
  */
 public class SysConstant {
     public static final Integer operator = 12;
+
+    /*--------------------缓存key规则--------------------*/
+    public static final String CACHE_KEY_PREFIX_CRM_INFO_IDCARD = "crm_info_idcard_";
+
 }

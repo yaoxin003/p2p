@@ -2,24 +2,33 @@
 互联网金融点对点借贷平台
 
 
-系统环境
+#--------------------系统环境--------------------
 开发工具：IntelliJ IDEA
 Java版本：JDK1.8.0_131
 服务器：Tomcat8.5.15
 数据库：MySQL5.1.42
 系统技术：SpringBoot1.4.7+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4，
 Dubbo2.6.0+Zookeeper3.4.8
-Redis+Elastic Search
+Redis-4.0.14+Elastic Search
 Nginx+RocketMQ
 
+#--------------------linux环境下服务安装路径和启动方法--------------------
 Dubbo：对方及时作出相应。
 MQ:可用于对消息实时性要求不高的场景。
-dubbo控制台：
+Dubbo控制台：
     war包路径：/usr/local/bin/dubbo-admin-2.6.0
+    启动方式：cd /usr/local/apache-tomcat-9.0.27/
+                bin/startup.sh
     控制台地址：http://192.168.1.121:8080/dubbo-admin/
     控制台账户：root root
     tomcat位置：/usr/local/apache-tomcat-9.0.27
+Redis-4.0.14
+    路径：cd /etc/redis/
+    启动方式：redis-server ./redis6379.conf
+    
+    
 
+#--------------------服务名称和端口号--------------------
 ds:分布式代码文件夹
 p2p-api：model,vo和接口
 p2p-parent：
@@ -47,3 +56,6 @@ ms:微服务代码文件夹
 ：统计分析服务
 invest-bill：账单服务
 invest-timer：定时任务服务
+
+#--------------------缓存key规则--------------------
+key=crm_info_idcard_*** value=json(crm对象)
