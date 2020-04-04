@@ -7,9 +7,18 @@
 Java版本：JDK1.8.0_131
 服务器：Tomcat8.5.15
 数据库：MySQL5.1.42
-系统技术：SpringBoot1.4.7+Mybatis3.5.3+EasyUI1.7.0+JQuery1.12.4+thymeleaf1.4.7，
-Redis+Nginx
+系统技术：SpringBoot1.4.7+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4，
+Dubbo2.6.0+Zookeeper3.4.8
+Redis+Elastic Search
+Nginx+RocketMQ
 
+Dubbo：对方及时作出相应。
+MQ:可用于对消息实时性要求不高的场景。
+dubbo控制台：
+    war包路径：/usr/local/bin/dubbo-admin-2.6.0
+    控制台地址：http://192.168.1.121:8080/dubbo-admin/
+    控制台账户：root root
+    tomcat位置：/usr/local/apache-tomcat-9.0.27
 
 ds:分布式代码文件夹
 p2p-api：model,vo和接口
