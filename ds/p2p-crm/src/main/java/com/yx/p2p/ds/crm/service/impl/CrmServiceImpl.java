@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import tk.mybatis.mapper.entity.Example;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,6 +105,41 @@ public class CrmServiceImpl implements CrmService {
     }
 
     /**
+        * @description:在缓存中使用身份证获得Crm
+        * @author:  YX
+        * @date:    2020/04/04 19:31
+        * @param: crmVo
+        * @return: java.util.List<com.yx.p2p.ds.model.Crm>
+        * @throws:
+        */
+    @Override
+    public List<Crm> getCrmListByIdCardInCache(CrmVo crmVo) {
+        String idCard = crmVo.getIdCard();
+        List<Crm> crmList = new ArrayList<>();
+        if(StringUtils.isNotBlank(idCard)){
+            Jedis cacheJedis = null;
+            try{
+                cacheJedis = redisUtil.getCacheJedis();
+                String cacheKey = SysConstant.CACHE_KEY_PREFIX_CRM_INFO_IDCARD + idCard;
+                String crmJSON = cacheJedis.get(cacheKey);
+                if(StringUtils.isNotBlank(crmJSON)){
+                    Crm crm = JSON.parseObject(crmJSON,Crm.class);
+                    crmList.add(crm);
+                }
+            }catch(Exception e){
+                logger.error(e.toString(),e);
+            }finally{
+                if(cacheJedis != null){
+                    cacheJedis.close();
+                }
+            }
+        }
+        logger.debug("【cache.crmList=】" + crmList);
+        return crmList;
+    }
+
+
+    /**
      * 使用身份证判断客户是否存在（缓存和数据库）
      * 1.查询缓存，判断客户是否存在
      * 2.缓存中不存在，查询数据库，数据库存在返回false，数据库不存在返回true
@@ -114,7 +150,7 @@ public class CrmServiceImpl implements CrmService {
     private boolean checkCrmByIdCard(CrmVo crmVo) {
         boolean flag = false;
         String idCard = "";
-        if(crmVo != null && StringUtils.isNoneBlank( idCard=crmVo.getIdCard())){
+        if(crmVo != null && StringUtils.isNotBlank( idCard=crmVo.getIdCard())){
             flag = this.checkCrmByIdCardInCache(idCard);
             if(!flag){//缓存中不存在
                 flag = this.checkCrmByIdCardInDB(idCard);

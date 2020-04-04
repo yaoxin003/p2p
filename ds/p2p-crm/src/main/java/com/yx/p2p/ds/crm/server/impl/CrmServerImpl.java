@@ -2,6 +2,7 @@ package com.yx.p2p.ds.crm.server.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.model.Crm;
 import com.yx.p2p.ds.server.CrmServer;
 import com.yx.p2p.ds.service.CrmService;
 import com.yx.p2p.ds.vo.CrmVo;
@@ -9,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * @description:
@@ -34,5 +37,26 @@ public class CrmServerImpl implements CrmServer{
             logger.error(e.toString(),e);
             return 0;
         }
+    }
+
+    /**
+        * @description: 查询缓存和数据库
+        * @author:  YX
+        * @date:    2020/04/04 18:10
+        * @param: crmVo
+        * @param: currentPage
+        * @param: pageSize
+        * @return: java.util.List<com.yx.p2p.ds.model.Crm>
+        * @throws:
+        */
+    public List<Crm> search(CrmVo crmVo, Integer currentPage, Integer pageSize){
+        List<Crm> result = null;
+        //查询缓存
+        result = crmService.getCrmListByIdCardInCache(crmVo);
+        if(result.isEmpty()){
+            //查询数据库
+            result = crmService.getCrmListByPagination(crmVo,currentPage,pageSize);
+        }
+        return result;
     }
 }

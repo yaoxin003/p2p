@@ -8,6 +8,9 @@
 
     <sql id="crmCondition">
         <if test="crmVo != null">
+            <if test="crmVo.id != null">
+                and a.id = #{crmVo.id}
+            </if>
             <if test="crmVo.name != null and crmVo.name != '' ">
                 <bind name="pattern1" value="'%' + crmVo.name + '%'"/>
                 and a.name like #{pattern1}

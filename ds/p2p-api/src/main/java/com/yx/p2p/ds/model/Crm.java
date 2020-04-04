@@ -1,6 +1,7 @@
 package com.yx.p2p.ds.model;
 
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -9,7 +10,7 @@ import java.util.Date;
  * @date: 2020/03/26/13:52
  */
 @Table(name="p2p_crm")
-public class Crm extends BaseModel {
+public class Crm extends BaseModel implements Serializable {
 
     private Integer id;
     private String name;//姓名

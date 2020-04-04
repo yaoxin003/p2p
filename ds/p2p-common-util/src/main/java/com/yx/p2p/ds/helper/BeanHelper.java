@@ -38,4 +38,5 @@ public class BeanHelper {
             e.printStackTrace();
         }
     }
+
 }
