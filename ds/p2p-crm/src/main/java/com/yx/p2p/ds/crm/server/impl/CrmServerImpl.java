@@ -28,7 +28,7 @@ public class CrmServerImpl implements CrmServer{
     @Autowired
     private CrmService crmService;
 
-    public Integer addCrm(CrmVo crmVo){
+    public Integer add(CrmVo crmVo){
         Result result = null;
         logger.debug("【crmVo=】" + crmVo);
         try{
@@ -56,7 +56,14 @@ public class CrmServerImpl implements CrmServer{
         if(result.isEmpty()){
             //查询数据库
             result = crmService.getCrmListByPagination(crmVo,currentPage,pageSize);
+            //存入缓存中
+            crmService.addCache(result);
         }
         return result;
+    }
+
+
+    public Integer update(CrmVo crmVo){
+       return crmService.update(crmVo);
     }
 }

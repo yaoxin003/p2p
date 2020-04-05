@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration status="DEBUG">
+<configuration status="INFO">
        <appenders>
         <!--这个输出控制台的配置-->
         <Console name="STDOUT" >

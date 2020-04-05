@@ -22,7 +22,12 @@ public interface CrmService {
 
     public Integer update(CrmVo crmVo);
 
-    public Integer deleteBatchByIdArr(Integer[] idArr);
+    public Integer deleteBatch(Integer[] idArr,String[] idCardArr);
 
     public List<Crm> getCrmListByIdCardInCache(CrmVo crmVo);
+
+    public void addCache(List<Crm> crmList);
+
+    public Crm getCrmByIdInDB(Integer id);
+
 }

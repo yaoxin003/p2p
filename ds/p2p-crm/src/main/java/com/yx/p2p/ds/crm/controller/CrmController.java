@@ -60,7 +60,7 @@ public class CrmController {
 
     @RequestMapping("getById")
     @ResponseBody
-    public Crm getById(Integer id){
+    public CrmVo getById(Integer id){
         logger.debug("【id=】" + id);
         CrmVo crmVo = crmService.getCrmVoById(id);
         return crmVo;
@@ -69,24 +69,26 @@ public class CrmController {
     @RequestMapping("update")
     @ResponseBody
     public Result update(CrmVo crmVo) throws Exception{
-        Result result = null;
+        Result result = Result.error();
         logger.debug("【crmVo=】" + crmVo);
         try{
-            crmService.update(crmVo);
-            return Result.success();
+            int count = crmService.update(crmVo);
+            if(count > 0){
+                result = Result.success();
+            }
         }catch (Exception e){
             logger.error(e.toString(),e);
-            return Result.error();
         }
+        return result;
     }
 
     @RequestMapping("delete")
     @ResponseBody
-    public Result delete(Integer[] idArr) throws Exception{
+    public Result delete(Integer[] idArr,String[] idCardArr) throws Exception{
         Result result = null;
-        logger.debug("【idArr=】" + Arrays.toString(idArr));
+        logger.debug("【idArr=】" + Arrays.toString(idArr) + "，【idCardArr=】" + Arrays.toString(idCardArr));
         try{
-            crmService.deleteBatchByIdArr(idArr);
+            crmService.deleteBatch(idArr,idCardArr);
             return Result.success();
         }catch (Exception e){
             logger.error(e.toString(),e);

@@ -13,7 +13,11 @@ import java.util.List;
  */
 public interface CrmServer{
 
-    public Integer addCrm(CrmVo crmVo);
+    public Integer add(CrmVo crmVo);
 
     public List<Crm> search(CrmVo crmVo, Integer currentPage, Integer pageSize);
+
+    public Integer update(CrmVo crmVo);
+
+
 }

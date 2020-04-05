@@ -14,6 +14,8 @@ public class CrmVo extends Crm implements Serializable{//CrmVo作为Dubbo服务�
 
    private String birthdayStr;
 
+   private String idCardOld;//修改功能使用idCardOld字段，添加不使用该字段
+
     public String getBirthdayStr() {
         return birthdayStr;
     }
@@ -22,10 +24,19 @@ public class CrmVo extends Crm implements Serializable{//CrmVo作为Dubbo服务�
         this.birthdayStr = birthdayStr;
     }
 
+    public String getIdCardOld() {
+        return idCardOld;
+    }
+
+    public void setIdCardOld(String idCardOld) {
+        this.idCardOld = idCardOld;
+    }
+
     @Override
     public String toString() {
-        return super.toString() + ",CrmVo{" +
+        return super.toString() + "CrmVo{" +
                 "birthdayStr='" + birthdayStr + '\'' +
+                ", idCardOld='" + idCardOld + '\'' +
                 '}';
     }
 }

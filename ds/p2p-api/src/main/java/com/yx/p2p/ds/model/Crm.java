@@ -1,5 +1,6 @@
 package com.yx.p2p.ds.model;
 
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Date;
@@ -11,7 +12,7 @@ import java.util.Date;
  */
 @Table(name="p2p_crm")
 public class Crm extends BaseModel implements Serializable {
-
+    @Id//使用tkmybatis.selectByPrimaryKey方法时需要该字段，否则会将所有字段都当做where条件
     private Integer id;
     private String name;//姓名
     private Short gender;//性别

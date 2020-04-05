@@ -1,13 +1,25 @@
 package com.yx.p2p.ds.crm;
 
+import com.yx.p2p.ds.model.Crm;
+import com.yx.p2p.ds.service.CrmService;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
-@SpringBootTest
-class P2pCrmApplicationTests {
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = P2pCrmApplication.class)
+public class P2pCrmApplicationTests {
+
+	@Autowired
+	private CrmService crmService;
 
 	@Test
-	void contextLoads() {
+	public void testGetCrmByIdInDB() {
+		Crm crmByIdInDB = crmService.getCrmByIdInDB(38);
 	}
+
+
 
 }

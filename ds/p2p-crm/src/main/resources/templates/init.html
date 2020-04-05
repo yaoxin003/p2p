@@ -18,7 +18,7 @@
         <option value="0">女</option>
     </select>
         生日<input class="easyui-datebox" name="birthdayStr"/>
-        身份证号码<input class="easyui-textbox" name="idCard"/>
+        身份证号码<input class="easyui-textbox" name="idCard" style="width:200px"/>
         <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询客户</a>
     </form>
 </div>
@@ -47,7 +47,7 @@
             </tr>
             <tr>
                 <td>身份证号码</td>
-                <td><input type="text" name="idCard" class="easyui-textbox" data-options="required:true,validType:'length[18,21]'" style="width:200px"/></td>
+                <td><input type="text" name="idCard" class="easyui-textbox" data-options="required:true,validType:'idCard'" style="width:200px"/></td>
             </tr>
             <tr align="center">
                 <td colspan="2">
@@ -101,7 +101,8 @@
                       title : '修改客户'
                     });
                     $("#mydialog").dialog("open");
-                    ajaxModifyOpen(arr[0].id,'myForm','mydialog','post','/crm/getById');
+                    var dataParams =  {"id":arr[0].id};
+                    ajaxModifyOpen(dataParams,'myForm','mydialog','post','/crm/getById');
                 }
             }
         },{
@@ -118,17 +119,14 @@
                 }  else{
                     $.messager.confirm('提示信息','确认删除' + len + '条数据？',function (r) {
                         if(r){
-                            /* var ids = "";
-                             for(var i=0; i<arr.length; i++){
-                                 ids += arr[i].id + ",";
-                             }
-                             ids = ids.substring(0,ids.length-1);*/
                             var idArr = [];
+                            var idCardArr = [];
                             /*SpringBoot 小于号要求*/
                             for(var i = 0; i < len; i++) {
                                 idArr.push(arr[i].id);
+                                idCardArr.push(arr[i].idCard);
                             }
-                            var params = {"idArr" : idArr};
+                            var params = {"idArr" : idArr,"idCardArr":idCardArr};
                             var ps = $.param(params, true);//将参数序列化后再传到后台，要不然后台始终是接收不到我们传递的数据的
                            postDelete(ps,'/crm/delete','dg');
                         }
@@ -174,6 +172,7 @@
 
     function doSearch(){
         $("#dg").datagrid('load',datagridForm($("#searchForm")));
+        $("#dg").datagrid('clearSelections');
     }
 
     function datagridForm(form){
@@ -184,8 +183,7 @@
         return obj;
     }
 
-    //--------------------添加功能表单校验--------------------
-   //添加/修改窗口
+    //--------------------添加/修改提交表单--------------------
     $("#btn1").click(function(){
         var formObj = $("#myForm");
         if(formObj.form("validate")){

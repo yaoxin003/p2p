@@ -5,7 +5,9 @@ import com.yx.p2p.ds.easyui.Pagination;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.Crm;
 import com.yx.p2p.ds.server.CrmServer;
+import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.vo.CrmVo;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +69,7 @@ public class CrmController {
         Result result = Result.error();
         logger.debug("【crmVo=】" + crmVo);
         try{
-            Integer res = crmServer.addCrm(crmVo);
+            Integer res = crmServer.add(crmVo);
             logger.debug("【res=】" + res);
             if(res == 1){
                 result = Result.success();
@@ -77,6 +80,50 @@ public class CrmController {
         return result;
     }
 
+    /**
+     * 修改显示页面
+     * @param idCard
+     * @return
+     */
+    @RequestMapping("getByIdCard")
+    @ResponseBody
+    public CrmVo getByIdCard(String idCard){
+        logger.debug("【idCard=】" + idCard);
+        CrmVo crmVo = new CrmVo();
+        crmVo.setIdCard(idCard);
+        //临时方案---begin
+        List<Crm> crmList = crmServer.search(crmVo,1,1);
+        Crm resCrm = crmList.get(0);
+        //3.封装前台对象
+        //3.1拷贝属性
+        CrmVo resCrmVo = new CrmVo();
+        try {
+            BeanUtils.copyProperties(resCrmVo,resCrm);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        //3.2特殊值设置
+        String birthdayStr = DateUtil.date2Str(resCrm.getBirthday());
+        resCrmVo.setBirthdayStr(birthdayStr);
+        resCrmVo.setIdCardOld(resCrm.getIdCard());
+        //临时方案---end
+        return resCrmVo;
+    }
 
+    @RequestMapping("update")
+    @ResponseBody
+    public Result update(CrmVo crmVo) throws Exception{
+        Result result = null;
+        logger.debug("【crmVo=】" + crmVo);
+        try{
+            crmServer.update(crmVo);
+            return Result.success();
+        }catch (Exception e){
+            logger.error(e.toString(),e);
+            return Result.error();
+        }
+    }
 }
 
