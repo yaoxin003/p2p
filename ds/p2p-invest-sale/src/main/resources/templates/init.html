@@ -10,22 +10,19 @@
 
 <div id="searchDiv">
     <form id="searchForm" action="" method="post">
-        姓名<input class="easyui-textbox" name="name"/>
-        性别<select class="easyui-combobox" name="gender" style="width:120px">
-        <option value="">请选择性别</option>
-        <option value="1">男</option>
-        <option value="0">女</option>
-    </select>
-        生日<input class="easyui-datebox" name="birthdayStr"/>
-        身份证号码<input class="easyui-textbox" name="idCard"/>
+        身份证号码<input class="easyui-textbox" name="idCard" id="searchIdCard" style="width:200px"/>
         <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询客户</a>
     </form>
 </div>
 
-<div id="mydialog" class="easyui-dialog" title="添加客户" style="width:300px;display:none;" draggable="false"
+<div id="mydialog" class="easyui-dialog" title="添加/修改客户" style="width:300px;display:none;" draggable="false"
      data-options="modal:true,closed:true">
     <form id="myForm" action="" method="post">
-        <span  style="display:none;" ><input name="id" class="easyui-textbox" data-options="hidden:true" /></span>
+        <span  style="display:none;" >
+            <input name="id" class="easyui-textbox"/>
+            <!--修改功能使用idCardOld字段，添加不使用该字段-->
+            <input name="idCardOld" class="easyui-textbox"/>
+        </span>
         <table>
             <tr>
                 <td>姓名</td>
@@ -46,7 +43,7 @@
             </tr>
             <tr>
                 <td>身份证号码</td>
-                <td><input type="text" name="idCard" class="easyui-textbox" data-options="required:true,validType:'length[18,21]'" style="width:200px"/></td>
+                <td><input type="text" name="idCard" id="dialogIdCard" class="easyui-textbox" data-options="required:true,validType:'idCard'" style="width:200px"/></td>
             </tr>
             <tr align="center">
                 <td colspan="2">
@@ -58,6 +55,7 @@
     </form>
 </div>
 
+<div th:replace="opera::productDiv"></div>
 
 </body>
 <script type="text/javascript">
@@ -90,54 +88,28 @@
                 flag = "update";//添加/修改标志位
                 var arr = $("#dg").datagrid('getSelections');
                 if(arr.length != 1){
-                    $.messager.show({
-                        title : '提示信息',
-                        msg:'只能选择一行记录修改'
-                    });
+                    messger_show_center('提示信息','只能选择一行记录修改');
                 }else{
                     $("#mydialog").dialog({
                         id:'mydialog',
                         title : '修改客户'
                     });
                     $("#mydialog").dialog("open");
-                    ajaxModifyOpen(arr[0].id,'myForm','mydialog','post','/crm/getById');
-                }
-            }
-        },{
-            text:'删除客户',
-            iconCls : 'icon-remove',
-            handler : function(){
-                var arr = $("#dg").datagrid("getSelections");
-                var len = arr.length;
-                if(len <= 0){
-                    $.messager.show({
-                        title : '提示信息',
-                        msg: '至少选择一行记录进行删除！'
-                    });
-                }  else{
-                    $.messager.confirm('提示信息','确认删除' + len + '条数据？',function (r) {
-                        if(r){
-                            /* var ids = "";
-                             for(var i=0; i<arr.length; i++){
-                                 ids += arr[i].id + ",";
-                             }
-                             ids = ids.substring(0,ids.length-1);*/
-                            var idArr = [];
-                            /*SpringBoot 小于号要求*/
-                            for(var i = 0; i < len; i++) {
-                                idArr.push(arr[i].id);
-                            }
-                            var params = {"idArr" : idArr};
-                            var ps = $.param(params, true);//将参数序列化后再传到后台，要不然后台始终是接收不到我们传递的数据的
-                            postDelete(ps,'/crm/delete','dg');
-                        }
-                    });
+                    var dataParams =  {"idCard":arr[0].idCard};
+                    ajaxModifyOpen(dataParams,'myForm','mydialog','post','/crm/getByIdCard');
                 }
             }
         }],
         columns : [[
             {field:'ck',checkbox:true,width:50},
             {field:'id',title:'编号',width:50},
+            {field:'operate',title:'操作',width:100,
+                formatter: function(value,row,index){
+                    var str = "<a href='javascript:void(0)' id='investBtn' onclick='invest(" + row.id + ")'></a>";
+                    str += "<a href='javascript:void(0)' id='assetBtn' onclick='asset(" + row.id + ")'></a>";
+                    return str;
+                }
+            },
             {field:'name',title:'姓名',width:100},
             {field:'gender',title:'性别',width:100,
                 formatter:function(value){
@@ -163,6 +135,10 @@
             },
             {field:'reviser',title:'修改人',width:100}
         ]],
+        onLoadSuccess : function(data){
+            $("#investBtn").linkbutton({'text':'投',plain:true,iconCls:'icon-add'});//产品列表
+            $("#assetBtn").linkbutton({'text':'资',plain:true,iconCls:'icon-add'});//投资列表
+        },
         loadMsg : '数据正在加载，请耐心等待……',
         pagination : true,
         pageList:[1,2,5,10,20,50]
@@ -173,6 +149,7 @@
 
     function doSearch(){
         $("#dg").datagrid('load',datagridForm($("#searchForm")));
+        $("#dg").datagrid('clearSelections');
     }
 
     function datagridForm(form){
@@ -183,25 +160,23 @@
         return obj;
     }
 
-    //--------------------添加功能表单校验--------------------
-    //添加/修改窗口
+    //--------------------添加/修改提交表单--------------------
     $("#btn1").click(function(){
         var formObj = $("#myForm");
         if(formObj.form("validate")){
             var url = flag == "add" ? "/crm/add" : "/crm/update";
             ajaxAddUpdate('myForm','mydialog','dg','post',url);
+            //添加/修改后，使用身份证号查询数据
+            $("#searchIdCard").textbox('setValue',$("#dialogIdCard").textbox('getValue'));
+            doSearch();
         }else{
-            $.message.show({
-                title:"提示信息",
-                msg:"数据验证不通过，不能保存"
-            });
+            messger_show_center('提示信息','数据验证不通过，不能保存');
         }
     });
     //关闭窗口
     $("#btn2").click(function(){
         $("#mydialog").dialog("close");
     });
-
 
 </script>
 </html>

@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @description:
+ * @description: 客户信息
  * @author: yx
  * @date: 2020/03/26/13:52
  */

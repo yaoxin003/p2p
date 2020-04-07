@@ -91,10 +91,8 @@
                 flag = "update";//添加/修改标志位
                 var arr = $("#dg").datagrid('getSelections');
                 if(arr.length != 1){
-                    $.messager.show({
-                        title : '提示信息',
-                        msg:'只能选择一行记录修改'
-                    });
+
+                    messager_show_center('提示信息','只能选择一行记录修改');
                 }else{
                     $("#mydialog").dialog({
                         id:'mydialog',
@@ -112,10 +110,7 @@
                 var arr = $("#dg").datagrid("getSelections");
                 var len = arr.length;
                 if(len <= 0){
-                    $.messager.show({
-                        title : '提示信息',
-                        msg: '至少选择一行记录进行删除！'
-                    });
+                    messager_show_center('提示信息','至少选择一行记录进行删除！');
                 }  else{
                     $.messager.confirm('提示信息','确认删除' + len + '条数据？',function (r) {
                         if(r){
@@ -190,10 +185,7 @@
             var url = flag == "add" ? "/crm/add" : "/crm/update";
             ajaxAddUpdate('myForm','mydialog','dg','post',url);
         }else{
-            $.message.show({
-                title:"提示信息",
-                msg:"数据验证不通过，不能保存"
-            });
+            messager_show_center('提示信息','数据验证不通过，不能保存！');
         }
     });
     //关闭窗口

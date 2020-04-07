@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="common/head">
+    <title>测试</title>
+</head>
+<body>
+
+<div>
+    <div class="easyui-dialog" data-options="modal:true,closed:true" draggable="false" id="productDialog" title="投资产品列表">
+        <table id="productTable" class="easyui-datagrid" style="width:300px"
+               data-options="fitColumns:true,singleSelect:true,showHeader:false,onLoadSuccess: onLoadSuccess">
+            <thead>
+            <tr>
+                <th data-options="field:'code',width:100,align:'center'">杂项1</th>
+                <th data-options="field:'code2',width:100,align:'center'">杂项2</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>季度投</td><td>季度投</td>
+            </tr>
+            <tr>
+                <td>起投金额</td><td>5000</td>
+            </tr>
+            <tr>
+                <td>参考回报</td><td>5%</td>
+            </tr>
+            <tr>
+                <td>期限</td><td>3个月</td>
+            </tr>
+            <tr>
+                <td><a id="lendBtn1" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">立即出借</a></td>
+                <td>立即出借</td>
+            </tr>
+            <tr>
+                <td>双季投</td><td>双季投</td>
+            </tr>
+            <tr>
+                <td>起投金额</td><td>10000</td>
+            </tr>
+            <tr>
+                <td>参考回报</td><td>6%</td>
+            </tr>
+            <tr>
+                <td>期限</td><td>6个月</td>
+            </tr>
+            <tr>
+                <td><a id="lendBtn2" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">立即出借</a></td>
+                <td>立即出借</td>
+            </tr>
+
+            <tr>
+                <td>投资宝</td><td>投资宝</td>
+            </tr>
+            <tr>
+                <td>起投金额</td><td>1000</td>
+            </tr>
+            <tr>
+                <td>参考回报</td><td>8%</td>
+            </tr>
+            <tr>
+                <td>封闭期</td><td>1年</td>
+            </tr>
+            <tr>
+                <td><a id="lendBtn3" href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'">立即出借</a></td>
+                <td>立即出借</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <script type="text/javascript">
+        function onLoadSuccess(data){
+            var merges = [{
+                index: 0,
+                colspan: 2
+            },{
+                index: 4,
+                colspan: 2
+            },{
+                index: 5,
+                colspan: 2
+            },{
+                index: 9,
+                colspan: 2
+            },{
+                index: 10,
+                colspan: 2
+            },{
+                index: 14,
+                colspan: 2
+            }];
+            for(var i=0; i<merges.length; i++){
+                $(this).datagrid('mergeCells',{
+                    index: merges[i].index,
+                    field: 'code',
+                    colspan: merges[i].colspan
+                });
+            }
+        }
+
+        $("#productTable").datagrid({
+            rowStyler: function(index,row) {
+                if (index == 0 || index == 5 || index == 10) {
+                    return 'background-color:#6293BB;color:#fff;font-weight:bold;';
+                }
+            }
+        });
+    </script>
+
+</div>
+</body>
+</html>

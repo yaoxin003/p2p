@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>操作页面</title>
+</head>
+<body>
+
+<div th:fragment="productDiv">
+    <div id="productDialog" class="easyui-dialog" title="投资产品列表"
+         draggable="false" data-options="modal:true,closed:true" style="display:none;">
+        <table id="productTable" style="width:300px">
+        </table>
+    </div>
+
+    <script type="text/javascript">
+
+        $("#productTable").datalist({
+            lines : true,
+            groupField: 'group',
+            url : "/invest/getAllInvestProductJSON"
+        });
+
+
+        //投资按钮
+        function invest(id){
+            $("#productDialog").dialog("open");
+            $("#productDialog").window('center');//使Dialog居中显示
+
+        }
+
+       function openLend(productId1){
+            alert("haha=" + productId1);
+       }
+
+    </script>
+</div>
+</body>
+</html>

@@ -125,5 +125,11 @@ public class CrmController {
             return Result.error();
         }
     }
+
+    @RequestMapping("test")
+    public String test(){
+        return "test";
+    }
+
 }
 

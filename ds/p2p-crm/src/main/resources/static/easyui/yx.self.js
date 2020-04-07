@@ -44,10 +44,7 @@ function ajaxAddUpdate(formId,dialogId,dgId,type,url){
             //2.刷新datagrid
             $("#"+dgId).datagrid('reload');
             //3.提示信息
-            $.messager.show({
-                title:result.status,
-                msg:result.message
-            });
+            messger_show_center(result.status,result.message);
         }
     });
 }
@@ -75,10 +72,7 @@ function postDelete(ps,url,dgId){
         //1.刷新数据
         $("#"+dgId).datagrid("reload");
         //2.提示信息
-        $.messager.show({
-            title:"提示信息",
-            msg : "操作成功！"
-        });
+        messger_show_center('提示信息','操作成功！');
     });
 }
 /*--------------------表单验证--------------------*/
@@ -92,10 +86,24 @@ $.extend($.fn.validatebox.defaults.rules,{
         message : '身份证号码格式错误'
     }
 });
+
 function idCardValidate(value){
     var reg = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/;
     if(!reg.test(value)){
         return false;
     }
     return true;
+}
+
+//提示信息（居中显示）
+function messager_show_center(title,msg){
+    $.messager.show({
+        title : title,
+        msg: msg,
+        showType:'fade',
+        style:{
+            right:'',
+            bottom:''
+        }
+    });
 }
