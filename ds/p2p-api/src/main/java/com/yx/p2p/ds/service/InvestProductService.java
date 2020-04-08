@@ -14,4 +14,6 @@ public interface InvestProductService {
     public List<InvestProduct> getAllInvestProductList();
 
     public String getAllInvestProductJSON();
+
+    public InvestProduct getInvestProductById(Integer investProductId);
 }

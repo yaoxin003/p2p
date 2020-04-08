@@ -32,4 +32,11 @@ public class InvestController {
         logger.debug("【allInvestProductJSON=】" + allInvestProductJSON);
         return allInvestProductJSON;
     }
+
+    @RequestMapping("getInvestProductById")
+    @ResponseBody
+    public InvestProduct getInvestProductById(Integer investProductId){
+        InvestProduct investProduct = investProductServer.getInvestProductById(investProductId);
+        return investProduct;
+    }
 }

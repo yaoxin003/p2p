@@ -52,13 +52,25 @@ public class InvestProductServiceImpl implements InvestProductService {
             map3.put("group",investProduct.getName());
             mapList.add(map3);
             Map<String,String> map4 = new TreeMap<>();
-            map4.put("text","<button iconCls='icon-add' class='easyui-linkbutton' onclick='openLend("+ investProduct.getId() + ")'>立即出借</button>");
+            StringBuffer linkButtonBuffer = new StringBuffer("");
+            linkButtonBuffer.append("<button iconCls='icon-add' class='easyui-linkbutton' onclick=openLend("+ investProduct.getId());
+            linkButtonBuffer.append(",'" + investProduct.getName() + "'");
+            linkButtonBuffer.append("," + investProduct.getYearIrr());
+            linkButtonBuffer.append("," + investProduct.getInvestType());
+            linkButtonBuffer.append("," + investProduct.getDayCount());
+            linkButtonBuffer.append(")>立即出借</button>");
+            map4.put("text",linkButtonBuffer.toString());
             map4.put("group",investProduct.getName());
             mapList.add(map4);
         }
         String allInvestProductJSON = JSON.toJSONString(mapList);
         logger.debug("【allInvestProductJSON=】" + allInvestProductJSON);
         return allInvestProductJSON;
+    }
+
+
+    public InvestProduct getInvestProductById(Integer investProductId){
+        return investProductMapper.selectByPrimaryKey(investProductId);
     }
 
 }

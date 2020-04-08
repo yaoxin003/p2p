@@ -6,30 +6,111 @@
 <body>
 
 <div th:fragment="productDiv">
-    <div id="productDialog" class="easyui-dialog" title="投资产品列表"
+    <div id="productDialog" class="easyui-dialog" title="【投资产品列表】"
          draggable="false" data-options="modal:true,closed:true" style="display:none;">
+        <span  style="display:none;" >
+        <input id="customerId" class="easyui-textbox" style="width:50px"/>
+        </span>
         <table id="productTable" style="width:300px">
         </table>
     </div>
 
-    <script type="text/javascript">
+    <div id="planPayDialog" class="easyui-dialog" title="【准备支付】"
+         draggable="false" data-options="modal:true,closed:true" style="display:none;">
+        <form method="post" id="planPayForm">
+            <table id="planPayTable" style="width:300px">
+                  <span  style="display:none;" >
 
+                    <input name="id" class="easyui-textbox" style="width:50px"/>
+                     <input name="investType" id="investType" class="easyui-textbox" style="width:50px"/>
+                      <input name="dayCount" id="dayCount" class="easyui-textbox" style="width:50px"/>
+                </span>
+                <tr>
+                    <td colspan="2" align="right">
+                        <a href="javascript:void(0)" class="easyui-linkbutton" onclick="backProductDialog()">返回【投资产品列表】</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>产品：<input type="text" name="name" class="easyui-textbox"  style="width:100px" data-options="readonly:true"/></td>
+                    <td>年化收益率：<input type="text" name="yearIrr" id="yearIrr" class="easyui-textbox" style="width:50px" data-options="readonly:true"/></td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        投资金额：￥<input type="text" id="investAmt" name="investAmt" class="easyui-numberbox"
+                                     data-options="required:true,min:0,precision:2,decimalSeparator:'.',validType:'calculateProfit'"
+                                     style="width:200px"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        参考回报：￥<input type="text" id="profit" name="profit" class="easyui-textbox" style="width:200px" data-options="readonly:true"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        选择支付银行：
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left">
+                        银行卡列表：
+                    </td>
+                    <td align="right">
+                        <a class="easyui-linkbutton">添加银行卡</a>
+                    </td>
+                </tr>
+            </table>
+            <table id="banksTable">
+            </table>
+            <div style="text-align:center;padding:5px">
+                    <a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitLend()">立即出借</a>
+            </div>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        //投资产品列表
         $("#productTable").datalist({
             lines : true,
             groupField: 'group',
             url : "/invest/getAllInvestProductJSON"
         });
 
+        //调用方法openLend写在java代码中，InvestController.getAllInvestProductJSON
+       function openLend(productId){
+           //关闭投资产品列表
+           $("#productDialog").dialog("close");
+           var dataParams =  {"investProductId":productId};
+           ajaxModifyOpen(dataParams,'planPayForm','planPayDialog','post','/invest/getInvestProductById');
+           $("#planPayDialog").dialog("open");
+           $("#planPayDialog").window('center');//使Dialog居中显示
+       }
 
-        //投资按钮
-        function invest(id){
-            $("#productDialog").dialog("open");
-            $("#productDialog").window('center');//使Dialog居中显示
+        //validatebox 自定义校验
+        $.extend($.fn.validatebox.defaults.rules,{
+            //计算参考回报
+            calculateProfit:{
+                validator : function(value) {
+                    //计算【准备支付】页面“参考回报”
+                    var investAmtNum = new Number(value).toFixed(2);
+                    var yearIrr = $("#yearIrr").textbox("getValue");
+                    var yearIrrNum = parseFloat(yearIrr);
+                    var dayCount = $("#dayCount").textbox("getValue");
+                    var dayCountNum = new Number(dayCount);
+                    var dayAmtNum = new Number((investAmtNum *yearIrrNum/365)).toFixed(2);
+                    var resultVal = new Number(dayAmtNum * dayCountNum).toFixed(2);
+                    $("#profit").textbox("setValue",resultVal);
+                    return true;
+                },
+                message : '根据“投资金额”计算“参考回报”'
+            }
+        });  
 
-        }
-
-       function openLend(productId1){
-            alert("haha=" + productId1);
+       //返回【投资产品列表】页面
+       function backProductDialog(){
+           $("#planPayDialog").dialog("close");
+           $("#productDialog").dialog("open");
+           $("#productDialog").window('center');//使Dialog居中显示
        }
 
     </script>

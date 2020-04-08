@@ -10,7 +10,7 @@
 
 <div id="searchDiv">
     <form id="searchForm" action="" method="post">
-        身份证号码<input class="easyui-textbox" name="idCard" id="searchIdCard" style="width:200px"/>
+        身份证号码<input class="easyui-textbox" name="idCard" id="searchIdCard" style="width:200px;"/>
         <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询客户</a>
     </form>
 </div>
@@ -177,6 +177,13 @@
     $("#btn2").click(function(){
         $("#mydialog").dialog("close");
     });
+
+    //客户列表“投”按钮
+    function invest(customerId){
+        $("#customerId").textbox("setValue",customerId)
+        $("#productDialog").dialog("open");
+        $("#productDialog").window('center');//使Dialog居中显示
+    }
 
 </script>
 </html>

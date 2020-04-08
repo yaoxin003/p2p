@@ -43,8 +43,8 @@ create table p2p_invest_product (
   begin_amt decimal(10,2) DEFAULT NULL COMMENT '起投金额',
   year_irr decimal(4,2) DEFAULT NULL COMMENT '年化收益率',
   product_type varchar(4) NOT NULL DEFAULT '' COMMENT '产品类型：1-季度投,2-双季投,3-投资宝',
-  invest_type varchar(4) NOT NULL DEFAULT '' COMMENT '投资类型:1-固定期限,2-非固定期限',
-  day_count int(4) DEFAULT NULL COMMENT '投资天数(投资类型:1-固定期限)/封闭期(投资类型:2-非固定期限)',
+  invest_type varchar(4) NOT NULL DEFAULT '' COMMENT '投资类型:1-固定期限,2-无固定期限',
+  day_count int(4) DEFAULT NULL COMMENT '投资天数(投资类型:1-固定期限)/封闭期(投资类型:2-无固定期限)',
   create_time datetime NOT NULL COMMENT '创建时间',
   update_time datetime NOT NULL COMMENT '修改时间',
   creator int(16) NOT NULL COMMENT '创建人',
@@ -54,4 +54,4 @@ create table p2p_invest_product (
 
 INSERT INTO p2p_invest_product VALUES (1, '季度投', 5000.00, 0.05, '1', '1', 90, '2020-4-6 17:21:20', '2020-4-6 17:21:22', 11, 11);
 INSERT INTO p2p_invest_product VALUES (2, '双季投', 8000.00, 0.06, '2', '1', 180, '2020-4-6 17:22:16', '2020-4-6 17:22:20', 11, 11);
-INSERT INTO p2p_invest_product VALUES (3, '投资宝', 10000.00, 0.08, '3', '1', 365, '2020-4-6 17:23:00', '2020-4-6 17:23:08', 11, 11);
+INSERT INTO p2p_invest_product VALUES (3, '投资宝', 10000.00, 0.08, '3', '2', 365, '2020-4-6 17:23:00', '2020-4-6 17:23:08', 11, 11);

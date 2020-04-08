@@ -28,4 +28,8 @@ public class InvestProductServerImpl implements InvestProductServer {
         return investProductService.getAllInvestProductJSON();
     }
 
+    public InvestProduct getInvestProductById(Integer investProductId){
+        return investProductService.getInvestProductById(investProductId);
+    }
+
 }
