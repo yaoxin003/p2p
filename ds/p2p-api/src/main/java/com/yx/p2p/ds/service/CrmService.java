@@ -1,8 +1,7 @@
 package com.yx.p2p.ds.service;
 
-import com.yx.p2p.ds.model.Crm;
-import com.yx.p2p.ds.vo.CrmVo;
-
+import com.yx.p2p.ds.model.Customer;
+import com.yx.p2p.ds.vo.CustomerVo;
 import java.util.List;
 
 /**
@@ -12,22 +11,22 @@ import java.util.List;
  */
 public interface CrmService {
 
-    public Integer queryCrmCount(CrmVo crmVo);
+    public Integer queryCustomerCount(CustomerVo customerVo);
 
-    public List<Crm> getCrmListByPagination(CrmVo crmVo, Integer currentPage, Integer pageSize);
+    public List<Customer> getCustomerListByPagination(CustomerVo customerVo, Integer currentPage, Integer pageSize);
 
-    public Integer add(CrmVo crmVo);
+    public Integer add(CustomerVo customerVo);
 
-    public CrmVo getCrmVoById(Integer id);
+    public CustomerVo getCustomerVoById(Integer id);
 
-    public Integer update(CrmVo crmVo);
+    public Integer update(CustomerVo customerVo);
 
     public Integer deleteBatch(Integer[] idArr,String[] idCardArr);
 
-    public List<Crm> getCrmListByIdCardInCache(CrmVo crmVo);
+    public List<Customer> getCustomerListByIdCardInCache(CustomerVo customerVo);
 
-    public void addCache(List<Crm> crmList);
+    public void addCache(List<Customer> customerList);
 
-    public Crm getCrmByIdInDB(Integer id);
+    public Customer getCustomerByIdInDB(Integer id);
 
 }

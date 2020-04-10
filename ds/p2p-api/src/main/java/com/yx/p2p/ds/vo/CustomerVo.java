@@ -1,20 +1,17 @@
 package com.yx.p2p.ds.vo;
 
-import com.yx.p2p.ds.model.Crm;
-
-import java.io.Serializable;
+import com.yx.p2p.ds.model.Customer;
 
 /**
- * @description:
+ * @description:前台页面使用
  * @author: yx
- * @date: 2020/03/28/13:15
+ * @date: 2020/04/10/9:08
  */
+public class CustomerVo extends Customer{
 
-public class CrmVo extends Crm implements Serializable{//CrmVo作为Dubbo服务参数必须实现Serializable
+    private String birthdayStr;
 
-   private String birthdayStr;
-
-   private String idCardOld;//修改功能使用idCardOld字段，添加不使用该字段
+    private String idCardOld;//修改功能使用idCardOld字段，添加不使用该字段
 
     public String getBirthdayStr() {
         return birthdayStr;
@@ -34,7 +31,7 @@ public class CrmVo extends Crm implements Serializable{//CrmVo作为Dubbo服务�
 
     @Override
     public String toString() {
-        return super.toString() + "CrmVo{" +
+        return super.toString() + "CustomerVo{" +
                 "birthdayStr='" + birthdayStr + '\'' +
                 ", idCardOld='" + idCardOld + '\'' +
                 '}';

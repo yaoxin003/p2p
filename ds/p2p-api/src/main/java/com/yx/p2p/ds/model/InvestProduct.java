@@ -1,5 +1,7 @@
 package com.yx.p2p.ds.model;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
@@ -13,6 +15,7 @@ import java.math.BigDecimal;
 @Table(name="p2p_invest_product")
 public class InvestProduct extends BaseModel implements Serializable {
     @Id//使用tkmybatis.selectByPrimaryKey方法时需要该字段，否则会将所有字段都当做where条件
+    @GeneratedValue(strategy = GenerationType.IDENTITY)//使用该注解，可以获得插入数据库的id
     private Integer id;
     private String name; //理财产品名称
     private BigDecimal beginAmt;//起投金额

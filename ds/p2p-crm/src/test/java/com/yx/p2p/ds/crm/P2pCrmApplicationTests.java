@@ -1,6 +1,6 @@
 package com.yx.p2p.ds.crm;
 
-import com.yx.p2p.ds.model.Crm;
+import com.yx.p2p.ds.model.Customer;
 import com.yx.p2p.ds.service.CrmService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +17,7 @@ public class P2pCrmApplicationTests {
 
 	@Test
 	public void testGetCrmByIdInDB() {
-		Crm crmByIdInDB = crmService.getCrmByIdInDB(38);
+		Customer crmByIdInDB = crmService.getCustomerByIdInDB(38);
 	}
 
 

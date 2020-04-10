@@ -2,9 +2,9 @@ package com.yx.p2p.ds.crm.controller;
 
 import com.yx.p2p.ds.easyui.Pagination;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.model.Crm;
+import com.yx.p2p.ds.model.Customer;
 import com.yx.p2p.ds.service.CrmService;
-import com.yx.p2p.ds.vo.CrmVo;
+import com.yx.p2p.ds.vo.CustomerVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,20 +37,20 @@ public class CrmController {
 
     @RequestMapping("list")
     @ResponseBody
-    public Map<String,Object> list(Integer page, Integer rows, CrmVo crmVo){
-        logger.debug("【page=" + page + ",rows=】" + rows + "【,crmVo=】" + crmVo);
-        List<Crm> crmList = crmService.getCrmListByPagination(crmVo, page, rows);
-        int total = crmService.queryCrmCount(crmVo);
-        return Pagination.buildMap(total,crmList);
+    public Map<String,Object> list(Integer page, Integer rows, CustomerVo customerVo){
+        logger.debug("【page=" + page + ",rows=】" + rows + "【,customerVo=】" + customerVo);
+        List<Customer> customerList = crmService.getCustomerListByPagination(customerVo, page, rows);
+        int total = crmService.queryCustomerCount(customerVo);
+        return Pagination.buildMap(total,customerList);
     }
 
     @RequestMapping("add")
     @ResponseBody
-    public Result add(CrmVo crmVo) throws Exception{
+    public Result add(CustomerVo customerVo) throws Exception{
         Result result = null;
-        logger.debug("【crmVo=】" + crmVo);
+        logger.debug("【customerVo=】" + customerVo);
         try{
-            crmService.add(crmVo);
+            crmService.add(customerVo);
             return Result.success();
         }catch (Exception e){
             logger.error(e.toString(),e);
@@ -60,19 +60,19 @@ public class CrmController {
 
     @RequestMapping("getById")
     @ResponseBody
-    public CrmVo getById(Integer id){
+    public CustomerVo getById(Integer id){
         logger.debug("【id=】" + id);
-        CrmVo crmVo = crmService.getCrmVoById(id);
-        return crmVo;
+        CustomerVo customerVo = crmService.getCustomerVoById(id);
+        return customerVo;
     }
 
     @RequestMapping("update")
     @ResponseBody
-    public Result update(CrmVo crmVo) throws Exception{
+    public Result update(CustomerVo customerVo) throws Exception{
         Result result = Result.error();
-        logger.debug("【crmVo=】" + crmVo);
+        logger.debug("【customerVo=】" + customerVo);
         try{
-            int count = crmService.update(crmVo);
+            int count = crmService.update(customerVo);
             if(count > 0){
                 result = Result.success();
             }

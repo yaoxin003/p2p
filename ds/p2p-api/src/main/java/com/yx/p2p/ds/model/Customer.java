@@ -1,18 +1,21 @@
 package com.yx.p2p.ds.model;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @description: 客户信息
+ * @description:客户
  * @author: yx
- * @date: 2020/03/26/13:52
+ * @date: 2020/04/10/9:03
  */
-@Table(name="p2p_crm")
-public class Crm extends BaseModel implements Serializable {
+@Table(name="p2p_customer")
+public class Customer extends BaseModel implements Serializable {
     @Id//使用tkmybatis.selectByPrimaryKey方法时需要该字段，否则会将所有字段都当做where条件
+    @GeneratedValue(strategy = GenerationType.IDENTITY)//使用该注解，可以获得插入数据库的id
     private Integer id;
     private String name;//姓名
     private Short gender;//性别
@@ -61,7 +64,7 @@ public class Crm extends BaseModel implements Serializable {
 
     @Override
     public String toString() {
-        return super.toString()+"Crm{" +
+        return super.toString()+"Customer{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", gender=" + gender +
