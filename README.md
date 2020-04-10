@@ -47,7 +47,7 @@ p2p-invest：投资管理，端口：9084
 p2p-match：撮合管理，端口：9085
 p2p-borrow-sale：借款销售管理，端口：9086
 p2p-borrow：借款管理，端口：9087
-p2p-pay：支付管理，端口：9088
+p2p-payment：支付管理，端口：9088
 p2p-account：账户管理，端口：9089
 
 

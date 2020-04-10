@@ -8,58 +8,66 @@
 <div th:fragment="productDiv">
     <div id="productDialog" class="easyui-dialog" title="【投资产品列表】"
          draggable="false" data-options="modal:true,closed:true" style="display:none;">
-        <span  style="display:none;" >
-        <input id="customerId" class="easyui-textbox" style="width:50px"/>
-        </span>
-        <table id="productTable" style="width:300px">
+        <table id="productTable" style="width:300px" cellspacing="5">
         </table>
     </div>
 
     <div id="planPayDialog" class="easyui-dialog" title="【准备支付】"
          draggable="false" data-options="modal:true,closed:true" style="display:none;">
-        <form method="post" id="planPayForm">
-            <table id="planPayTable" style="width:300px">
-                  <span  style="display:none;" >
-
-                    <input name="id" class="easyui-textbox" style="width:50px"/>
-                     <input name="investType" id="investType" class="easyui-textbox" style="width:50px"/>
+        <!--<span  style="display:none;" >-->
+            <!--银行卡列表使用customerId-->
+            <input id="customerId" class="easyui-textbox" style="width:50px"/>
+        <!-- </span>-->
+         <form method="post" id="planPayForm">
+             <table id="planPayTable" style="width:600px" cellspacing="10">
+                 <!--<span  style="display:none;" >-->
+                      <input name="id" class="easyui-textbox" style="width:50px"/>
+                      <input name="investType" id="investType" class="easyui-textbox" style="width:50px"/>
                       <input name="dayCount" id="dayCount" class="easyui-textbox" style="width:50px"/>
-                </span>
-                <tr>
-                    <td colspan="2" align="right">
-                        <a href="javascript:void(0)" class="easyui-linkbutton" onclick="backProductDialog()">返回【投资产品列表】</a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>产品：<input type="text" name="name" class="easyui-textbox"  style="width:100px" data-options="readonly:true"/></td>
-                    <td>年化收益率：<input type="text" name="yearIrr" id="yearIrr" class="easyui-textbox" style="width:50px" data-options="readonly:true"/></td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        投资金额：￥<input type="text" id="investAmt" name="investAmt" class="easyui-numberbox"
-                                     data-options="required:true,min:0,precision:2,decimalSeparator:'.',validType:'calculateProfit'"
-                                     style="width:200px"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        参考回报：￥<input type="text" id="profit" name="profit" class="easyui-textbox" style="width:200px" data-options="readonly:true"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        选择支付银行：
-                    </td>
-                </tr>
-                <tr>
-                    <td align="left">
-                        银行卡列表：
-                    </td>
-                    <td align="right">
-                        <a class="easyui-linkbutton">添加银行卡</a>
-                    </td>
-                </tr>
-            </table>
+                <!--提交表单时使用该字段，保存选中使用具体的银行卡-->
+                      <input name="customerBankId" id="customerBankId" class="easyui-textbox" style="width:50px"/>
+                 <!--</span>-->
+                 <tr>
+                     <td colspan="2" align="right">
+                         <a href="javascript:void(0)" class="easyui-linkbutton" onclick="backProductDialog()">返回【投资产品列表】</a>
+                     </td>
+                 </tr>
+                 <tr>
+                     <td colspan="2">&nbsp;</td>
+                 </tr>
+                 <tr>
+                     <td>产品：<input type="text" name="name" class="easyui-textbox"  style="width:100px" data-options="readonly:true"/></td>
+                     <td>年化收益率：<input type="text" name="yearIrr" id="yearIrr" class="easyui-textbox" style="width:50px"
+                                      data-options="readonly:true"/></td>
+                 </tr>
+                 <tr>
+                     <td colspan="2">
+                         投资金额：￥<input type="text" id="investAmt" name="investAmt" class="easyui-numberbox"
+                                      data-options="required:true,min:0,precision:2,decimalSeparator:'.',validType:'calculateProfit'"
+                                      style="width:200px"/>
+                     </td>
+                 </tr>
+                 <tr>
+                     <td colspan="2">
+                         参考回报：￥<input type="text" id="profit" name="profit" class="easyui-textbox"
+                                      style="width:200px" data-options="readonly:true"/>
+                     </td>
+                 </tr>
+                 <tr>
+                     <td colspan="2">
+                         选择支付银行：
+                     </td>
+                 </tr>
+                 <tr>
+                     <td align="left">
+                         银行卡列表：
+                     </td>
+                     <td align="right">
+                         <a class="easyui-linkbutton" onclick="openAddBank()">添加银行卡</a>
+                     </td>
+                 </tr>
+             </table>
+             <!--银行卡列表-->
             <table id="banksTable">
             </table>
             <div style="text-align:center;padding:5px">
@@ -68,52 +76,188 @@
         </form>
     </div>
 
-    <script type="text/javascript">
-        //投资产品列表
-        $("#productTable").datalist({
-            lines : true,
-            groupField: 'group',
-            url : "/invest/getAllInvestProductJSON"
-        });
+    <!--打开添加银行页面-->
+    <div id="openAddBankDialog" class="easyui-dialog"
+         draggable="false" data-options="modal:true,closed:true" style="display:none;">
+        <form method="post" id="addBankForm">
+            <!-- <span  style="display:none;" >-->
+            <!--银行卡列表使用customerId-->
+                <input id="oCustomerId" name="customerId" class="easyui-textbox" style="width:50px"/>
+            <!-- </span>-->
+             <table cellspacing="20">
+                 <tr>
+                     <td>姓名：</td>
+                     <td><input type="text" id="crmName" name="crmName" class="easyui-textbox" style="width:150px"
+                                data-options="readonly:true"/></td>
+                 </tr>
+                 <tr>
+                     <td>身份证号码：</td>
+                     <td><input type="text" id="crmIdCard" name="crmIdCard" class="easyui-textbox" style="width:150px"
+                          data-options="readonly:true"/></td>
+                 </tr>
+                 <tr>
+                     <td>开户银行：</td>
+                     <td><input class="easyui-combobox" name="bankCode" style="width:150px"
+                                data-options="required:true,url:'/payment/getAllBaseBankList',textField:'name',valueField:'bankCode',method:'get',"/></td>
+                 </tr>
+                 <tr>
+                     <td>账户号码：</td>
+                     <td><input type="text" name="bankAccount" id="bankAccount" class="easyui-numberbox"
+                                data-options="required:true" style="width:150px"/></td>
+                 </tr>
+                 <tr>
+                     <td>绑定手机号：</td>
+                     <td><input type="text" name="phone" id="phone" class="easyui-numberbox"
+                                data-options="required:true,validType:length[11,11]" style="width:150px"/></td>
+                 </tr>
+                 <tr>
+                     <td colspan="2" align="center">
+                         <a href="javascript:void(0)" class="easyui-linkbutton" onclick="addBank()">添加银行</a>
+                     </td>
+                 </tr>
+             </table>
+         </form>
 
-        //调用方法openLend写在java代码中，InvestController.getAllInvestProductJSON
-       function openLend(productId){
-           //关闭投资产品列表
-           $("#productDialog").dialog("close");
-           var dataParams =  {"investProductId":productId};
-           ajaxModifyOpen(dataParams,'planPayForm','planPayDialog','post','/invest/getInvestProductById');
-           $("#planPayDialog").dialog("open");
-           $("#planPayDialog").window('center');//使Dialog居中显示
-       }
+     </div>
 
-        //validatebox 自定义校验
-        $.extend($.fn.validatebox.defaults.rules,{
-            //计算参考回报
-            calculateProfit:{
-                validator : function(value) {
-                    //计算【准备支付】页面“参考回报”
-                    var investAmtNum = new Number(value).toFixed(2);
-                    var yearIrr = $("#yearIrr").textbox("getValue");
-                    var yearIrrNum = parseFloat(yearIrr);
-                    var dayCount = $("#dayCount").textbox("getValue");
-                    var dayCountNum = new Number(dayCount);
-                    var dayAmtNum = new Number((investAmtNum *yearIrrNum/365)).toFixed(2);
-                    var resultVal = new Number(dayAmtNum * dayCountNum).toFixed(2);
-                    $("#profit").textbox("setValue",resultVal);
-                    return true;
-                },
-                message : '根据“投资金额”计算“参考回报”'
-            }
-        });  
+     <script type="text/javascript">
+         //投资产品列表
+         $("#productTable").datalist({
+             lines : true,
+             groupField: 'group',
+             url : "/invest/getAllInvestProductJSON"
+         });
 
-       //返回【投资产品列表】页面
-       function backProductDialog(){
-           $("#planPayDialog").dialog("close");
-           $("#productDialog").dialog("open");
-           $("#productDialog").window('center');//使Dialog居中显示
-       }
+         //validatebox 自定义校验
+         $.extend($.fn.validatebox.defaults.rules,{
+             //计算参考回报
+             calculateProfit:{
+                 validator : function(value) {
+                     //计算【准备支付】页面“参考回报”
+                     var investAmtNum = new Number(value).toFixed(2);
+                     var yearIrr = $("#yearIrr").textbox("getValue");
+                     var yearIrrNum = parseFloat(yearIrr);
+                     var dayCount = $("#dayCount").textbox("getValue");
+                     var dayCountNum = new Number(dayCount);
+                     var dayAmtNum = new Number((investAmtNum *yearIrrNum/365)).toFixed(2);
+                     var resultVal = new Number(dayAmtNum * dayCountNum).toFixed(2);
+                     $("#profit").textbox("setValue",resultVal);
+                     return true;
+                 },
+                 message : '根据“投资金额”计算“参考回报”'
+             }
+         });
 
-    </script>
-</div>
-</body>
-</html>
+         //调用方法openLend写在java代码中，InvestController.getAllInvestProductJSON
+        function openLend(productId){
+            //关闭投资产品列表
+            $("#productDialog").dialog("close");
+            var dataParams =  {"investProductId":productId};
+            ajaxModifyOpen(dataParams,'planPayForm','planPayDialog','post','/invest/getInvestProductById');
+            $("#planPayDialog").dialog("open");
+            $("#planPayDialog").window('center');//使Dialog居中显示
+            //银行卡列表
+            getBanks();
+        }
+         //银行卡列表
+         function getBanks(){
+             $("#banksTable").datagrid({
+                 idField : 'id',//有idField保证了翻页选中不丢失
+                 fitColumns:true,
+                 rownumbers:true,
+                 width: 600,
+                 singleSelect:true,
+                 striped:true,//隔行变色
+                 url:'/payment/getCustomerBankListByCustomerId',
+                 queryParams: {
+                     customerId : $("#customerId").textbox("getValue")
+                 },
+                 columns : [[
+                     {field:'ck',checkbox:true,width:50},
+                     {field:'id',title:'编号',width:50},
+                     {field:'name',title:'银行名称',width:150},
+                     {field:'bankAccount',title:'银行账户',width:150},
+                     {field:'phone',title:'绑定手机号',width:150}
+                 ]]
+             });
+         }
+
+        //返回【投资产品列表】页面
+        function backProductDialog(){
+            $("#planPayDialog").dialog("close");
+            $("#productDialog").dialog("open");
+            $("#productDialog").window('center');//使Dialog居中显示
+        }
+
+        //【立即出借】按钮
+         function submitLend(){
+             $("#planPayForm").form('submit',{
+                 url : '/invest/lend',
+                 onSubmit: function(){
+                     var isValid = $(this).form("validate");
+                     if(isValid){
+                         //添加验证是否选中银行功能
+                         var bankArr = $("#banksTable").datagrid('getSelections');
+                         if(bankArr.length != 1){
+                             messger_show_center('提示信息','请选择一条银行卡');
+                             isValid = false;
+                         }else{
+                             $("#customerBankId").textbox("setValue",bankArr[0].id);
+                         }
+                     }
+                     return isValid;
+                 },
+                 success: function () {
+                     $("#planPayDialog").dialog("close");
+                 }
+             });
+         }
+
+        //打开【添加银行】页面
+         function openAddBank(){
+             var customerId = $("#customerId").textbox("getValue");
+             //查询并这是客户姓名和身份证号
+             $.getJSON("/crm/getById?crmId="+customerId,
+                 function(data){
+                     $("#crmName").textbox("setValue",data.name);
+                     $("#crmIdCard").textbox("setValue",data.idCard);
+             });
+             $("#openAddBankDialog").dialog({
+                 title : '【添加银行】',
+                 width: 400,
+                 height: 400,
+                 closed: false,
+                 collapsible: false,
+                 minimizable: false,
+                 maximizable: false,
+                 cache: false,
+                 modal: true
+             });
+             $("#oCustomerId").textbox("setValue",customerId);
+             $("#openAddBankDialog").dialog("open");
+             $("#openAddBankDialog").window('center');//使Dialog居中显示
+         }
+
+         //添加银行
+         function addBank(){
+             $("#addBankForm").form('submit',{
+                 url : '/payment/addCustomerBank',
+                 success: function (data) {
+                     if(data == 1){
+                         messger_show_center('提示信息','添加客户银行卡成功！');
+                     }else{
+                         messger_show_center('错误信息','添加客户银行卡失败！');
+                     }
+                     $(this).form('reset');
+                     //刷新银行卡列表
+                     $("#banksTable").datagrid('clearChecked');
+                     $("#banksTable").datagrid('reload');
+                     $("#openAddBankDialog").dialog("close");
+                 }
+             });
+
+         }
+     </script>
+ </div>
+ </body>
+ </html>

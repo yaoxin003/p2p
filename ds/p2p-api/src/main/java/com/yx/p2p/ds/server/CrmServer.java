@@ -19,5 +19,5 @@ public interface CrmServer{
 
     public Integer update(CrmVo crmVo);
 
-
+    public Crm getCrmById(Integer crmId);
 }

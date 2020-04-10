@@ -14,7 +14,7 @@ import java.util.List;
  * @date: 2020/04/06/18:10
  */
 @Service
-@Component
+@Component//dubbo需要@Component注解，否则无法识别该服务
 public class InvestProductServerImpl implements InvestProductServer {
 
     @Autowired

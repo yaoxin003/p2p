@@ -55,3 +55,60 @@ create table p2p_invest_product (
 INSERT INTO p2p_invest_product VALUES (1, '季度投', 5000.00, 0.05, '1', '1', 90, '2020-4-6 17:21:20', '2020-4-6 17:21:22', 11, 11);
 INSERT INTO p2p_invest_product VALUES (2, '双季投', 8000.00, 0.06, '2', '1', 180, '2020-4-6 17:22:16', '2020-4-6 17:22:20', 11, 11);
 INSERT INTO p2p_invest_product VALUES (3, '投资宝', 10000.00, 0.08, '3', '2', 365, '2020-4-6 17:23:00', '2020-4-6 17:23:08', 11, 11);
+
+create table p2p_invest (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  invest_product_id int(16) NOT NULL COMMENT '投资产品编号',
+  crm_id int(16) NOT NULL COMMENT '客户编号',
+  invest_amt decimal(10,2) DEFAULT NULL COMMENT '投资金额',
+  profit decimal(10,2) DEFAULT NULL COMMENT '收益',
+  start_date date NOT NULL COMMENT '投资开始日期',
+  end_date date NOT NULL COMMENT '投资结束日期',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投资表';
+
+create database p2p_payment default character set utf8 collate utf8_general_ci;
+use p2p_payment;
+create table p2p_payment_base_bank (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  name varchar(64) NOT NULL DEFAULT '' COMMENT '银行名称',
+  bank_code decimal(10,2) DEFAULT NULL COMMENT '银行编号',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='基础银行表';
+
+INSERT INTO p2p_payment_base_bank VALUES (1, '中国银行', 11011.00, '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11);
+INSERT INTO p2p_payment_base_bank VALUES (2, '农业银行', 11021.00, '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11);
+INSERT INTO p2p_payment_base_bank VALUES (3, '工业银行', 11022.00, '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11);
+INSERT INTO p2p_payment_base_bank VALUES (4, '建设银行', 11033.00, '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11);
+INSERT INTO p2p_payment_base_bank VALUES (5, '北京银行', 21201.00, '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11);
+INSERT INTO p2p_payment_base_bank VALUES (6, '招商银行', 12021.00, '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11);
+
+
+create table p2p_payment_customer_bank (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  customer_id int(16) NOT NULL COMMENT '客户编号',
+  bank_code decimal(10,2) DEFAULT NULL COMMENT '银行编号',
+  bank_account varchar(64) NOT NULL DEFAULT '' COMMENT '银行卡号',
+  phone varchar(32) NOT NULL DEFAULT '' COMMENT '绑定手机号',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='客户银行表';
+
+INSERT INTO p2p_payment_customer_bank VALUES (1, 1, 12021.00, '622584531151481', '13698754884', '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11);
+INSERT INTO p2p_payment_customer_bank VALUES (2, 1, 21201.00, '625484532323148', '15698754342', '2020-4-15 14:45:25', '2020-4-15 14:45:25', 11, 11);
+INSERT INTO p2p_payment_customer_bank VALUES (3, 2, 21201.00, '581215465181585', '17643334342', '2020-4-15 14:45:25', '2020-4-15 14:45:25', 11, 11);
+
+
+
+

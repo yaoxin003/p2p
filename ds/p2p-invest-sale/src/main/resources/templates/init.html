@@ -63,12 +63,12 @@
     //--------------------列表功能--------------------
     $("#dg").datagrid({
         idField : 'id',//有idField保证了翻页选中不丢失
-        title : '客户管理',
-        width: 1200,
-        url : "/crm/list",
         fitColumns:true,
         rownumbers:true,
+        width: 1200,
+        url : "/crm/list",
         striped:true,//隔行变色
+        title : '客户管理',
         toolbar : [{
             text:'添加客户',
             iconCls : 'icon-add',

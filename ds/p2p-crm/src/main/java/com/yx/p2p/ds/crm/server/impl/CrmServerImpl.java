@@ -66,4 +66,10 @@ public class CrmServerImpl implements CrmServer{
     public Integer update(CrmVo crmVo){
        return crmService.update(crmVo);
     }
+
+    @Override
+    public Crm getCrmById(Integer crmId) {
+        Crm crm = crmService.getCrmByIdInDB(crmId);
+        return crm;
+    }
 }

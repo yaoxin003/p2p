@@ -29,7 +29,14 @@ public class BeanHelper {
     private static<T> void setField(T target,String filedName,Object filedValue){
         try {
             Class<? extends Object> clazz = target.getClass();
-            Field field = clazz.getSuperclass().getSuperclass().getDeclaredField(filedName);
+            Field field = null;
+            if(clazz.getPackage().getName().endsWith("vo")){
+                field = clazz.getSuperclass().getSuperclass().getDeclaredField(filedName);
+            }else if(clazz.getPackage().getName().endsWith("model")){
+                field = clazz.getSuperclass().getDeclaredField(filedName);
+            }else{
+                field = clazz.getDeclaredField(filedName);
+            }
             field.setAccessible(true);
             field.set(target,filedValue);
         } catch (NoSuchFieldException e) {

@@ -4,6 +4,7 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import com.yx.p2p.ds.easyui.Pagination;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.Crm;
+import com.yx.p2p.ds.model.CustomerBank;
 import com.yx.p2p.ds.server.CrmServer;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.vo.CrmVo;
@@ -110,6 +111,15 @@ public class CrmController {
         resCrmVo.setIdCardOld(resCrm.getIdCard());
         //临时方案---end
         return resCrmVo;
+    }
+
+    @RequestMapping("getById")
+    @ResponseBody
+    public Crm getById(Integer crmId){
+        logger.debug("【crmId=】" + crmId);
+        Crm customer = crmServer.getCrmById(crmId);
+        logger.debug("【customer=】" + customer);
+        return customer;
     }
 
     @RequestMapping("update")

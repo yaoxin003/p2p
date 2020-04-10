@@ -86,7 +86,8 @@ public class CrmController {
     @ResponseBody
     public Result delete(Integer[] idArr,String[] idCardArr) throws Exception{
         Result result = null;
-        logger.debug("【idArr=】" + Arrays.toString(idArr) + "，【idCardArr=】" + Arrays.toString(idCardArr));
+        logger.debug("【idArr=】" + Arrays.toString(idArr) +
+                "，【idCardArr=】" + Arrays.toString(idCardArr));
         try{
             crmService.deleteBatch(idArr,idCardArr);
             return Result.success();
