@@ -17,7 +17,8 @@ public class CustomerBank extends BaseModel implements Serializable{
     @GeneratedValue(strategy = GenerationType.IDENTITY)//使用该注解，可以获得插入数据库的id
     private Integer id;
     private Integer customerId;//客户编号
-    private String bankCode;//银行编号(p2p_payment_base_bank表中bankCode字段)
+    private String baseBankName;//银行总行名称
+    private String bankCode;//银行编码(p2p_payment_base_bank表中bankCode字段)
     private String bankAccount;//银行账户
     private String phone;//绑定手机号
 
@@ -61,11 +62,20 @@ public class CustomerBank extends BaseModel implements Serializable{
         this.phone = phone;
     }
 
+    public String getBaseBankName() {
+        return baseBankName;
+    }
+
+    public void setBaseBankName(String baseBankName) {
+        this.baseBankName = baseBankName;
+    }
+
     @Override
     public String toString() {
         return super.toString() + "CustomerBank{" +
                 "id=" + id +
                 ", customerId=" + customerId +
+                ", baseBankName='" + baseBankName + '\'' +
                 ", bankCode='" + bankCode + '\'' +
                 ", bankAccount='" + bankAccount + '\'' +
                 ", phone='" + phone + '\'' +

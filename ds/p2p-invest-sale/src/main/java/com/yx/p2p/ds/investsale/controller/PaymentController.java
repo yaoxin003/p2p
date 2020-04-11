@@ -1,6 +1,7 @@
 package com.yx.p2p.ds.investsale.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
+import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.BaseBank;
 import com.yx.p2p.ds.model.CustomerBank;
 import com.yx.p2p.ds.server.PaymentServer;
@@ -40,8 +41,8 @@ public class PaymentController {
 
     @RequestMapping("addCustomerBank")
     @ResponseBody
-    public Integer addCustomerBank(CustomerBank customerBank){
-        return paymentServer.addCustomerBank(customerBank);
+    public Result addCustomerBank(CustomerBank customerBank){
+        return paymentServer.checkAndAddCustomerBank(customerBank);
     }
 
 }

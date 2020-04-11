@@ -1,7 +1,9 @@
 package com.yx.p2p.ds.server;
 
+import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.BaseBank;
 import com.yx.p2p.ds.model.CustomerBank;
+import com.yx.p2p.ds.model.Payment;
 
 import java.util.List;
 
@@ -16,5 +18,7 @@ public interface PaymentServer {
 
     public List<BaseBank> getAllBaseBankList();
 
-    public Integer addCustomerBank(CustomerBank customerBank);
+    public Result checkAndAddCustomerBank(CustomerBank customerBank);
+
+    public Result checkAndAddPayment(Payment payment);
 }

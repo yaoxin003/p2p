@@ -16,8 +16,8 @@ public class BaseBank extends BaseModel implements Serializable {
     @Id//使用tkmybatis.selectByPrimaryKey方法时需要该字段，否则会将所有字段都当做where条件
     @GeneratedValue(strategy = GenerationType.IDENTITY)//使用该注解，可以获得插入数据库的id
     private Integer id;
-    private String name;//银行名称
-    private String bankCode;//银行编号
+    private String name;//银行总行名称
+    private String bankCode;//银行编码
 
     public Integer getId() {
         return id;
