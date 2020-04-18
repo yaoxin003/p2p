@@ -21,10 +21,8 @@ public class P2pPaymentApplicationTests {
 		CustomerBank customerBank = new CustomerBank();
 		CustomerVo customerVo = new CustomerVo();
 		//设置时间和操作人
-		BeanHelper.setDefaultTimeField(customerBank,"createTime","updateTime");
-		BeanHelper.setDefaultTimeField(customerVo,"createTime","updateTime");
-		System.out.println("========================================" + customerBank);
-		System.out.println("========================================" + customerVo);
+		//1.设置时间，操作人，状态
+		BeanHelper.setAddDefaultField(customerVo);
 
 	}
 

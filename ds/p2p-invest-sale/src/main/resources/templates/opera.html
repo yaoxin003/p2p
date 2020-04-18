@@ -125,6 +125,9 @@
 
      </div>
 
+    <!--网关支付-->
+    <div id="gatewayDialog"></div>
+
      <script type="text/javascript">
          //投资产品列表
          $("#productTable").datalist({
@@ -169,7 +172,7 @@
          function getBanks(){
              $("#banksTable").datagrid({
                  idField : 'id',//有idField保证了翻页选中不丢失
-                 fitColumns:true,
+                 fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
                  rownumbers:true,
                  width: 600,
                  singleSelect:true,
@@ -197,38 +200,38 @@
 
         //【立即出借】按钮
          function submitLend(){
-             $("#planPayForm").form('submit',{
-                 url : '/invest/lend',
-                 onSubmit: function(){
-                     var isValid = $(this).form("validate");
-                     if(isValid){
-                         $("#investProductId").textbox("setValue",$("#productId").textbox("getValue"));
-                         $("#pCustomerId").textbox("setValue",$("#customerId").textbox("getValue"));
-                         //添加验证是否选中银行功能
-                         var bankArr = $("#banksTable").datagrid('getSelections');
-                         if(bankArr.length != 1){
-                             messger_show_center('提示信息','请选择一条银行卡');
-                             isValid = false;
-                         }else{
-                             $("#customerBankId").textbox("setValue",bankArr[0].id);
-                             $("#pBankCode").textbox("setValue",bankArr[0].bankCode);
-                             $("#pBankAccount").textbox("setValue",bankArr[0].bankAccount);
-                             $("#pPhone").textbox("setValue",bankArr[0].phone)
+             var isValid = $("#planPayForm").form("validate");
+             if(isValid){
+                 $("#investProductId").textbox("setValue",$("#productId").textbox("getValue"));
+                 $("#pCustomerId").textbox("setValue",$("#customerId").textbox("getValue"));
+                 //添加验证是否选中银行功能
+                 var bankArr = $("#banksTable").datagrid('getSelections');
+                 if(bankArr.length != 1){
+                     messger_show_center('提示信息','请选择一条银行卡');
+                 }else{
+                     $("#customerBankId").textbox("setValue",bankArr[0].id);
+                     $("#pBankCode").textbox("setValue",bankArr[0].bankCode);
+                     $("#pBankAccount").textbox("setValue",bankArr[0].bankAccount);
+                     $("#pPhone").textbox("setValue",bankArr[0].phone);
+
+                     $.ajax({
+                         type: 'post',
+                         url : '/invest/lend',
+                         data: $("#planPayForm").serialize(),
+                         dataType : 'json',
+                         cache : false,
+                         success:function(result){
+                             if(result.status == 'ok'){
+                                 openGateway(result.target);
+                                 $("#planPayDialog").dialog("close");
+                                 $("#planPayForm").form('reset');
+                             }else{
+                                 messger_show_center('错误信息',result.selfMsg);
+                             }
                          }
-                     }
-                     return isValid;
-                 },success: function (data) {
-                     console.info("res=" + data)
-                     var res = JSON.parse(data);
-                     if(res.status == 'ok'){
-                         messger_show_center('提示信息','出借成功！');
-                         $("#planPayDialog").dialog("close");
-                         $(this).form('reset');
-                     }else{
-                         messger_show_center('错误信息',res.selfMsg);
-                     }
+                     });
                  }
-             });
+             }
          }
 
         //打开【添加银行】页面
@@ -259,22 +262,39 @@
          //添加银行
          function addBank(){
             $("#baseBankName").textbox("setValue",$('#bankCode').combobox("getText"));
-             $("#addBankForm").form('submit',{
-                 url : '/payment/addCustomerBank',
-                 success: function (data) {
-                     var res = JSON.parse(data);
-                     if(res.status == 'ok'){
-                         messger_show_center('提示信息','添加客户银行卡成功！');
-                     }else{
-                         messger_show_center('错误信息',res.selfMsg);
-                     }
-                     $(this).form('reset');
-                     //刷新银行卡列表
-                     $("#banksTable").datagrid('clearChecked');
-                     $("#banksTable").datagrid('reload');
-                     $("#openAddBankDialog").dialog("close");
-                 }
-             });
+            var isValid = $("#addBankForm").form("validate");//表单验证
+            if(isValid){
+                $.ajax({
+                    type: 'post',
+                    url : '/payment/addCustomerBank',
+                    data: $("#addBankForm").serialize(),
+                    dataType : 'json',
+                    cache : false,
+                    success:function(result){
+                        if(result.status == 'ok'){
+                            messger_show_center('提示信息','添加客户银行卡成功！');
+                        }else{
+                            messger_show_center('错误信息',result.selfMsg);
+                        }
+                        $("#addBankForm").form('reset');
+                        //刷新银行卡列表
+                        $("#banksTable").datagrid('clearChecked');
+                        $("#banksTable").datagrid('reload');
+                        $("#openAddBankDialog").dialog("close");
+                    }
+                });
+            }
+         }
+
+         //打开网关支付iframe
+         function openGateway(url){
+            window.open(url,"回复窗口",
+                "fullscreen=no,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=no,width=600,height=800,left=100,top=100");
+         }
+
+         function closeGateway(){
+             $("#planPayDialog").dialog("close");
+             $("#gatewayDialog").dialog("close");
          }
      </script>
  </div>

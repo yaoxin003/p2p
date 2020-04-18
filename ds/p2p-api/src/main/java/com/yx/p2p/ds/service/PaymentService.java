@@ -13,11 +13,20 @@ import java.util.List;
  * @date: 2020/04/08/17:21
  */
 public interface PaymentService {
+
     public List<BaseBank> getAllBaseBankList();
 
     public List<CustomerBank> getCustomerBankListByCustomerId(Integer customerId);
 
     public Result checkAndAddCustomerBank(CustomerBank customerBank);
 
-    public Result checkAndAddPayment(Payment payment);
+    //网关支付
+    public Result gateway(Payment payment);
+
+    public Payment getPaymentById(Integer paymentId);
+
+    //处理公司company1的网关支付结果
+    public Result dealCompany1Gateway(String payResult);
+
+    public CustomerBank getCustomerBankById(Integer customerBankId);
 }

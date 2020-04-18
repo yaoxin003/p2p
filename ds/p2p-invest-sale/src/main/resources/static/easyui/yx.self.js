@@ -29,6 +29,16 @@ function genderStr(value){
     }
 }
 
+//小数转为百分率
+function percentageStr(value) {
+    var newVal = value*100;
+    return newVal + "%";
+}
+//人民币
+function rmbStr(value){
+    return "￥" + value + "元";
+}
+
 /*--------------------ajax--------------------*/
 //添加/修改表单提交
 function ajaxAddUpdate(formId,dialogId,dgId,type,url){

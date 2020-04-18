@@ -36,10 +36,13 @@ public class PaymentServerImpl implements PaymentServer {
         return paymentService.checkAndAddCustomerBank(customerBank);
     }
 
-    public Result checkAndAddPayment(Payment payment){
-        return paymentService.checkAndAddPayment(payment);
+    //网关支付
+    public Result gateway(Payment payment){
+        return paymentService.gateway(payment);
     }
 
-
+    public CustomerBank getCustomerBankById(Integer customerBankId){
+        return paymentService.getCustomerBankById(customerBankId);
+    }
 
 }

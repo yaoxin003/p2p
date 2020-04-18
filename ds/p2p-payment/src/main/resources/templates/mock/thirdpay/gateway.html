@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>【模拟第三方】网关支付</title>
+</head>
+<body>
+
+    <form method="post" id="gatewayForm">
+         <span  style="display:none;" >
+              <input id="id" name="id" th:value="${payment.id}" class="easyui-textbox" style="width:50px" />
+        </span>
+        <table id="gatewayTable" cellspacing="20">
+            <tr>
+                <td>订单号：</td>
+                <td><input id="orderSn" name="orderSn" th:value="${payment.orderSn}" class="easyui-textbox"
+                           data-options="readonly:true" style="width:300px"/></td>
+            </tr>
+            <tr>
+                <td>姓名：</td>
+                <td><input id="customerName" name="customerName" th:value="${payment.customerName}" class="easyui-textbox"
+                           data-options="readonly:true" style="width:300px"/></td>
+            </tr>
+            <tr>
+                <td>身份证号码：</td>
+                <td><input id="idCard" name="idCard" th:value="${payment.idCard}" class="easyui-textbox"
+                           data-options="readonly:true" style="width:300px"/></td>
+            </tr>
+            <tr>
+                <td>开户银行：</td>
+                <td><input class="easyui-combobox" name="bankCode" th:value="${payment.bankCode}" style="width:150px"
+          data-options="readonly:true,url:'/payment/getAllBaseBankList',textField:'name',valueField:'bankCode',method:'get'"/></td>
+            </tr>
+            <tr>
+                <td>银行账户：</td>
+                <td><input id="bankAccount" name="bankAccount" th:value="${payment.bankAccount}" class="easyui-textbox"
+                           data-options="readonly:true" style="width:300px"/></td>
+            </tr>
+            <tr>
+                <td>绑定手机号：</td>
+                <td><input id="phone" name="phone" th:value="${payment.phone}" class="easyui-textbox"
+                           data-options="readonly:true" style="width:300px"/></td>
+            </tr>
+            <tr>
+                <td>支付金额：</td>
+                <td><input id="amount" name="amount" th:value="${payment.amount}" class="easyui-textbox"
+                           data-options="readonly:true"  style="width:300px"/></td>
+            </tr>
+            <tr>
+                <td>密码：</td>
+                <td><input id="password" name="password" class="easyui-passwordbox" data-options="required:true" style="width:300px"/></td>
+            </tr>
+            <tr>
+                <td colspan="2" align="center">
+                    <a href="javascript:void(0)" class="easyui-linkbutton" onclick="sub()">确认</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+
+    <div id="payingDialog" class="easyui-dialog" title="【支付中……】"
+         draggable="false" data-options="modal:true,closed:true" style="display:none;">
+    <div id="p" class="easyui-progressbar" style="width:400px;"></div>
+    </div>
+
+    <script>
+        function sub(){
+            var isValid = $("#gatewayForm").form("validate");
+            if(isValid){
+                $.ajax({
+                    type: "post",
+                    url : "/mock/thirdpay/gateway",
+                    data : $("#gatewayForm").serialize(),
+                    dataType : 'json',
+                    cache : false,
+                    success : function(result){
+                        if(result.status == 'ok'){
+                            successFun();
+                        }
+                    }
+                });
+            }
+        }
+
+        //成功支付进度条
+        function successFun(){
+            $("#payingDialog").dialog("open");
+            $("#payingDialog").window('center');
+            var value = $('#p').progressbar('getValue');
+            if (value < 100){
+                value += Math.floor(Math.random() * 10);
+                $('#p').progressbar('setValue', value);
+                setTimeout(arguments.callee, 200);
+            }else{
+                messger_show_center('提示信息','支付成功');
+                setTimeout(function(){
+                    $("#payingDialog").dialog("close");
+                    window.close();
+                },1000);
+            }
+        }
+
+
+    </script>
+</body>
+</html>

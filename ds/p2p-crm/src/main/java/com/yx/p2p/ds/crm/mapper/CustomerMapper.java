@@ -14,8 +14,8 @@ import java.util.List;
  */
 public interface CustomerMapper extends Mapper<Customer>{
 
-    public List<Customer> queryCustomerListByPagination(@Param("customerVo") CustomerVo customerVo,
-                                              @Param("offset") int offset, @Param("limit") int limit);
+    public List<Customer> queryCustomerListByPagination(
+            @Param("customerVo") CustomerVo customerVo,@Param("offset") int offset, @Param("limit") int limit);
 
     public Integer queryCustomerCount(@Param("customerVo") CustomerVo customerVo);
 

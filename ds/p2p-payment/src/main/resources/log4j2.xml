@@ -67,7 +67,7 @@
         <!--过滤掉一些无用的DEBUG信息-->
         <!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
 
-        <logger name="com.yx.p2p.ds.payment" level="DEBUG"></logger>
+        <logger name="com.yx.p2p.ds" level="DEBUG"></logger>
 
         <AsyncRoot level="INFO" includeLocation="true" >
             <AppenderRef ref="FILE-INFO" />

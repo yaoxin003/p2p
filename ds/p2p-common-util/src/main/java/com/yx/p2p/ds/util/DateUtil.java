@@ -14,6 +14,8 @@ import java.util.Date;
 public class DateUtil {
     private static final String ymdPattern = "yyyy-MM-dd";
 
+    private static final String datetimeMSPattern = "yyyyMMddHHmmssSSS";
+
     public static Date str2Date(String dateStr){
         SimpleDateFormat sdf = new SimpleDateFormat(ymdPattern);
         Date date = null;
@@ -27,8 +29,16 @@ public class DateUtil {
         return date;
     }
 
-    public static String date2Str(Date date){
-        SimpleDateFormat formatter = new SimpleDateFormat(ymdPattern);
+    public static String dateYMD2Str(Date date){
+        return date2String(date,ymdPattern);
+    }
+
+    public static String datetimeMS2Str(Date date) {
+        return date2String(date,datetimeMSPattern);
+    }
+
+    private static String date2String(Date date,String pattern){
+        SimpleDateFormat formatter = new SimpleDateFormat(pattern);
         String dateString = formatter.format(date);
         return dateString;
     }

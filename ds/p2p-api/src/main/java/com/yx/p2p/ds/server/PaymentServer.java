@@ -20,5 +20,8 @@ public interface PaymentServer {
 
     public Result checkAndAddCustomerBank(CustomerBank customerBank);
 
-    public Result checkAndAddPayment(Payment payment);
+    //网关支付
+    public Result gateway(Payment payment);
+
+    public CustomerBank getCustomerBankById(Integer customerBankId);
 }

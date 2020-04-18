@@ -26,6 +26,8 @@
         <commons.beanutils.version>1.9.3</commons.beanutils.version>
         <alibaba.dubbo.version>2.0.0</alibaba.dubbo.version>
         <dubbo.zkclient.version>0.10</dubbo.zkclient.version>
+        <commons-codec.version>1.6</commons-codec.version>
+        <httpclient.version>4.5.5</httpclient.version>
     </properties>
 
 
@@ -99,6 +101,20 @@
                 <artifactId>zkclient</artifactId>
                 <version>${dubbo.zkclient.version}</version>
             </dependency>
+
+            <!--Base64相关方法（RASUtil中使用了Base64）-->
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${commons-codec.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpclient.version}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 </project>

@@ -68,7 +68,7 @@ public class CrmServerImpl implements CrmServer{
     }
 
     @Override
-    public Customer getCrmById(Integer crmId) {
+    public Customer getCustomerById(Integer crmId) {
         Customer customer = crmService.getCustomerByIdInDB(crmId);
         return customer;
     }

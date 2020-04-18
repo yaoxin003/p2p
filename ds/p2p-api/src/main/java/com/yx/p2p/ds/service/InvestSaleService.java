@@ -11,5 +11,4 @@ import com.yx.p2p.ds.vo.InvestVo;
  */
 public interface InvestSaleService  {
 
-    public Result addPayment(InvestVo investVo);
 }

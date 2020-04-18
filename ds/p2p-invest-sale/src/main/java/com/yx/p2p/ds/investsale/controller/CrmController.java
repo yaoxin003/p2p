@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -27,6 +28,7 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping("crm")
+@CrossOrigin
 public class CrmController {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -105,7 +107,7 @@ public class CrmController {
             e.printStackTrace();
         }
         //3.2特殊值设置
-        String birthdayStr = DateUtil.date2Str(resCrm.getBirthday());
+        String birthdayStr = DateUtil.dateYMD2Str(resCrm.getBirthday());
         resCrmVo.setBirthdayStr(birthdayStr);
         resCrmVo.setIdCardOld(resCrm.getIdCard());
         //临时方案---end
@@ -116,7 +118,7 @@ public class CrmController {
     @ResponseBody
     public Customer getById(Integer crmId){
         logger.debug("【crmId=】" + crmId);
-        Customer customer = crmServer.getCrmById(crmId);
+        Customer customer = crmServer.getCustomerById(crmId);
         logger.debug("【customer=】" + customer);
         return customer;
     }

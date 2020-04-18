@@ -16,7 +16,7 @@ public class P2pCrmApplicationTests {
 	private CrmService crmService;
 
 	@Test
-	public void testGetCrmByIdInDB() {
+	public void testGetCustomerByIdInDB() {
 		Customer crmByIdInDB = crmService.getCustomerByIdInDB(38);
 	}
 

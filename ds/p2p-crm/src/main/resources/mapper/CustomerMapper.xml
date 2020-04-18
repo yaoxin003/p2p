@@ -3,7 +3,8 @@
 <mapper namespace="com.yx.p2p.ds.crm.mapper.CustomerMapper">
 
     <sql id="customerField">
-        a.id,a.name,a.gender,a.birthday,a.id_card,a.create_time,a.update_time,a.creator,a.reviser
+        a.id,a.name,a.gender,a.birthday,a.id_card,
+        a.create_time,a.update_time,a.creator,a.reviser,a.logic_state,a.biz_state
     </sql>
 
     <sql id="customerCondition">

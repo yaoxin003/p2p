@@ -16,6 +16,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.List;
+
 /**
  * @description:
  * @author: yx
@@ -57,20 +59,31 @@ public class InvestController {
     @ResponseBody
     public Result lend(InvestVo investVo){
         Result result = null;
-        logger.debug("调用【投资出借】功能begin。【investVo=】"+investVo);
-
-        logger.debug("【投资出借-1.添加新投资】begin");
-        //1.添加新投资
-        result = investServer.addNewInvest(investVo);
-        logger.debug("【投资出借-1.添加新投资】end。【result=】" + result);
-
-        //2.添加投资人支付信息
-        logger.debug("【投资出借-2.添加投资人支付信息】begin");
-        result = investSaleService.addPayment((InvestVo)result.getTarget());
-        logger.debug("【投资出借-2.添加投资人支付信息】。【result=】" + result);
-
-        logger.debug("调用【投资出借】功能end");
+        logger.debug("调用【投资充值】功能begin。【investVo=】"+investVo);
+        //投资充值
+        result = investServer.rechargeInvest(investVo);
+        logger.debug("调用【投资充值】功能end。【result=】" + result);
         return result;
     }
 
+    @RequestMapping("getInvestVoListByCustomerId")
+    @ResponseBody
+    public List<InvestVo> getInvestVoList(Integer customerId){
+        logger.debug("【customerId=】" + customerId);
+        InvestVo investVo = new InvestVo();
+        investVo.setCustomerId(customerId);
+        List<InvestVo> investVoList = investServer.getInvestVoList(investVo);
+        logger.debug("【getInvestVoListByCustomerId】investVoList=" + investVoList);
+        return investVoList;
+    }
+
+    //补偿网关支付
+    @RequestMapping(value="compensateGateway")
+    @ResponseBody
+    public Result compensateGateway(InvestVo investVo){
+        logger.debug("【investVo=】" + investVo);
+        Result result = investServer.compensateGateway(investVo);
+        logger.debug("【补偿网关支付】result=" + result);
+        return result;
+    }
 }

@@ -13,6 +13,8 @@ public class BaseModel {
     private Date updateTime;//修改时间
     private Integer creator;//创建人
     private Integer reviser;//修改人
+    private String logicState;//逻辑状态（暂未使用）： 1-有效，0-无效
+    private String bizState; //业务状态：1-新增
 
     public Date getCreateTime() {
         return createTime;
@@ -46,6 +48,22 @@ public class BaseModel {
         this.reviser = reviser;
     }
 
+    public String getLogicState() {
+        return logicState;
+    }
+
+    public void setLogicState(String logicState) {
+        this.logicState = logicState;
+    }
+
+    public String getBizState() {
+        return bizState;
+    }
+
+    public void setBizState(String bizState) {
+        this.bizState = bizState;
+    }
+
     @Override
     public String toString() {
         return "BaseModel{" +
@@ -53,6 +71,8 @@ public class BaseModel {
                 ", updateTime=" + updateTime +
                 ", creator=" + creator +
                 ", reviser=" + reviser +
+                ", logicState='" + logicState + '\'' +
+                ", bizState='" + bizState + '\'' +
                 '}';
     }
 }

@@ -87,7 +87,7 @@ public class CrmServiceImpl implements CrmService {
             e.printStackTrace();
         }
         //3.2特殊值设置
-        String birthdayStr = DateUtil.date2Str(customer.getBirthday());
+        String birthdayStr = DateUtil.dateYMD2Str(customer.getBirthday());
         customerVo.setBirthdayStr(birthdayStr);
         return customerVo;
     }
@@ -397,12 +397,9 @@ public class CrmServiceImpl implements CrmService {
         * @return: com.yx.p2p.ds.model.Customer
         */
     private Customer buildAddCustomerModel(CustomerVo customerVo) {
-        //1.设置时间和操作人
-        BeanHelper.setDefaultTimeField(customerVo,"createTime","updateTime");
-        Map<String,Integer> operatorMap = new HashMap<>();
-        operatorMap.put("creator",SysConstant.operator);
-        operatorMap.put("reviser",SysConstant.operator);
-        BeanHelper.setDefaultOperatorField(customerVo,operatorMap);
+        //1.设置时间，操作人，状态
+        BeanHelper.setAddDefaultField(customerVo);
+
         //对象拷贝，从customerVo拷贝到customer
         Customer customer = this.buildUpdateCustomerModel(customerVo);
         //特殊值设置
@@ -413,11 +410,8 @@ public class CrmServiceImpl implements CrmService {
 
     private Customer buildUpdateCustomerModel(CustomerVo customerVo) {
         Customer customer = new Customer();
-        //1.设置时间和操作人
-        BeanHelper.setDefaultTimeField(customerVo,"updateTime");
-        Map<String,Integer> operatorMap = new HashMap<>();
-        operatorMap.put("reviser",SysConstant.operator);
-        BeanHelper.setDefaultOperatorField(customerVo,operatorMap);
+        //1.设置时间，操作人
+        BeanHelper.setUpdateDefaultField(customerVo);
         //对象拷贝
         try {
             BeanUtils.copyProperties(customer,customerVo);

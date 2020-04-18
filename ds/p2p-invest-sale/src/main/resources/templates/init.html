@@ -56,6 +56,7 @@
 </div>
 
 <div th:replace="opera::productDiv"></div>
+<div th:replace="asset::investDiv"></div>
 
 </body>
 <script type="text/javascript">
@@ -105,8 +106,8 @@
             {field:'id',title:'编号',width:50},
             {field:'operate',title:'操作',width:100,
                 formatter: function(value,row,index){
-                    var str = "<a href='javascript:void(0)' id='investBtn' onclick='invest(" + row.id + ")'></a>";
-                    str += "<a href='javascript:void(0)' id='assetBtn' onclick='asset(" + row.id + ")'></a>";
+                    var str = "<a href='#' name='investProductBtn' onclick='investProduct(" + row.id + ")'></a>";
+                    str += "<a href='#' name='assetBtn' onclick='asset(" + row.id + ")'></a>";
                     return str;
                 }
             },
@@ -136,8 +137,8 @@
             {field:'reviser',title:'修改人',width:100}
         ]],
         onLoadSuccess : function(data){
-            $("#investBtn").linkbutton({'text':'投',plain:true,iconCls:'icon-add'});//产品列表
-            $("#assetBtn").linkbutton({'text':'资',plain:true,iconCls:'icon-add'});//投资列表
+            $("a[name='investProductBtn']").linkbutton({'text':'投',plain:true,iconCls:'icon-add'});//产品列表
+            $("a[name='assetBtn']").linkbutton({'text':'资',plain:true,iconCls:'icon-add'});//投资列表
         },
         loadMsg : '数据正在加载，请耐心等待……',
         pagination : true,
@@ -179,10 +180,18 @@
     });
 
     //客户列表“投”按钮
-    function invest(customerId){
-        $("#customerId").textbox("setValue",customerId)
+    function investProduct(customerId){
+        $("#customerId").textbox("setValue",customerId);
         $("#productDialog").dialog("open");
         $("#productDialog").window('center');//使Dialog居中显示
+    }
+
+    //客户列表“资”按钮
+    function asset(customerId){
+        $("#customerId").textbox("setValue",customerId);
+        $("#investDialog").dialog("open");
+        $("#investDialog").dialog("center");//使Dialog居中显示
+        showInvestDatagrid(customerId);//在asset.html中编写
     }
 
 </script>

@@ -1,17 +1,23 @@
 package com.yx.p2p.ds.invest.service.impl;
 
+import com.alibaba.dubbo.config.annotation.Reference;
 import com.yx.p2p.ds.constant.SysConstant;
 import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.enums.SystemSourceEnum;
+import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
 import com.yx.p2p.ds.enums.investproduct.InvestTypeEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.invest.mapper.InvestMapper;
-import com.yx.p2p.ds.model.Invest;
-import com.yx.p2p.ds.model.InvestProduct;
+import com.yx.p2p.ds.model.*;
+import com.yx.p2p.ds.server.CrmServer;
+import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.InvestProductService;
 import com.yx.p2p.ds.service.InvestService;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
+import com.yx.p2p.ds.util.OrderUtil;
+import com.yx.p2p.ds.vo.InvestVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,14 +45,100 @@ public class InvestServiceImpl implements InvestService {
     @Autowired
     private InvestProductService investProductService;
 
-    /**
-        * @description: 添加新投资
-        * @author:  YX
-        * @date:    2020/04/10 11:59
-        * @param: invest
-        * @return: com.yx.p2p.ds.model.Invest
-        */
-    public Result addNewInvest(Invest invest){
+    @Reference
+    private PaymentServer paymentServer;
+
+    @Reference
+    private CrmServer crmServer;
+
+    //投资充值
+    public Result rechargeInvest(InvestVo investVo){
+        //添加新投资
+        Result result = this.addNewInvest(investVo);
+        if(Result.checkStatus(result)){
+            //构建投资人支付信息
+            Payment payment = this.buildAddPayment(investVo);
+            //网关支付
+            result = paymentServer.gateway(payment);
+        }else{
+            logger.error("生成投资失败【customerId=】" +  investVo.getCustomerId());
+        }
+        return result;
+    }
+
+    //补偿网关支付（只打开了网关支付页面，并未支付）
+    public Result compensateGateway(InvestVo investVo){
+        Payment payment = this.buildCompensateGateway(investVo);
+        //网关支付
+        Result result = paymentServer.gateway(payment);
+        return result;
+    }
+
+    private Payment buildCompensateGateway(InvestVo investVo) {
+        Payment payment = new Payment();
+        //封装Payment
+        String sysSourceName = SystemSourceEnum.INVEST.getName();
+        payment.setSystemSource(sysSourceName);
+        payment.setOrderSn(OrderUtil.genOrderSn(sysSourceName));
+        payment.setCustomerId(investVo.getCustomerId());
+        payment.setBizId(String.valueOf(investVo.getId()));
+        payment.setAmount(investVo.getInvestAmt());
+        //查询客户表数据库
+        Customer customer = crmServer.getCustomerById(investVo.getCustomerId());
+        payment.setCustomerName(customer.getName());
+        payment.setIdCard(customer.getIdCard());
+        //查询客户银行
+        CustomerBank customerBank = paymentServer.getCustomerBankById(investVo.getCustomerBankId());
+        payment.setBankAccount(customerBank.getBankAccount());
+        payment.setBankCode(customerBank.getBankCode());
+        payment.setPhone(customerBank.getPhone());
+        return payment;
+    }
+
+    //该方法暂未使用
+    @Override
+    public Result updateInvestBizState(Integer investId, InvestBizStateEnum investBizStateEnum) {
+        logger.debug("【更新投资状态】investId=" + investId + ",state=" + investBizStateEnum);
+        Result res = Result.success();
+        try{
+            Invest invest = new Invest();
+            invest.setId(investId);
+            invest.setBizState(investBizStateEnum.getState());
+            int count = investMapper.updateByPrimaryKeySelective(invest);
+            if(count != 1){
+                 res = Result.error(count,"更新失败count=" + count);
+            }
+            logger.debug("更新投资状态【investId=】" + investId + ",【investState=】"
+                    + investBizStateEnum.getState() + "count=" + count);
+        }catch(Exception e){
+            logger.debug("=======================================");
+            res = LoggerUtil.addExceptionLog(e,logger);
+        }
+        return res;
+    }
+
+    private Payment buildAddPayment(InvestVo investVo) {
+        //查询客户表数据库
+        Customer customer = crmServer.getCustomerById(investVo.getCustomerId());
+        //封装Payment
+        String sysSourceName = SystemSourceEnum.INVEST.getName();
+        Payment payment = new Payment();
+        payment.setCustomerId(investVo.getCustomerId());
+        payment.setSystemSource(sysSourceName);
+        payment.setBizId(String.valueOf(investVo.getId()));
+        payment.setOrderSn(OrderUtil.genOrderSn(sysSourceName));
+        payment.setCustomerName(customer.getName());
+        payment.setIdCard(customer.getIdCard());
+        payment.setBankAccount(investVo.getBankAccount());
+        payment.setBankCode(investVo.getBankCode());
+        payment.setPhone(investVo.getPhone());
+        payment.setAmount(investVo.getInvestAmt());
+        logger.debug("【buildAddPayment from investVo to payment=】" + payment);
+        return payment;
+    }
+
+    //添加新投资
+    private Result addNewInvest(Invest invest){
         Result result = Result.success();
         try{
             //1.查询投资产品
@@ -64,15 +157,9 @@ public class InvestServiceImpl implements InvestService {
     private Result addInvestInDB(Invest invest){
         Result result = Result.success();
         try{
-            //设置时间和操作人
-            BeanHelper.setDefaultTimeField(invest,"createTime","updateTime");
-            Map<String,Integer> operatorMap = new HashMap<>();
-            operatorMap.put("creator",SysConstant.operator);
-            operatorMap.put("reviser",SysConstant.operator);
-            BeanHelper.setDefaultOperatorField(invest,operatorMap);
-
+            //1.设置时间，操作人，状态
+            BeanHelper.setAddDefaultField(invest);
             investMapper.insert(invest);
-            result.setTarget(invest);
             logger.debug("【invest.insert.db.invest=】" + invest);
         }catch (Exception e){
             result = LoggerUtil.addExceptionLog(e,logger);
@@ -116,7 +203,7 @@ public class InvestServiceImpl implements InvestService {
         );//保留2位四舍五入
         BigDecimal beforeProfit = invest.getProfit();
         if(profit.compareTo(beforeProfit) != 0){
-            String msg = "前后台收益不同：前台计算收益："+ beforeProfit + "后台计算收益：" + profit;
+            String msg = "前后台收益不同：前台计算收益："+ beforeProfit + "，后台计算收益：" + profit;
             result = Result.error(msg);
             logger.debug(msg);
         }else{
@@ -152,4 +239,17 @@ public class InvestServiceImpl implements InvestService {
         return result;
     }
 
+    public List<InvestVo> getInvestVoList(InvestVo investVo){
+        logger.debug("【investVo】" + investVo);
+        List<InvestVo> investVoList = this.queryDBnvestVoList(investVo);
+        return investVoList;
+    }
+
+    //查询数据库
+    public List<InvestVo> queryDBnvestVoList(InvestVo investVo){
+        Integer count = investMapper.queryInvestVoCount(investVo);
+        List<InvestVo> investVoList = investMapper.queryInvestVoListByPagination(investVo,0,count);
+        logger.debug("【查询数据库：queryDBInvestListByCustomerId】investList=" + investVoList);
+        return investVoList;
+    }
 }

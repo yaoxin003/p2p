@@ -9,13 +9,13 @@ public enum InvestTypeEnum {
     FIXED("1","固定期限"),
     NO_FIXED("2","非固定期限");
 
-    private String state;
 
-    private String stateInfo;
+    private String state;//状态
+    private String stateDesc;//状态描述
 
-    InvestTypeEnum(String state, String stateInfo){
+    InvestTypeEnum(String state, String stateDesc) {
         this.state = state;
-        this.stateInfo = stateInfo;
+        this.stateDesc = stateDesc;
     }
 
     public String getState() {
@@ -26,11 +26,19 @@ public enum InvestTypeEnum {
         this.state = state;
     }
 
-    public String getStateInfo() {
-        return stateInfo;
+    public String getStateDesc() {
+        return stateDesc;
     }
 
-    public void setStateInfo(String stateInfo) {
-        this.stateInfo = stateInfo;
+    public void setStateDesc(String stateDesc) {
+        this.stateDesc = stateDesc;
+    }
+
+    @Override
+    public String toString() {
+        return "InvestTypeEnum{" +
+                "state='" + state + '\'' +
+                ", stateDesc='" + stateDesc + '\'' +
+                '}';
     }
 }

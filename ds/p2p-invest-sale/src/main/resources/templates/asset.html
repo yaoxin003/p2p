@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>资产页面</title>
+</head>
+<body>
+    <div th:fragment="investDiv">
+        <div id="investDialog" class="easyui-dialog" title="【投资列表】"
+             draggable="false" data-options="modal:true,closed:true" style="display:none;width:920px">
+            <table id="investTable" cellspacing="5"></table>
+        </div>
+
+
+        <script type="text/javascript">
+            function showInvestDatagrid(customerId){
+                $("#investTable").datagrid({
+                    idField : 'id',//有idField保证了翻页选中不丢失
+                    fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
+                    rownumbers:true,
+                    width: 900,
+                    singleSelect:true,
+                    striped:true,//隔行变色
+                    url:'/invest/getInvestVoListByCustomerId',
+                    queryParams:{
+                        customerId : customerId
+                    },
+                    columns : [[
+                        {field:'operate',title:'操作',width:100,
+                            formatter:function(value,row,index){
+                                var str = "";
+                                if(row.bizState == '1'){
+                                    str = "<a href='#' name='paymentOpr' onclick='payment(" + row.id + "," + row.customerId + "," + row.investAmt + ","+ row.customerBankId + ")'></a>";
+                                }
+                                return str;
+                            }
+                        },
+                        {field:'id',title:'投资编号',width:100},
+                        {field:'productName',title:'产品名称',width:100},
+                        {field:'yearIrr',title:'年华收益率',width:100,
+                            formatter:function(value){
+                                return percentageStr(value);
+                            }
+                        },
+                        {field:'dayCount',title:'投资天数',width:100},
+                        {field:'investAmt',title:'投资金额',width:100,
+                            formatter:function(value){
+                                return rmbStr(value);
+                            }
+                        },
+                        {field:'profit',title:'收益',width:100,
+                            formatter:function(value){
+                                return rmbStr(value);
+                            }
+                        },
+                        {field:'startDate',title:'投资开始日期',width:100,
+                            formatter:function(value){
+                                return dateStr(value);
+                            }
+                        },
+                        {field:'endDate',title:'投资到期日期',width:100,
+                            formatter:function(value){
+                                return dateStr(value);
+                            }
+                        }
+                    ]],
+                    loadMsg : '数据正在加载，请耐心等待……',
+                    onLoadSuccess: function (data) {
+                        $("a[name='paymentOpr']").linkbutton({'text':'付','plain':true,iconCls:'icon-add'});
+                    }
+                });
+            }
+
+            //投资列表“付”按钮
+            function payment(investId,customerId,investAmt,customerBankId){
+                $.ajax({
+                    type:'post',
+                    url : '/invest/compensateGateway',
+                    data : {id : investId,customerId : customerId,investAmt:investAmt,customerBankId : customerBankId},
+                    dataType: 'json',
+                    cache : false,
+                    success : function (result) {
+                        if(result.status == 'ok' ){
+                            openGateway(result.target);//openGateway在operate.html
+                            $("#planPayDialog").dialog("close");
+                            $("#planPayForm").form('reset');
+                        }else{
+                            messger_show_center('错误信息',result.selfMsg);
+                        }
+                    }
+                });
+            }
+        </script>
+    </div>
+ </body>
+ </html>

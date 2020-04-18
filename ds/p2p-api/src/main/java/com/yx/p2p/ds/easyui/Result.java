@@ -9,20 +9,31 @@ import java.io.Serializable;
  */
 public class Result<T> implements Serializable{
 
-    public static final String STATUS_OK = "ok";
-    public static final String STATUS_ERROR = "error";
+    private static final String STATUS_OK = "ok";
+    private static final String STATUS_ERROR = "error";
 
-    private String status;
-    private Integer count;
-    private String defualtMsg;
-    private String selfMsg;
-    private T target;
+    private static final String DEFAULT_MSG_SUC = "操作成功！";
+    private static final String DEFAULT_MSG_ERROR = "操作失败！";
+
+    private String status;//ok,error
+    private Integer count;//数据库insert/update/delete操作条数
+    private String defaultMsg;//操作成功,操作失败
+    private String selfMsg;//自定义输入信息
+    private T target;//自定义返回对象
+    private String retCode;//编码
+
+    public static boolean checkStatus(Result result){
+        if(STATUS_OK.equals(result.getStatus())){
+            return true;
+        }
+        return false;
+    }
 
     public static Result success(){
         Result result = new Result();
-        result.setStatus("ok");
+        result.setStatus(STATUS_OK);
         result.setCount(1);
-        result.setDefualtMsg("操作成功！");
+        result.setDefaultMsg(DEFAULT_MSG_SUC);
         result.setSelfMsg("");
         return result;
     }
@@ -33,32 +44,32 @@ public class Result<T> implements Serializable{
         return result;
     }
 
-    public static Result success(Integer count,String selfMessage){
+    public static Result success(Integer count,String selfMsg){
         Result result = success();
-        result.setSelfMsg(selfMessage);
+        result.setSelfMsg(selfMsg);
         result.setCount(count);
         return result;
     }
 
     public static Result error(){
         Result result = new Result();
-        result.setStatus("error");
+        result.setStatus(STATUS_ERROR);
         result.setCount(0);
-        result.setDefualtMsg("操作失败！");
+        result.setDefaultMsg(DEFAULT_MSG_ERROR);
         result.setSelfMsg("");
         return result;
     }
 
-    public static Result error(Integer count,String selfMessage){
+    public static Result error(Integer count,String selfMsg){
         Result result = error();
-        result.setSelfMsg(selfMessage);
+        result.setSelfMsg(selfMsg);
         result.setCount(count);
         return result;
     }
 
-    public static Result error(String selfMessage){
+    public static Result error(String selfMsg){
         Result result = error();
-        result.setSelfMsg(selfMessage);
+        result.setSelfMsg(selfMsg);
         return result;
     }
 
@@ -78,12 +89,12 @@ public class Result<T> implements Serializable{
         this.count = count;
     }
 
-    public String getDefualtMsg() {
-        return defualtMsg;
+    public String getDefaultMsg() {
+        return defaultMsg;
     }
 
-    public void setDefualtMsg(String defualtMsg) {
-        this.defualtMsg = defualtMsg;
+    public void setDefaultMsg(String defaultMsg) {
+        this.defaultMsg = defaultMsg;
     }
 
     public String getSelfMsg() {
@@ -102,14 +113,23 @@ public class Result<T> implements Serializable{
         this.target = target;
     }
 
+    public String getRetCode() {
+        return retCode;
+    }
+
+    public void setRetCode(String retCode) {
+        this.retCode = retCode;
+    }
+
     @Override
     public String toString() {
         return "Result{" +
                 "status='" + status + '\'' +
                 ", count=" + count +
-                ", defualtMsg='" + defualtMsg + '\'' +
+                ", defaultMsg='" + defaultMsg + '\'' +
                 ", selfMsg='" + selfMsg + '\'' +
                 ", target=" + target +
+                ", retCode='" + retCode + '\'' +
                 '}';
     }
 }

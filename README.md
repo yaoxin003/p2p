@@ -1,8 +1,8 @@
 # p2p
 互联网金融个人对个人借贷平台
 #--------------------bug--------------------
-1.银行列表，银行名称
-2.绑定手机号 11位验证
+1.快捷支付流程
+2.加签加密，解密验签（SHA加签验签，RSA非对称加密）
 
 
 #--------------------系统环境--------------------
@@ -10,10 +10,12 @@
 Java版本：JDK1.8.0_131
 服务器：Tomcat8.5.15
 数据库：MySQL5.1.42
-系统技术：SpringBoot1.4.7+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4，
+系统技术：
+SpringBoot1.4.7+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4，
 Dubbo2.6.0+Zookeeper3.4.8
-Redis-4.0.14+Elastic Search
+Redis4.0.14+Elastic Search
 Nginx+RocketMQ
+SHA加签验签，RSA非对称加密解密
 
 #--------------------linux环境下服务安装路径和启动方法--------------------
 Dubbo：对方及时作出相应。

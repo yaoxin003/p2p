@@ -7,6 +7,7 @@ import com.yx.p2p.ds.model.InvestProduct;
 import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.service.InvestProductService;
 import com.yx.p2p.ds.service.InvestService;
+import com.yx.p2p.ds.vo.InvestVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +44,18 @@ public class InvestServerImpl implements InvestServer {
         return investProductService.getInvestProductById(investProductId);
     }
 
-    public Result addNewInvest(Invest invest){
-        Result result = investService.addNewInvest(invest);
-        logger.debug("【invest=】" + invest);
-        return result;
+    //充值投资
+    public Result rechargeInvest(InvestVo investVo){
+        return investService.rechargeInvest(investVo);
     }
 
+
+    public List<InvestVo> getInvestVoList(InvestVo investVo){
+        return investService.getInvestVoList(investVo);
+    }
+
+    //补偿网关支付
+    public Result compensateGateway(InvestVo investVo){
+        return investService.compensateGateway(investVo);
+    }
 }
