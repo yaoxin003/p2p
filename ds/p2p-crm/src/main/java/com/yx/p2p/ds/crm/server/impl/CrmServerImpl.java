@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.util.List;
 
 /**
@@ -28,15 +27,14 @@ public class CrmServerImpl implements CrmServer{
     @Autowired
     private CrmService crmService;
 
-    public Integer add(CustomerVo customerVo){
-        Result result = null;
-        logger.debug("【customerVo=】" + customerVo);
-        try{
-            return crmService.add(customerVo);
-        }catch (Exception e){
-            logger.error(e.toString(),e);
-            return 0;
-        }
+    public Result add(CustomerVo customerVo){
+        logger.debug("add【customerVo=】" + customerVo);
+        return crmService.add(customerVo);
+    }
+
+    public Result update(CustomerVo customerVo){
+        logger.debug("update【customerVo=】" + customerVo);
+        return crmService.update(customerVo);
     }
 
     /**
@@ -62,14 +60,9 @@ public class CrmServerImpl implements CrmServer{
         return result;
     }
 
-
-    public Integer update(CustomerVo customerVo){
-       return crmService.update(customerVo);
-    }
-
     @Override
-    public Customer getCustomerById(Integer crmId) {
-        Customer customer = crmService.getCustomerByIdInDB(crmId);
+    public Customer getCustomerById(Integer customerId) {
+        Customer customer = crmService.getCustomerByIdInDB(customerId);
         return customer;
     }
 }

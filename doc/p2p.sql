@@ -1,5 +1,7 @@
+#--------------------p2p_crm--------------------
 create database p2p_crm default character set utf8 collate utf8_general_ci;
 use p2p_crm;
+
 create table p2p_customer (
   id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   name varchar(64) NOT NULL DEFAULT '' COMMENT '姓名',
@@ -37,8 +39,11 @@ INSERT INTO p2p_customer VALUES (19, '周霄四', '1', '1988-11-6', '43273622234
 INSERT INTO p2p_customer VALUES (20, '吴霄珑', '0', '1985-7-4', '156353453535234243', '2019-1-7 15:38:06', '2019-1-7 15:38:06', 11, 11,'1','1');
 INSERT INTO p2p_customer VALUES (21, '郑霄珑', '0', '1985-7-4', '123435353535234243', '2019-1-7 15:38:06', '2019-1-7 15:38:06', 11, 11,'1','1');
 
+
+#--------------------p2p_invest--------------------
 create database p2p_invest default character set utf8 collate utf8_general_ci;
 use p2p_invest;
+
 create table p2p_invest_product (
   id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   name varchar(64) NOT NULL DEFAULT '' COMMENT '理财产品名称',
@@ -78,9 +83,26 @@ create table p2p_invest (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投资表';
 
+create table p2p_lending (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  invest_id int(16) NOT NULL COMMENT '投资编号',
+  customer_id int(16) NOT NULL COMMENT '客户编号',
+  amount decimal(10,2) DEFAULT NULL COMMENT '金额',
+  lending_type varchar(1) NOT NULL DEFAULT '1' comment '出借单类型:1-新出借，2-回款再出借',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='出借单表';
 
+
+#--------------------p2p_payment--------------------
 create database p2p_payment default character set utf8 collate utf8_general_ci;
 use p2p_payment;
+
 create table p2p_payment_base_bank (
   id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   name varchar(64) NOT NULL DEFAULT '' COMMENT '银行名称',
@@ -100,7 +122,6 @@ INSERT INTO p2p_payment_base_bank VALUES (3, '工业银行', '11022', '2020-4-8 
 INSERT INTO p2p_payment_base_bank VALUES (4, '建设银行', '11033', '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11,'1','1');
 INSERT INTO p2p_payment_base_bank VALUES (5, '北京银行', '21201', '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11,'1','1');
 INSERT INTO p2p_payment_base_bank VALUES (6, '招商银行', '12021', '2020-4-8 14:42:09', '2020-4-8 14:42:09', 11, 11,'1','1');
-
 
 create table p2p_payment_customer_bank (
   id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -122,7 +143,6 @@ INSERT INTO p2p_payment_customer_bank VALUES (1, 1, '12021', '招商银行', '62
 INSERT INTO p2p_payment_customer_bank VALUES (2, 1, '21201', '北京银行','625484532323148', '15698754342', '2020-4-15 14:45:25', '2020-4-15 14:45:25', 11, 11,'1','1');
 INSERT INTO p2p_payment_customer_bank VALUES (3, 2, '21201', '北京银行', '581215465181585', '17643334342', '2020-4-15 14:45:25', '2020-4-15 14:45:25', 11, 11,'1','1');
 
-
 create table p2p_payment (
   id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   biz_id varchar(64) NOT NULL COMMENT '业务编号',
@@ -143,4 +163,94 @@ create table p2p_payment (
   biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='支付表';
+
+#--------------------p2p_account--------------------
+create database p2p_account default character set utf8 collate utf8_general_ci;
+use p2p_account;
+
+create table p2p_master_acc (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  customer_id int(16) NOT NULL COMMENT '客户编号',
+  customer_name varchar(64) NOT NULL DEFAULT '' COMMENT '姓名',
+  id_card varchar(64) NOT NULL DEFAULT '' COMMENT '身份证号码',
+  amount decimal(10,2) DEFAULT NULL  COMMENT '金额',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='主账户表';
+
+create table p2p_cash_sub_acc (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  master_id int(16) NOT NULL COMMENT '主账户主键',
+  customer_id int(16) NOT NULL COMMENT '客户编号',
+  amount decimal(10,2) DEFAULT NULL  COMMENT '金额',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='现金分户';
+
+create table p2p_current_sub_acc (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  master_id int(16) NOT NULL COMMENT '主账户主键',
+  customer_id int(16) NOT NULL COMMENT '客户编号',
+  amount decimal(10,2) DEFAULT NULL  COMMENT '金额',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='活期分户';
+
+create table p2p_claim_sub_acc (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  master_id int(16) NOT NULL COMMENT '主账户主键',
+  customer_id int(16) NOT NULL COMMENT '客户编号',
+  amount decimal(10,2) DEFAULT NULL  COMMENT '金额',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='债权分户';
+
+create table p2p_debt_sub_acc (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  master_id int(16) NOT NULL COMMENT '主账户主键',
+  customer_id int(16) NOT NULL COMMENT '客户编号',
+  amount decimal(10,2) DEFAULT NULL  COMMENT '金额',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='债务分户';
+
+create table p2p_profit_sub_acc (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  master_id int(16) NOT NULL COMMENT '主账户主键',
+  customer_id int(16) NOT NULL COMMENT '客户编号',
+  amount decimal(10,2) DEFAULT NULL  COMMENT '金额',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='收益分户';
+
 

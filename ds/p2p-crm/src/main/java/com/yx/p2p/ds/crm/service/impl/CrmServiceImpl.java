@@ -9,6 +9,7 @@ import com.yx.p2p.ds.model.Customer;
 import com.yx.p2p.ds.service.util.RedisUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.service.CrmService;
+import com.yx.p2p.ds.util.LoggerUtil;
 import com.yx.p2p.ds.vo.CustomerVo;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,16 +59,53 @@ public class CrmServiceImpl implements CrmService {
      * @param customerVo
      * @return 返回值1：添加客户成功，返回值0：客户已存在或添加客户失败
      */
-    public Integer add(CustomerVo customerVo){
-        Integer result = 0;
-        logger.debug("【customerVo=】" + customerVo);
+    public Result add(CustomerVo customerVo){
+        Result result = Result.error();
+        logger.debug("add【customerVo=】" + customerVo);
         //1.使用身份证判断客户是否存在
         boolean flag = this.existCustomerByIdCard(customerVo);
         if(!flag){
             //2.客户不存在，添加客户
             result = this.addCustomer(customerVo);
+        }else{
+            result = Result.error("身份证已经存在"+customerVo.getIdCard());
         }
+        logger.debug("add【result】=" + result);
         return result;
+    }
+
+    /**
+     1.使用新身份证号验证是否需要更新，
+     2.需要更新：删除旧缓存，3.2修改数据库数据，3.3查询数据库（获得全部字段），加入缓存中。
+     * @param customerVo
+     * @return
+     */
+    public Result update(CustomerVo customerVo){
+        logger.debug("update【customerVo=】"+ customerVo);
+        Result result = null;
+        Integer count = 0;
+        try{
+            //1.使用【新】身份证号查询客户（缓存和数据库）是否更新 更新:true，不更新:false
+            boolean flag = this.updateCustomerFlagByIdCard(customerVo);
+            if(flag){//更新:true
+                logger.debug("【需要更新】customerVo=" + customerVo);
+                //1.删除【旧】缓存数据
+                this.deleteIdCardCache(customerVo.getIdCardOld());
+                //2.更新数据库
+                count = this.updateDB(customerVo);
+                if(count == 1){
+                    //3.数据库查询数据
+                    Customer customer = this.getCustomerByIdInDB(customerVo.getId());
+                    //4.添加缓存
+                    this.addIdCardKeyCache(customer);
+                }
+                return Result.success();
+            }else{
+                return Result.error("身份证号码已存在不能更新");
+            }
+        }catch (Exception e){
+            return LoggerUtil.addExceptionLog(e,logger);
+        }
     }
 
     public CustomerVo getCustomerVoById(Integer id){
@@ -92,36 +130,18 @@ public class CrmServiceImpl implements CrmService {
         return customerVo;
     }
 
-    /**
-     1.使用新身份证号查询客户（缓存和数据库）是否存在，
-     2.存在，不处理
-     3.不存在，3.1删除旧缓存，3.2修改数据库数据，3.3查询数据库（获得全部字段），加入缓存中。
-     * @param customerVo
-     * @return
-     */
-    public Integer update(CustomerVo customerVo){
-        Result result = null;
-        Integer count = 0;
-        try{
-            //1.使用新身份证号查询客户（缓存和数据库）是否存在，
-            boolean flag = this.existCustomerByIdCard(customerVo);
-            if(!flag){//不存在
-                //1.删除旧缓存数据
-                this.deleteIdCardCache(customerVo.getIdCardOld());
-                //2.更新数据库
-                count = this.updateDB(customerVo);
-                if(count == 1){
-                    //3.数据库查询数据
-                    Customer customer = this.getCustomerByIdInDB(customerVo.getId());
-                    //4.添加缓存
-                    this.addIdCardKeyCache(customer);
-                }
-            }
-            return count;
-        }catch (Exception e){
-            logger.error(e.toString(),e);
-            return 0;
+
+    //是否更新 更新true，不更新false
+    private boolean updateCustomerFlagByIdCard(CustomerVo customerVo) {
+        boolean flag = false;//不更新false
+        Customer customer = this.queryOneCustomerByIdCard(customerVo.getIdCard());
+        if(customer == null || (customer!=null && customerVo.getId()==customer.getId()) ){ //新身份号码不存在，或是本人
+            flag = true;//更新true
+            logger.debug("【新身份号码不存在，或是本人customerVo=】" + customerVo);
+        }else{//身份证号码存在不是本人
+            logger.debug("【身份证号码存在不是本人】customer=" + customer);
         }
+        return flag;
     }
 
     public Customer getCustomerByIdInDB(Integer id){
@@ -142,7 +162,7 @@ public class CrmServiceImpl implements CrmService {
         }else{
             logger.error("【customerVo.id=】" + customerVo.getId() + ",不能db.update");
         }
-        logger.debug("【update.db.count=】" + count);
+        logger.debug("【更新数据库】count=" + count);
         return count;
     }
 
@@ -233,7 +253,7 @@ public class CrmServiceImpl implements CrmService {
         * @return: void
         */
     public void addIdCardKeyCache(Customer customer){
-        logger.debug("【before.setcache.customer=】"+ customer);
+        logger.debug("【准备加入Redis缓存】customer=" + customer);
         //2.加入缓存
         String cacheKey = SysConstant.CACHE_KEY_PREFIX_CRM_INFO_IDCARD + customer.getIdCard();
         this.setCache(cacheKey,customer);
@@ -243,7 +263,7 @@ public class CrmServiceImpl implements CrmService {
     public Integer deleteIdCardCache(String idCard){
         Integer count = 0;
         String cacheKey = SysConstant.CACHE_KEY_PREFIX_CRM_INFO_IDCARD + idCard;
-        logger.debug("【del.cache.cacheKey(idCardOld)=】"+ cacheKey);
+        logger.debug("【删除旧缓存】" + cacheKey);
         //删除缓存
         Jedis cacheJedis = null;
         try{
@@ -257,7 +277,7 @@ public class CrmServiceImpl implements CrmService {
                 cacheJedis.close();
             }
         }
-        logger.debug("【del.cache.count=】"+ count);
+        logger.debug("【删除旧缓存】"+ count);
         return count;
     }
 
@@ -288,11 +308,11 @@ public class CrmServiceImpl implements CrmService {
      */
     private boolean existCustomerByIdCardInDB(String idCard) {
         boolean flag = false;
-        List<Customer> customerList = this.queryCustomerListByIdCard(idCard);
-        if(customerList!=null && !customerList.isEmpty()){
+        Customer customer = this.queryOneCustomerByIdCard(idCard);
+        if(customer != null){
             flag = true;
         }
-        logger.debug("【exist.db.flag=】" + flag);
+        logger.debug("【数据库中存在】flag=" + flag);
         return flag;
     }
 
@@ -301,12 +321,12 @@ public class CrmServiceImpl implements CrmService {
      * @param idCard
      * @return
      */
-    private List<Customer> queryCustomerListByIdCard(String idCard) {
-        Customer customer = new Customer();
-        customer.setIdCard(idCard);
-        List<Customer> resCustomers = customerMapper.select(customer);
-        logger.debug("【resCustomers=】" + resCustomers);
-        return resCustomers;
+    private Customer queryOneCustomerByIdCard(String idCard) {
+        Example example = new Example(Customer.class);
+        example.createCriteria().andEqualTo("idCard",idCard);
+        Customer customer = customerMapper.selectOneByExample(example);
+        logger.debug("【customer=】" + customer);
+        return customer;
     }
 
     /**
@@ -332,7 +352,7 @@ public class CrmServiceImpl implements CrmService {
                 cacheJedis.close();
             }
         }
-        logger.debug("【exist.cache.flag=】" + flag);
+        logger.debug("【缓存中存在】flag=" + flag);
         return flag;
     }
 
@@ -347,17 +367,20 @@ public class CrmServiceImpl implements CrmService {
         * @return: java.lang.Integer
         * @throws:
         */
-    private Integer addCustomer(CustomerVo customerVo) {
-        Integer result = 0;
+    private Result addCustomer(CustomerVo customerVo) {
+        Result result = Result.error();
         try{
             //1.构建Customer对象
             Customer customer = this.buildAddCustomerModel(customerVo);
             //2.添加客户
-            result = this.addCustomerInDB(customer);
-            //3.添加缓存
-            this.addIdCardKeyCache(customer);
+            Integer count = this.addCustomerInDB(customer);
+            if(count == 1){
+                result = Result.success();
+                //3.添加缓存
+                this.addIdCardKeyCache(customer);
+            }
         }catch (Exception e){
-            logger.error(e.toString(),e);
+            result = LoggerUtil.addExceptionLog(e,logger);
         }
         return result;
     }
@@ -376,9 +399,9 @@ public class CrmServiceImpl implements CrmService {
             cacheJedis = redisUtil.getCacheJedis();
             String cacheValue = JSON.toJSONString(t);
             String res = cacheJedis.set(cacheKey, cacheValue);//返回结果OK
-            logger.debug("【add.cache.res=】" + res);
+            logger.debug("【加入Redis缓存成功】res=" + res);
         }catch(Exception e){
-            logger.error(e.toString(),e);
+            logger.error("【加入Redis缓存异常】"+ e.toString(),e);
         }finally{
             if(cacheJedis != null){
                 cacheJedis.close();
@@ -397,13 +420,19 @@ public class CrmServiceImpl implements CrmService {
         * @return: com.yx.p2p.ds.model.Customer
         */
     private Customer buildAddCustomerModel(CustomerVo customerVo) {
-        //1.设置时间，操作人，状态
-        BeanHelper.setAddDefaultField(customerVo);
-
-        //对象拷贝，从customerVo拷贝到customer
-        Customer customer = this.buildUpdateCustomerModel(customerVo);
-        //特殊值设置
-        customer.setBirthday(DateUtil.str2Date(customerVo.getBirthdayStr()));
+        logger.debug("【构建添加客户对象前】customerVo=" + customerVo);
+        Customer customer = new Customer();
+        try {
+            //1.对象拷贝，从customerVo拷贝到customer
+            BeanUtils.copyProperties(customer,customerVo);
+            //2/.设置时间，操作人，状态
+            BeanHelper.setAddDefaultField(customer);
+            //3.特殊值设置
+            customer.setBirthday(DateUtil.str2Date(customerVo.getBirthdayStr()));
+        } catch (Exception e) {
+            LoggerUtil.addExceptionLog(e,logger);
+        }
+        logger.debug("【构建添加客户对象后】customer=" + customer);
         return customer;
     }
 
@@ -415,10 +444,9 @@ public class CrmServiceImpl implements CrmService {
         //对象拷贝
         try {
             BeanUtils.copyProperties(customer,customerVo);
-        } catch (IllegalAccessException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            LoggerUtil.addExceptionLog(e,logger);
         }
         //特殊值设置
         customer.setBirthday(DateUtil.str2Date(customerVo.getBirthdayStr()));

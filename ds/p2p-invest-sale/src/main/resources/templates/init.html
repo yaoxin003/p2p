@@ -8,11 +8,17 @@
 <table id="dg"></table>
 
 
-<div id="searchDiv">
-    <form id="searchForm" action="" method="post">
-        身份证号码<input class="easyui-textbox" name="idCard" id="searchIdCard" style="width:200px;"/>
-        <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询客户</a>
-    </form>
+<div id="tb" style="display:none;">
+    <div id="customerDtn">
+        <a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="addCustomer()">添加客户</a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" onclick="updateCustomer()">修改客户</a>
+    </div>
+    <div id="searchDiv">
+        <form id="searchForm" action="" method="post">
+            &nbsp;&nbsp;&nbsp;&nbsp;身份证号码<input class="easyui-textbox" name="idCard" id="searchIdCard" style="width:200px;"/>
+            <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询客户</a>
+        </form>
+    </div>
 </div>
 
 <div id="mydialog" class="easyui-dialog" title="添加/修改客户" style="width:300px;display:none;" draggable="false"
@@ -55,12 +61,12 @@
     </form>
 </div>
 
-<div th:replace="opera::productDiv"></div>
+<div th:replace="opera::productDiv" ></div>
 <div th:replace="asset::investDiv"></div>
 
 </body>
-<script type="text/javascript">
-    var flag;//添加/修改标志位
+<script type="text/javascript" th:inline="none">
+
     //--------------------列表功能--------------------
     $("#dg").datagrid({
         idField : 'id',//有idField保证了翻页选中不丢失
@@ -70,37 +76,7 @@
         url : "/crm/list",
         striped:true,//隔行变色
         title : '客户管理',
-        toolbar : [{
-            text:'添加客户',
-            iconCls : 'icon-add',
-            handler : function(){
-                flag = "add";//添加/修改标志位
-                $("#myForm").form('reset');
-                $("#mydialog").dialog({
-                    id:'mydialog',
-                    title : '添加客户'
-                });
-                $("#mydialog").dialog("open");
-            }
-        },{
-            text:'修改客户',
-            iconCls : 'icon-edit',
-            handler : function(){
-                flag = "update";//添加/修改标志位
-                var arr = $("#dg").datagrid('getSelections');
-                if(arr.length != 1){
-                    messger_show_center('提示信息','只能选择一行记录修改');
-                }else{
-                    $("#mydialog").dialog({
-                        id:'mydialog',
-                        title : '修改客户'
-                    });
-                    $("#mydialog").dialog("open");
-                    var dataParams =  {"idCard":arr[0].idCard};
-                    ajaxModifyOpen(dataParams,'myForm','mydialog','post','/crm/getByIdCard');
-                }
-            }
-        }],
+        toolbar : '#tb',
         columns : [[
             {field:'ck',checkbox:true,width:50},
             {field:'id',title:'编号',width:50},
@@ -117,23 +93,11 @@
                     return genderStr(value);
                 }
             },
-            {field:'birthday',title:'生日',width:100,
-                formatter:function(value){
-                    return dateStr(value);
-                }
-            },
+            {field:'birthday',title:'生日',width:100},
             {field:'idCard',title:'身份证号码',width:200},
-            {field:'createTime',title:'创建时间',width:150,
-                formatter:function(value){
-                    return dateTimeStr(value);
-                }
-            },
+            {field:'createTime',title:'创建时间',width:175},
             {field:'creator',title:'创建人',width:100},
-            {field:'updateTime',title:'修改时间',width:150,
-                formatter:function(value){
-                    return dateTimeStr(value);
-                }
-            },
+            {field:'updateTime',title:'修改时间',width:175},
             {field:'reviser',title:'修改人',width:100}
         ]],
         onLoadSuccess : function(data){
@@ -145,8 +109,34 @@
         pageList:[1,2,5,10,20,50]
     });
 
-    //查询
-    $('#searchDiv').appendTo('.datagrid-toolbar');
+    var flag;//添加/修改标志位
+    //添加客户
+    function addCustomer(){
+        flag = "add";//添加/修改标志位
+        $("#myForm").form('reset');
+        $("#mydialog").dialog({
+            id:'mydialog',
+            title : '添加客户'
+        });
+        $("#mydialog").dialog("open");
+    }
+
+    //修改客户
+    function updateCustomer(){
+        flag = "update";//添加/修改标志位
+        var arr = $("#dg").datagrid('getSelections');
+        if(arr.length != 1){
+            messger_show_center('提示信息','请选择一行记录修改');
+        }else{
+            $("#mydialog").dialog({
+                id:'mydialog',
+                title : '修改客户'
+            });
+            $("#mydialog").dialog("open");
+            var dataParams =  {"idCard":arr[0].idCard};
+            ajaxModifyOpen(dataParams,'myForm','mydialog','post','/crm/getByIdCard');
+        }
+    }
 
     function doSearch(){
         $("#dg").datagrid('load',datagridForm($("#searchForm")));

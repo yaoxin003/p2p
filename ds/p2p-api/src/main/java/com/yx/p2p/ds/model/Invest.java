@@ -1,5 +1,7 @@
 package com.yx.p2p.ds.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -23,11 +25,13 @@ public class Invest extends BaseModel implements Serializable {
     private Integer customerId;//客户编号
     private BigDecimal investAmt;//投资金额
     private BigDecimal profit;//收益
+    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
     private Date startDate;//投资开始日期
     /**
      * 投资类型1-固定期限：非null，当前日期+1+InvestProduct.dayCount
      * 投资类型2-非固定期限：null
      */
+    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
     private Date endDate;//投资到期日期
 
     /**

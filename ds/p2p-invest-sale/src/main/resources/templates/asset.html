@@ -10,8 +10,7 @@
             <table id="investTable" cellspacing="5"></table>
         </div>
 
-
-        <script type="text/javascript">
+        <script type="text/javascript" th:inline="none">
             function showInvestDatagrid(customerId){
                 $("#investTable").datagrid({
                     idField : 'id',//有idField保证了翻页选中不丢失
@@ -32,6 +31,11 @@
                                     str = "<a href='#' name='paymentOpr' onclick='payment(" + row.id + "," + row.customerId + "," + row.investAmt + ","+ row.customerBankId + ")'></a>";
                                 }
                                 return str;
+                            }
+                        },
+                        {field:'bizState',title:'状态',width:100,
+                            formatter : function(value,row,index){
+                                return investBizStateDesc(value);
                             }
                         },
                         {field:'id',title:'投资编号',width:100},
@@ -79,8 +83,10 @@
                     dataType: 'json',
                     cache : false,
                     success : function (result) {
+                        //关闭投资列表对话框
+                        $("#investDialog").dialog("close");
                         if(result.status == 'ok' ){
-                            openGateway(result.target);//openGateway在operate.html
+                            openGateway(result.target);//打开网关支付页面，openGateway在operate.html
                             $("#planPayDialog").dialog("close");
                             $("#planPayForm").form('reset');
                         }else{
@@ -89,6 +95,21 @@
                     }
                 });
             }
+
+        //投资业务状态描述
+        function investBizStateDesc(value){
+            var str = "";
+            if(value == '1'){
+                str = "新增";
+            }else if(value == '2'){
+                str = "投资成功";
+            }else if (value== '3'){
+                str = "投资撤销";
+            }else{
+                str = "未知";
+            }
+            return str;
+        }
         </script>
     </div>
  </body>

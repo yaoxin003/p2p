@@ -14,7 +14,7 @@ Java版本：JDK1.8.0_131
 SpringBoot1.4.7+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4，
 Dubbo2.6.0+Zookeeper3.4.8
 Redis4.0.14+Elastic Search
-Nginx+RocketMQ
+Nginx+RocketMQ4.5.1
 SHA加签验签，RSA非对称加密解密
 
 #--------------------linux环境下服务安装路径和启动方法--------------------
@@ -24,13 +24,21 @@ Dubbo控制台：
     war包路径：/usr/local/bin/dubbo-admin-2.6.0
     启动方式：cd /usr/local/apache-tomcat-9.0.27/
                 bin/startup.sh
-    控制台地址：http://192.168.1.121:8080/dubbo-admin/
+    控制台地址：http://192.168.1.121:7081/dubbo-admin/
     控制台账户：root root
     tomcat位置：/usr/local/apache-tomcat-9.0.27
 Redis-4.0.14
     路径：cd /etc/redis/
     启动方式：redis-server ./redis6379.conf
-    
+RocketMQ4.5.1（NameSrv和Broker）
+    路径：cd /usr/local/rocketmq-all-4.4.0-bin-release
+    启动NameSrv方式：nohup sh mqnamesrv > nohup_namesrv.out &
+    启动Broker方式：nohup sh mqbroker -n 192.168.1.121:9876 > nohup_broker.out &
+    #nohup sh mqbroker -n 192.168.1.121:9876 autoCreateTopicEnable=true > nohup_broker.out &
+    控制台路径：cd /usr/local/rocketmq-externals-master/rocketmq-console/target
+    #启动方式：java -jar ./rocketmq-console-ng-1.0.1.jar
+    后台启动方式：nohup java -jar ./rocketmq-console-ng-1.0.1.jar > nohup_rocketmq.out &
+    控制台地址：http://192.168.1.121:7082
     
 
 #--------------------服务名称和端口号--------------------

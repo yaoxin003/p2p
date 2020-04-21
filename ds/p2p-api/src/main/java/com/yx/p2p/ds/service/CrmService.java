@@ -1,5 +1,6 @@
 package com.yx.p2p.ds.service;
 
+import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.Customer;
 import com.yx.p2p.ds.vo.CustomerVo;
 import java.util.List;
@@ -15,11 +16,11 @@ public interface CrmService {
 
     public List<Customer> getCustomerListByPagination(CustomerVo customerVo, Integer currentPage, Integer pageSize);
 
-    public Integer add(CustomerVo customerVo);
+    public Result add(CustomerVo customerVo);
+
+    public Result update(CustomerVo customerVo);
 
     public CustomerVo getCustomerVoById(Integer id);
-
-    public Integer update(CustomerVo customerVo);
 
     public Integer deleteBatch(Integer[] idArr,String[] idCardArr);
 

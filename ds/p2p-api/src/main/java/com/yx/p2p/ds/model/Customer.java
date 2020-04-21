@@ -1,5 +1,6 @@
 package com.yx.p2p.ds.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -19,6 +20,7 @@ public class Customer extends BaseModel implements Serializable {
     private Integer id;
     private String name;//姓名
     private Short gender;//性别
+    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
     private Date birthday;//生日
     private String idCard;//身份证号码
 

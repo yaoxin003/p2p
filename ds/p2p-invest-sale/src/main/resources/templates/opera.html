@@ -128,7 +128,7 @@
     <!--网关支付-->
     <div id="gatewayDialog"></div>
 
-     <script type="text/javascript">
+     <script type="text/javascript" th:inline="none">
          //投资产品列表
          $("#productTable").datalist({
              lines : true,
@@ -288,7 +288,7 @@
 
          //打开网关支付iframe
          function openGateway(url){
-            window.open(url,"回复窗口",
+             window.open(url,"支付",
                 "fullscreen=no,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=no,width=600,height=800,left=100,top=100");
          }
 

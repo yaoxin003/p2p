@@ -1,5 +1,7 @@
 package com.yx.p2p.ds.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
 /**
@@ -9,7 +11,9 @@ import java.util.Date;
  */
 public class BaseModel {
 
+    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date createTime;//创建时间
+    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd HH:mm:ss",timezone="GMT+8")
     private Date updateTime;//修改时间
     private Integer creator;//创建人
     private Integer reviser;//修改人

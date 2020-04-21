@@ -50,6 +50,7 @@ public class CrmController {
         if(StringUtils.isNotBlank(idCard)){
             logger.debug("【search pagination】");
             crmList = crmServer.search(customerVo,page,rows);
+            logger.debug("【crmList=】" + crmList);
             return Pagination.buildMap(crmList.size(),crmList);
         }else{
             logger.debug("【search empty】");
@@ -68,18 +69,15 @@ public class CrmController {
     @RequestMapping("add")
     @ResponseBody
     public Result add(CustomerVo customerVo) throws Exception{
-        Result result = Result.error();
-        logger.debug("【customerVo=】" + customerVo);
-        try{
-            Integer res = crmServer.add(customerVo);
-            logger.debug("【res=】" + res);
-            if(res == 1){
-                result = Result.success();
-            }
-        }catch (Exception e){
-            logger.error(e.toString(),e);
-        }
-        return result;
+        logger.debug("add【customerVo=】" + customerVo);
+        return crmServer.add(customerVo);
+    }
+
+    @RequestMapping("update")
+    @ResponseBody
+    public Result update(CustomerVo customerVo) throws Exception{
+        logger.debug("update【customerVo=】" + customerVo);
+        return crmServer.update(customerVo);
     }
 
     /**
@@ -121,20 +119,6 @@ public class CrmController {
         Customer customer = crmServer.getCustomerById(crmId);
         logger.debug("【customer=】" + customer);
         return customer;
-    }
-
-    @RequestMapping("update")
-    @ResponseBody
-    public Result update(CustomerVo customerVo) throws Exception{
-        Result result = null;
-        logger.debug("【customerVo=】" + customerVo);
-        try{
-            crmServer.update(customerVo);
-            return Result.success();
-        }catch (Exception e){
-            logger.error(e.toString(),e);
-            return Result.error();
-        }
     }
 
     @RequestMapping("test")

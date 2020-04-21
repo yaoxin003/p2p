@@ -34,6 +34,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+        
         <!-- thymeleaf支持包、可以设置松校验、热部署 -->
         <dependency>
             <groupId>net.sourceforge.nekohtml</groupId>

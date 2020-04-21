@@ -1,8 +1,8 @@
 package com.yx.p2p.ds.server;
 
+import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.Customer;
 import com.yx.p2p.ds.vo.CustomerVo;
-
 import java.util.List;
 
 /**
@@ -12,11 +12,11 @@ import java.util.List;
  */
 public interface CrmServer{
 
-    public Integer add(CustomerVo customerVo);
+    public Result add(CustomerVo customerVo);
+
+    public Result update(CustomerVo customerVo);
 
     public List<Customer> search(CustomerVo customerVo, Integer currentPage, Integer pageSize);
-
-    public Integer update(CustomerVo customerVo);
 
     public Customer getCustomerById(Integer crmId);
 }

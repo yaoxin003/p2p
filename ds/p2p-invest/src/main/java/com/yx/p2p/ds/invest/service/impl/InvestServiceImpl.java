@@ -1,18 +1,22 @@
 package com.yx.p2p.ds.invest.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Reference;
+import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.constant.SysConstant;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.SystemSourceEnum;
 import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
 import com.yx.p2p.ds.enums.investproduct.InvestTypeEnum;
+import com.yx.p2p.ds.enums.lending.LendingTypeEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.invest.mapper.InvestMapper;
 import com.yx.p2p.ds.model.*;
+import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.server.CrmServer;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.InvestProductService;
 import com.yx.p2p.ds.service.InvestService;
+import com.yx.p2p.ds.service.LendingService;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
@@ -22,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -50,6 +55,9 @@ public class InvestServiceImpl implements InvestService {
 
     @Reference
     private CrmServer crmServer;
+
+    @Autowired
+    private LendingService lendingService;
 
     //投资充值
     public Result rechargeInvest(InvestVo investVo){
@@ -95,26 +103,49 @@ public class InvestServiceImpl implements InvestService {
         return payment;
     }
 
-    //该方法暂未使用
+    //1.更新投资状态：投资成功
+    //2.插入新出借单
+    //3.发送撮合系统：新出借（MQ）
+    //注意：1和2在同一事务
+    @Transactional
+    public Result receivePayResult(InvestMQVo investMQVo){
+        Integer investId = Integer.parseInt(investMQVo.getBizId());
+        //1.更新投资状态：投资成功
+        Result result = this.updateInvestBizState(investId, InvestBizStateEnum.INVEST_SUC);
+        if(Result.checkStatus(result)){
+            //2.插入新出借单
+            result = lendingService.addNewLending(investMQVo);
+        }
+        if(Result.checkStatus(result)){
+            //3.发送撮合系统：新出借（MQ）
+
+        }
+        return result;
+    }
+
     @Override
     public Result updateInvestBizState(Integer investId, InvestBizStateEnum investBizStateEnum) {
         logger.debug("【更新投资状态】investId=" + investId + ",state=" + investBizStateEnum);
-        Result res = Result.success();
+        Result result = Result.error();
         try{
-            Invest invest = new Invest();
-            invest.setId(investId);
-            invest.setBizState(investBizStateEnum.getState());
+            Invest invest = this.buildUpdateInvestState(investId,investBizStateEnum);
             int count = investMapper.updateByPrimaryKeySelective(invest);
-            if(count != 1){
-                 res = Result.error(count,"更新失败count=" + count);
+            if(count == 1){
+                result = Result.success();
             }
-            logger.debug("更新投资状态【investId=】" + investId + ",【investState=】"
+            logger.debug("更新数据库：投资状态【investId=】" + investId + ",【investState=】"
                     + investBizStateEnum.getState() + "count=" + count);
         }catch(Exception e){
-            logger.debug("=======================================");
-            res = LoggerUtil.addExceptionLog(e,logger);
+            result = LoggerUtil.addExceptionLog(e,logger);
         }
-        return res;
+        return result;
+    }
+
+    private Invest buildUpdateInvestState(Integer investId, InvestBizStateEnum investBizStateEnum) {
+        Invest invest = new Invest();
+        invest.setId(investId);
+        invest.setBizState(investBizStateEnum.getState());
+        return invest;
     }
 
     private Payment buildAddPayment(InvestVo investVo) {

@@ -11,14 +11,23 @@ import com.yx.p2p.ds.mock.thirdpay.enums.RetCodeEnum;
 import com.yx.p2p.ds.model.BaseBank;
 import com.yx.p2p.ds.model.CustomerBank;
 import com.yx.p2p.ds.model.Payment;
+import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.payment.mapper.BaseBankMapper;
 import com.yx.p2p.ds.payment.mapper.CustomerBankMapper;
 import com.yx.p2p.ds.payment.mapper.PaymentMapper;
 import com.yx.p2p.ds.service.PaymentService;
 import com.yx.p2p.ds.util.HttpClientUtil;
+import com.yx.p2p.ds.util.LoggerUtil;
 import com.yx.p2p.ds.util.RASUtil;
 import com.yx.p2p.ds.util.SHAUtil;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.remoting.exception.RemotingException;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +62,21 @@ public class PaymentServiceImpl implements PaymentService {
     //RSA加密解密私钥
     @Value("${ras.private.key}")
     private String rasPrivateKey;
+
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
+
+    @Value("${mq.payment.topic}")
+    private String payTopic;
+
+    @Value("${mq.payment.tag.invest.suc}")
+    private String payInvestSucTag;
+
+    @Value("${mq.payment.tag.invest.fail}")
+    private String payInvestFailTag;
+
+
+
 
     public List<BaseBank> getAllBaseBankList(){
         List<BaseBank> baseBanks = baseBankMapper.selectAll();
@@ -207,12 +231,56 @@ public class PaymentServiceImpl implements PaymentService {
     //3.使用RocketMQ加入消息队列中通知其他系统（投资人支付通知invest和recored两个系统）
     public Result dealCompany1Gateway(String payResult){
         //1.解析第三方支付结果，解密验签
-        Result result = this.parsePayResult(payResult);
-        if(Result.checkStatus(result)){
+        Result thirdPayResult = this.parsePayResult(payResult);
+        Result result = null;
+        if(Result.checkStatus(thirdPayResult)){
             //2.修改payment表支付状态
-            result = this.updatePaymentState(result);
+            result = this.updatePaymentState(thirdPayResult);
             //3.使用RocketMQ加入消息队列中通知其他系统（投资人支付通知invest和recored两个系统）
+            this.dealPaymentMessage(result,(Map<String,String>)thirdPayResult.getTarget());
+        }
+        return result;
+    }
 
+    private void dealPaymentMessage(Result result, Map<String,String> thirdPayMap) {
+        logger.debug("3.【支付结果通知后，准备向RocketMQ发送数据】result=" + result);
+        if(Result.checkStatus(result)){
+            String retCode = thirdPayMap.get("retCode");
+            String orderSn = thirdPayMap.get("orderSn");
+            Payment payment = this.queryDBPaymentByOrderSn(orderSn);
+            this.sendPayResultMQ(retCode,payment);//发送支付成功MQ
+        }
+    }
+
+    private Payment queryDBPaymentByOrderSn(String orderSn) {
+        Example example = new Example(Payment.class);
+        example.createCriteria().andEqualTo("orderSn",orderSn);
+        Payment payment = paymentMapper.selectOneByExample(example);//若有多条数据则抛出异常
+        logger.debug("【queryDBPaymentByOrderSn】payment=" + payment);
+        return payment;
+    }
+
+    //发送支付结果MQ
+    private Result sendPayResultMQ(String retCode,Payment payment) {
+        Result result = Result.success();
+        InvestMQVo investMQVo = new InvestMQVo();
+        try {
+            //对象拷贝
+            BeanUtils.copyProperties(investMQVo,payment);
+            if(retCode.equals(RetCodeEnum.PAY_SUC.getCode())) {//支付成功
+                investMQVo.setStatus(InvestMQVo.STATUS_OK);
+            }else{//支付失败
+                investMQVo.setStatus(InvestMQVo.STATUS_FAIL);
+            }
+            String investMQString = JSON.toJSONString(investMQVo);
+            Message message = new Message(payTopic, payInvestSucTag, payment.getOrderSn(),
+                    investMQString.getBytes());
+            logger.debug("【准备发送支付结果MQ】");
+            SendResult sendResult = rocketMQTemplate.getProducer().send(message);
+            logger.debug("【发送支付结果MQ】，topic="+ payTopic + ",tag=" + payInvestSucTag + ",message=" + message);
+            logger.debug("【发送支付结果MQ】，sendResult" + sendResult);
+        } catch (Exception e) {
+            result = LoggerUtil.addExceptionLog(e,logger);
         }
         return result;
     }
@@ -220,7 +288,7 @@ public class PaymentServiceImpl implements PaymentService {
     //修改payment表支付状态，使用orderSn根据thirdPay.retCode作为判断条件
     private Result updatePaymentState(Result result) {
         Map<String,String> thirdPayResult = (Map<String,String>)result.getTarget();
-        logger.debug("【更新订单状态，重新封装订单数据】thirdPayResult=" + thirdPayResult );
+        logger.debug("2.1.【更新订单状态，重新封装订单数据】thirdPayResult=" + thirdPayResult );
         String retCode = thirdPayResult.get("retCode");
         Payment payment = new Payment();
         payment.setOrderSn(thirdPayResult.get("orderSn"));
@@ -237,8 +305,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     //根据第三方支付结果更新支付单状态
     private Result updatePaymentDBByThirdPay(Payment payment) {
-        logger.debug("【根据第三方支付结果更新支付单状态】payment=" + payment);
+        logger.debug("2.2【根据第三方支付结果准备更新支付单】payment=" + payment);
         Result result = Result.error();
+        BeanHelper.setUpdateDefaultField(payment);
         Example example = new Example(Payment.class);
         String orderSn = payment.getOrderSn();
         example.createCriteria().andEqualTo("orderSn",orderSn);
@@ -255,6 +324,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     //1.接收支付结果，解密验签
     private Result parsePayResult(String payResult) {
+        logger.debug("【1.1.支付结果，解析第三方支付结果，解密】");
         Result result = Result.error();
         if(StringUtils.isNotBlank(payResult)){
             //解密
@@ -267,6 +337,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     //验签
     private Result checkSign(Object rasRes) {
+        logger.debug("【1.2.支付结果，解析第三方支付结果，验签】");
         Result result = Result.success();
         if(rasRes != null){
             Map<String,String> map = (Map<String,String>)rasRes;

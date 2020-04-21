@@ -17,7 +17,6 @@ public interface InvestService {
     //充值投资
     public Result rechargeInvest(InvestVo investVo);
 
-    //该方法暂未使用
     //更新投资业务状态
     public Result updateInvestBizState(Integer investId, InvestBizStateEnum investBizStateEnum);
 

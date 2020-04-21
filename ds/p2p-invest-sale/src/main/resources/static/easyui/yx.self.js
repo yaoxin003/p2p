@@ -1,4 +1,6 @@
+
 /*--------------------日期格式转换--------------------*/
+//暂不使用，使用模型上加注释 @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
 function dateStr(value){
     var date = new Date(value);
     var y = date.getFullYear();
@@ -54,7 +56,13 @@ function ajaxAddUpdate(formId,dialogId,dgId,type,url){
             //2.刷新datagrid
             $("#"+dgId).datagrid('reload');
             //3.提示信息
-            messger_show_center(result.status,result.message);
+            var msg = "";
+            if(result.selfMsg != ""){
+                msg = result.selfMsg;
+            }else{
+                msg = result.defaultMsg;
+            }
+            messger_show_center(result.status,msg);
         }
     });
 }

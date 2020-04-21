@@ -41,21 +41,22 @@ public class CrmController {
         logger.debug("【page=" + page + ",rows=】" + rows + "【,customerVo=】" + customerVo);
         List<Customer> customerList = crmService.getCustomerListByPagination(customerVo, page, rows);
         int total = crmService.queryCustomerCount(customerVo);
+        logger.debug("【customerList=】" + customerList);
         return Pagination.buildMap(total,customerList);
     }
 
     @RequestMapping("add")
     @ResponseBody
     public Result add(CustomerVo customerVo) throws Exception{
-        Result result = null;
+        logger.debug("add【customerVo=】" + customerVo);
+        return crmService.add(customerVo);
+    }
+
+    @RequestMapping("update")
+    @ResponseBody
+    public Result update(CustomerVo customerVo) throws Exception{
         logger.debug("【customerVo=】" + customerVo);
-        try{
-            crmService.add(customerVo);
-            return Result.success();
-        }catch (Exception e){
-            logger.error(e.toString(),e);
-            return Result.error();
-        }
+        return  crmService.update(customerVo);
     }
 
     @RequestMapping("getById")
@@ -66,21 +67,6 @@ public class CrmController {
         return customerVo;
     }
 
-    @RequestMapping("update")
-    @ResponseBody
-    public Result update(CustomerVo customerVo) throws Exception{
-        Result result = Result.error();
-        logger.debug("【customerVo=】" + customerVo);
-        try{
-            int count = crmService.update(customerVo);
-            if(count > 0){
-                result = Result.success();
-            }
-        }catch (Exception e){
-            logger.error(e.toString(),e);
-        }
-        return result;
-    }
 
     @RequestMapping("delete")
     @ResponseBody

@@ -68,7 +68,7 @@ public class InvestController {
 
     @RequestMapping("getInvestVoListByCustomerId")
     @ResponseBody
-    public List<InvestVo> getInvestVoList(Integer customerId){
+    public List<InvestVo> getInvestVoListByCustomerId(Integer customerId){
         logger.debug("【customerId=】" + customerId);
         InvestVo investVo = new InvestVo();
         investVo.setCustomerId(customerId);
