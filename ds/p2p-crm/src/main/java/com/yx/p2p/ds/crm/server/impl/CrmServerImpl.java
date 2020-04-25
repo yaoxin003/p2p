@@ -2,7 +2,7 @@ package com.yx.p2p.ds.crm.server.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.model.Customer;
+import com.yx.p2p.ds.model.crm.Customer;
 import com.yx.p2p.ds.server.CrmServer;
 import com.yx.p2p.ds.service.CrmService;
 import com.yx.p2p.ds.vo.CustomerVo;

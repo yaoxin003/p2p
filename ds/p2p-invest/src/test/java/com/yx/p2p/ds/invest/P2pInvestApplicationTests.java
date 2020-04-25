@@ -1,8 +1,7 @@
 package com.yx.p2p.ds.invest;
 
-import com.yx.p2p.ds.constant.SysConstant;
-import com.yx.p2p.ds.model.Invest;
-import com.yx.p2p.ds.model.InvestProduct;
+import com.yx.p2p.ds.model.invest.Invest;
+import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.service.InvestProductService;
 import com.yx.p2p.ds.service.InvestService;
 import com.yx.p2p.ds.util.DateUtil;

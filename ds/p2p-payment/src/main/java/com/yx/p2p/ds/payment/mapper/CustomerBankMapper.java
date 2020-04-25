@@ -1,7 +1,6 @@
 package com.yx.p2p.ds.payment.mapper;
 
-import com.yx.p2p.ds.model.CustomerBank;
-import com.yx.p2p.ds.vo.CustomerBankVo;
+import com.yx.p2p.ds.model.payment.CustomerBank;
 import tk.mybatis.mapper.common.Mapper;
 
 /**

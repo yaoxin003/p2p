@@ -1,9 +1,9 @@
 # p2p
 互联网金融个人对个人借贷平台
 #--------------------bug--------------------
-1.快捷支付流程
-2.加签加密，解密验签（SHA加签验签，RSA非对称加密）
-
+2.1.修改客户信息中的身份证号码不能同步修改account系统身份证号码
+2.2.删除客户信息不能删除account系统数据
+3.快捷支付流程
 
 #--------------------系统环境--------------------
 开发工具：IntelliJ IDEA
@@ -11,7 +11,7 @@ Java版本：JDK1.8.0_131
 服务器：Tomcat8.5.15
 数据库：MySQL5.1.42
 系统技术：
-SpringBoot1.4.7+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4，
+SpringBoot2.1.0.RELEASE+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4，
 Dubbo2.6.0+Zookeeper3.4.8
 Redis4.0.14+Elastic Search
 Nginx+RocketMQ4.5.1
@@ -34,7 +34,6 @@ RocketMQ4.5.1（NameSrv和Broker）
     路径：cd /usr/local/rocketmq-all-4.4.0-bin-release
     启动NameSrv方式：nohup sh mqnamesrv > nohup_namesrv.out &
     启动Broker方式：nohup sh mqbroker -n 192.168.1.121:9876 > nohup_broker.out &
-    #nohup sh mqbroker -n 192.168.1.121:9876 autoCreateTopicEnable=true > nohup_broker.out &
     控制台路径：cd /usr/local/rocketmq-externals-master/rocketmq-console/target
     #启动方式：java -jar ./rocketmq-console-ng-1.0.1.jar
     后台启动方式：nohup java -jar ./rocketmq-console-ng-1.0.1.jar > nohup_rocketmq.out &
@@ -82,6 +81,41 @@ key=crm_info_idcard_*** value=json(crm对象)
 
 
 #--------------------功能列表--------------------
+一.客户管理（数据库+缓存）：
+添加，修改，删除，查询，分页列表
+二.理财产品管理：
+列表
+三.银行管理：
+添加银行，银行列表
+四.投资管理
+添加投资，收益计算（前后台）
+五.模拟第三方支付
+加签加密
+六.支付管理
+1.添加，2.接收第三方支付结果通知（MQ Listener）
+七.账户管理
+开户（MQ），添加投资支付成功（MQ、事务操作）
+八、出借单管理
+1.添加新出借单
+九.撮合管理
+
+
+一.客户管理（数据库+缓存）
 1.添加客户：使用身份证号查询客户是否存在，不存在向数据库添加数据，同时加入缓存中。
 2.修改客户：1.使用新身份证号查询客户（缓存和数据库）是否存在，
 2.存在，不处理；3.不存在，3.1删除旧缓存，3.2修改数据库数据，3.3查询数据库（获得全部字段），加入缓存中。
+六.支付管理
+2.接收第三方支付结果通知（MQ Listener）
+解密验签
+更新支付单状态
+发送支付结果到MQ（给Invest和Account系统）
+
+七.账户管理
+1.开户（MQ）
+验证是否已经开户
+未开户则添加主账户
+2.添加投资支付成功（MQ、事务操作）
+活期分户流水是否插入
+若未插入，累加主账户的活期金额，插入活期分户，插入活期分户流水
+
+

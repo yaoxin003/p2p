@@ -1,7 +1,7 @@
 package com.yx.p2p.ds.payment;
 
 import com.yx.p2p.ds.helper.BeanHelper;
-import com.yx.p2p.ds.model.CustomerBank;
+import com.yx.p2p.ds.model.payment.CustomerBank;
 import com.yx.p2p.ds.vo.CustomerVo;
 import org.junit.Test;
 import org.junit.runner.RunWith;

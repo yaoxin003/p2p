@@ -2,7 +2,7 @@ package com.yx.p2p.ds.invest.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.invest.mapper.InvestProductMapper;
-import com.yx.p2p.ds.model.InvestProduct;
+import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.service.InvestProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +71,11 @@ public class InvestProductServiceImpl implements InvestProductService {
 
     public InvestProduct getInvestProductById(Integer investProductId){
         return investProductMapper.selectByPrimaryKey(investProductId);
+    }
+
+
+    public InvestProduct getInvestProductByInvestId(Integer investId){
+        return investProductMapper.selectInvestProductByInvestId(investId);
     }
 
 }

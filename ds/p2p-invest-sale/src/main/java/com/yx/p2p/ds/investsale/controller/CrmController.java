@@ -3,7 +3,7 @@ package com.yx.p2p.ds.investsale.controller;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.yx.p2p.ds.easyui.Pagination;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.model.Customer;
+import com.yx.p2p.ds.model.crm.Customer;
 import com.yx.p2p.ds.server.CrmServer;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.vo.CustomerVo;

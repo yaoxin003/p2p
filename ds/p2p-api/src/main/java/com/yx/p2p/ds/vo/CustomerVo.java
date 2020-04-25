@@ -1,13 +1,13 @@
 package com.yx.p2p.ds.vo;
 
-import com.yx.p2p.ds.model.Customer;
+import com.yx.p2p.ds.model.crm.Customer;
 
 /**
  * @description:前台页面使用
  * @author: yx
  * @date: 2020/04/10/9:08
  */
-public class CustomerVo extends Customer{
+public class CustomerVo extends Customer {
 
     private String birthdayStr;
 

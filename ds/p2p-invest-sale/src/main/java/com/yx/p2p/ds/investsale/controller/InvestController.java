@@ -2,9 +2,7 @@ package com.yx.p2p.ds.investsale.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.model.Invest;
-import com.yx.p2p.ds.model.InvestProduct;
-import com.yx.p2p.ds.model.Payment;
+import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.InvestSaleService;

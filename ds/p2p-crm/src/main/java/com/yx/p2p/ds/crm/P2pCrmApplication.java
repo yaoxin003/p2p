@@ -1,5 +1,7 @@
 package com.yx.p2p.ds.crm;
 
+import com.alibaba.dubbo.qos.common.Constants;
+import com.alibaba.dubbo.qos.server.Server;
 import com.alibaba.dubbo.spring.boot.annotation.EnableDubboConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,6 +15,7 @@ import tk.mybatis.spring.annotation.MapperScan;
 public class P2pCrmApplication {
 
 	public static void main(String[] args) {
+
 		SpringApplication.run(P2pCrmApplication.class, args);
 	}
 

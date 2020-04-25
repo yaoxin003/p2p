@@ -5,7 +5,9 @@ import com.yx.p2p.ds.constant.SysConstant;
 import com.yx.p2p.ds.crm.mapper.CustomerMapper;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.helper.BeanHelper;
-import com.yx.p2p.ds.model.Customer;
+import com.yx.p2p.ds.model.account.MasterAcc;
+import com.yx.p2p.ds.model.crm.Customer;
+import com.yx.p2p.ds.mq.MasterAccMQVo;
 import com.yx.p2p.ds.service.util.RedisUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.service.CrmService;
@@ -13,17 +15,19 @@ import com.yx.p2p.ds.util.LoggerUtil;
 import com.yx.p2p.ds.vo.CustomerVo;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import tk.mybatis.mapper.entity.Example;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @description:
@@ -40,6 +44,15 @@ public class CrmServiceImpl implements CrmService {
 
     @Autowired
     private RedisUtil redisUtil;
+
+    @Value("${mq.account.topic}")
+    private String accountTopic;
+
+    @Value("${mq.account.tag.acc.open}")
+    private String accTagAccOpen;
+
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
 
     public List<Customer> getCustomerListByPagination(CustomerVo customerVo, Integer currentPage, Integer pageSize){
         logger.debug("【currentPage=】" + currentPage + ",pageSize=" + pageSize);
@@ -360,7 +373,8 @@ public class CrmServiceImpl implements CrmService {
         * @description: 添加客户
         * 1.将CustomerVo对象构建成Customer对象
         * 2.向数据库添加客户
-        * 3.添加缓存中
+        * 3.
+        * 4.向缓存添加客户
         * @author:  YX
         * @date:    2020/04/04 15:18
         * @param: customerVo
@@ -375,14 +389,42 @@ public class CrmServiceImpl implements CrmService {
             //2.添加客户
             Integer count = this.addCustomerInDB(customer);
             if(count == 1){
+                //3.账户开户MQ
+                this.openMasterAcc(customer);
                 result = Result.success();
-                //3.添加缓存
+                //4.添加缓存
                 this.addIdCardKeyCache(customer);
             }
         }catch (Exception e){
             result = LoggerUtil.addExceptionLog(e,logger);
         }
         return result;
+    }
+
+    //3.账户开户MQ
+    private void openMasterAcc(Customer customer) {
+        logger.debug("【账户开户MQ】customer=" + customer);
+        MasterAccMQVo masterAccMQVo = this.buildMasterAccMQVo(customer);
+        Message message = new Message(accountTopic, accTagAccOpen,
+                String.valueOf(masterAccMQVo.getCustomerId()) ,
+                JSON.toJSONString(masterAccMQVo).getBytes());
+        logger.debug("【准备发送开户MQ】");
+        SendResult sendResult = null;
+        try {
+            sendResult = rocketMQTemplate.getProducer().send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        logger.debug("【发送开户结果MQ】，topic="+ accountTopic + ",tag=" + accTagAccOpen + ",message=" + message);
+        logger.debug("【发送开户结果MQ】，sendResult" + sendResult);
+    }
+
+    private MasterAccMQVo buildMasterAccMQVo(Customer customer) {
+        MasterAccMQVo masterAccMQVo = new MasterAccMQVo();
+        masterAccMQVo.setIdCard(customer.getIdCard());
+        masterAccMQVo.setCustomerId(customer.getId());
+        masterAccMQVo.setCustomerName(customer.getName());
+        return masterAccMQVo;
     }
 
     public Integer addCustomerInDB(Customer customer){

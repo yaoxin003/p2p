@@ -1,32 +1,25 @@
 package com.yx.p2p.ds.payment.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.yx.p2p.ds.constant.SysConstant;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.enums.base.BizStateEnum;
-import com.yx.p2p.ds.enums.base.LogicStateEnum;
 import com.yx.p2p.ds.enums.payment.PaymentBizStateEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.mock.thirdpay.enums.RetCodeEnum;
-import com.yx.p2p.ds.model.BaseBank;
-import com.yx.p2p.ds.model.CustomerBank;
-import com.yx.p2p.ds.model.Payment;
+import com.yx.p2p.ds.model.payment.BaseBank;
+import com.yx.p2p.ds.model.payment.CustomerBank;
+import com.yx.p2p.ds.model.payment.Payment;
 import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.payment.mapper.BaseBankMapper;
 import com.yx.p2p.ds.payment.mapper.CustomerBankMapper;
 import com.yx.p2p.ds.payment.mapper.PaymentMapper;
 import com.yx.p2p.ds.service.PaymentService;
-import com.yx.p2p.ds.util.HttpClientUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
 import com.yx.p2p.ds.util.RASUtil;
 import com.yx.p2p.ds.util.SHAUtil;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.exception.MQBrokerException;
-import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +67,6 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Value("${mq.payment.tag.invest.fail}")
     private String payInvestFailTag;
-
-
-
 
     public List<BaseBank> getAllBaseBankList(){
         List<BaseBank> baseBanks = baseBankMapper.selectAll();
@@ -212,8 +202,7 @@ public class PaymentServiceImpl implements PaymentService {
         Result result = Result.success();
         int count = 0;
         try{
-            //1.设置时间，操作人，状态
-            BeanHelper.setAddDefaultField(payment);
+            this.buildAddPayment(payment);
             //2.插入数据库
             count = paymentMapper.insert(payment);
             logger.debug("【payment.insert.db.count=】" + count);
@@ -223,6 +212,20 @@ public class PaymentServiceImpl implements PaymentService {
         }
         logger.debug("insertPayment.【result】=" + result);
         return result;
+    }
+
+    private void buildAddPayment(Payment payment) {
+        BaseBank baseBank = this.queryDBBaseBank(payment.getBankCode());
+        payment.setBaseBankName(baseBank.getName());
+        //1.设置时间，操作人，状态
+        BeanHelper.setAddDefaultField(payment);
+    }
+
+    private BaseBank queryDBBaseBank(String bankCode) {
+        Example example = new Example(BaseBank.class);
+        example.createCriteria().andEqualTo("bankCode",bankCode);
+        BaseBank baseBank = baseBankMapper.selectOneByExample(example);
+        return baseBank;
     }
 
     //处理公司company1的网关支付结果
@@ -237,18 +240,18 @@ public class PaymentServiceImpl implements PaymentService {
             //2.修改payment表支付状态
             result = this.updatePaymentState(thirdPayResult);
             //3.使用RocketMQ加入消息队列中通知其他系统（投资人支付通知invest和recored两个系统）
-            this.dealPaymentMessage(result,(Map<String,String>)thirdPayResult.getTarget());
+            this.dealPayResultMQ(result,(Map<String,String>)thirdPayResult.getTarget());
         }
         return result;
     }
 
-    private void dealPaymentMessage(Result result, Map<String,String> thirdPayMap) {
+    private void dealPayResultMQ(Result result, Map<String,String> thirdPayMap) {
         logger.debug("3.【支付结果通知后，准备向RocketMQ发送数据】result=" + result);
         if(Result.checkStatus(result)){
             String retCode = thirdPayMap.get("retCode");
             String orderSn = thirdPayMap.get("orderSn");
             Payment payment = this.queryDBPaymentByOrderSn(orderSn);
-            this.sendPayResultMQ(retCode,payment);//发送支付成功MQ
+            this.sendPayResultMQ(retCode,payment);//发送支付结果MQ
         }
     }
 
@@ -263,26 +266,46 @@ public class PaymentServiceImpl implements PaymentService {
     //发送支付结果MQ
     private Result sendPayResultMQ(String retCode,Payment payment) {
         Result result = Result.success();
-        InvestMQVo investMQVo = new InvestMQVo();
-        try {
-            //对象拷贝
-            BeanUtils.copyProperties(investMQVo,payment);
-            if(retCode.equals(RetCodeEnum.PAY_SUC.getCode())) {//支付成功
-                investMQVo.setStatus(InvestMQVo.STATUS_OK);
-            }else{//支付失败
-                investMQVo.setStatus(InvestMQVo.STATUS_FAIL);
-            }
-            String investMQString = JSON.toJSONString(investMQVo);
-            Message message = new Message(payTopic, payInvestSucTag, payment.getOrderSn(),
-                    investMQString.getBytes());
-            logger.debug("【准备发送支付结果MQ】");
-            SendResult sendResult = rocketMQTemplate.getProducer().send(message);
-            logger.debug("【发送支付结果MQ】，topic="+ payTopic + ",tag=" + payInvestSucTag + ",message=" + message);
-            logger.debug("【发送支付结果MQ】，sendResult" + sendResult);
-        } catch (Exception e) {
-            result = LoggerUtil.addExceptionLog(e,logger);
-        }
+        String mqJSON = this.buildPayResultMQJSON(retCode,payment);
+        this.sendPayMQ(retCode,mqJSON, payment.getOrderSn());
         return result;
+    }
+
+    private void sendPayMQ(String retCode, String mqJSON,String mqKey) {
+        String payInvestTag = null;
+        if(retCode.equals(RetCodeEnum.PAY_SUC.getCode())) {//支付成功
+            payInvestTag = payInvestSucTag;
+        }else{//支付失败
+            payInvestTag = payInvestFailTag;
+        }
+        Message message = new Message(payTopic, payInvestTag, mqKey, mqJSON.getBytes());
+        logger.debug("【准备发送支付结果MQ】");
+        SendResult sendResult = null;
+        try {
+            sendResult = rocketMQTemplate.getProducer().send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        logger.debug("【发送支付结果MQ】，topic="+ payTopic + ",tag=" + payInvestTag + ",message=" + message);
+        logger.debug("【发送支付结果MQ】，sendResult" + sendResult);
+    }
+
+    private String buildPayResultMQJSON(String retCode,Payment payment) {
+        InvestMQVo investMQVo = new InvestMQVo();
+        //对象拷贝
+        try {
+            BeanUtils.copyProperties(investMQVo,payment);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if(retCode.equals(RetCodeEnum.PAY_SUC.getCode())) {//支付成功
+            investMQVo.setStatus(InvestMQVo.STATUS_OK);
+        }else{//支付失败
+            investMQVo.setStatus(InvestMQVo.STATUS_FAIL);
+        }
+        logger.debug("【发送支付结果前对象】investMQVo=" + investMQVo);
+        String investMQString = JSON.toJSONString(investMQVo);
+        return investMQString;
     }
 
     //修改payment表支付状态，使用orderSn根据thirdPay.retCode作为判断条件
@@ -307,17 +330,22 @@ public class PaymentServiceImpl implements PaymentService {
     private Result updatePaymentDBByThirdPay(Payment payment) {
         logger.debug("2.2【根据第三方支付结果准备更新支付单】payment=" + payment);
         Result result = Result.error();
-        BeanHelper.setUpdateDefaultField(payment);
-        Example example = new Example(Payment.class);
-        String orderSn = payment.getOrderSn();
-        example.createCriteria().andEqualTo("orderSn",orderSn);
-        int count = paymentMapper.updateByExampleSelective(payment, example);
-        if(count == 1){
-            result = Result.success();
-        }else{
-            String errorMsg = "根据第三方支付结果更新支付单失败，【orderSn=】" + orderSn;
-            result = Result.error(count,errorMsg);
-            logger.debug(errorMsg);
+        try{
+
+            BeanHelper.setUpdateDefaultField(payment);
+            Example example = new Example(Payment.class);
+            String orderSn = payment.getOrderSn();
+            example.createCriteria().andEqualTo("orderSn",orderSn);
+            int count = paymentMapper.updateByExampleSelective(payment, example);
+            if(count == 1){
+                result = Result.success();
+            }else{
+                String errorMsg = "根据第三方支付结果更新支付单失败，【orderSn=】" + orderSn;
+                result = Result.error(count,errorMsg);
+                logger.debug(errorMsg);
+            }
+        }catch (Exception e){
+            result = LoggerUtil.addExceptionLog(e,logger);
         }
         return result;
     }

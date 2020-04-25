@@ -56,16 +56,8 @@
                                 return rmbStr(value);
                             }
                         },
-                        {field:'startDate',title:'投资开始日期',width:100,
-                            formatter:function(value){
-                                return dateStr(value);
-                            }
-                        },
-                        {field:'endDate',title:'投资到期日期',width:100,
-                            formatter:function(value){
-                                return dateStr(value);
-                            }
-                        }
+                        {field:'startDate',title:'投资开始日期',width:150},
+                        {field:'endDate',title:'投资到期日期',width:150}
                     ]],
                     loadMsg : '数据正在加载，请耐心等待……',
                     onLoadSuccess: function (data) {

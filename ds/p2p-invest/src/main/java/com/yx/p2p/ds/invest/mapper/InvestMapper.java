@@ -1,6 +1,6 @@
 package com.yx.p2p.ds.invest.mapper;
 
-import com.yx.p2p.ds.model.Invest;
+import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.vo.InvestVo;
 import org.apache.ibatis.annotations.Param;
 import tk.mybatis.mapper.common.Mapper;

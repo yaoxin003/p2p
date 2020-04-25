@@ -2,7 +2,8 @@ package com.yx.p2p.ds.mock.thirdpay.controller;
 
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.mock.thirdpay.service.ThirdPayServiceImpl;
-import com.yx.p2p.ds.model.Payment;
+import com.yx.p2p.ds.mock.thirdpay.vo.MockPayment;
+import com.yx.p2p.ds.model.payment.Payment;
 import com.yx.p2p.ds.service.PaymentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +43,9 @@ public class ThirdPayController {
     //1.调用银行扣款解密验签，2.对银行结果加签加密，3.调用p2p.payment系统通知支付结果
     @RequestMapping("gateway")
     @ResponseBody
-    public Result gateway(Payment payment){
-        logger.debug("gateway.【payment=】" + payment);
-        Result result = thirdPayService.dealGateway(payment);
+    public Result gateway(MockPayment mockPayment){
+        logger.debug("gateway.【payment=】" + mockPayment);
+        Result result = thirdPayService.dealGateway(mockPayment);
         return result;
     }
 

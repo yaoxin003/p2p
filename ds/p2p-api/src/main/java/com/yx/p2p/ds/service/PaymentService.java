@@ -1,9 +1,9 @@
 package com.yx.p2p.ds.service;
 
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.model.BaseBank;
-import com.yx.p2p.ds.model.CustomerBank;
-import com.yx.p2p.ds.model.Payment;
+import com.yx.p2p.ds.model.payment.BaseBank;
+import com.yx.p2p.ds.model.payment.CustomerBank;
+import com.yx.p2p.ds.model.payment.Payment;
 
 import java.util.List;
 

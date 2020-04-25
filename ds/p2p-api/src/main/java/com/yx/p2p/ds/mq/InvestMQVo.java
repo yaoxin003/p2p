@@ -15,6 +15,8 @@ public class InvestMQVo implements Serializable {
     private Integer customerId;//客户编号
     private BigDecimal amount;//金额
     private String status;//ok,fail
+    private String bankAccount;//银行账户
+    private String baseBankName;//银行总行名称
 
     public static final String STATUS_OK = "ok";
     public static final String STATUS_FAIL = "fail";
@@ -59,6 +61,22 @@ public class InvestMQVo implements Serializable {
         this.status = status;
     }
 
+    public String getBankAccount() {
+        return bankAccount;
+    }
+
+    public void setBankAccount(String bankAccount) {
+        this.bankAccount = bankAccount;
+    }
+
+    public String getBaseBankName() {
+        return baseBankName;
+    }
+
+    public void setBaseBankName(String baseBankName) {
+        this.baseBankName = baseBankName;
+    }
+
     @Override
     public String toString() {
         return "InvestMQVo{" +
@@ -67,6 +85,8 @@ public class InvestMQVo implements Serializable {
                 ", customerId=" + customerId +
                 ", amount=" + amount +
                 ", status='" + status + '\'' +
+                ", bankAccount='" + bankAccount + '\'' +
+                ", baseBankName='" + baseBankName + '\'' +
                 '}';
     }
 }

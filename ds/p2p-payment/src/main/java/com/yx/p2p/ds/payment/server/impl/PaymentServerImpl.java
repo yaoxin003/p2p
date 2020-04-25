@@ -2,9 +2,9 @@ package com.yx.p2p.ds.payment.server.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.model.BaseBank;
-import com.yx.p2p.ds.model.CustomerBank;
-import com.yx.p2p.ds.model.Payment;
+import com.yx.p2p.ds.model.payment.BaseBank;
+import com.yx.p2p.ds.model.payment.CustomerBank;
+import com.yx.p2p.ds.model.payment.Payment;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;

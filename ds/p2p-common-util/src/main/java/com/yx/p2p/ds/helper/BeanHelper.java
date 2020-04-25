@@ -68,9 +68,9 @@ public class BeanHelper {
         try {
             Class<? extends Object> clazz = target.getClass();
             Field field = null;
-            if(clazz.getPackage().getName().endsWith("vo")){
+            if(clazz.getPackage().getName().contains(".vo")){
                 field = clazz.getSuperclass().getSuperclass().getDeclaredField(filedName);
-            }else if(clazz.getPackage().getName().endsWith("model")){
+            }else if(clazz.getPackage().getName().contains(".model")){
                 field = clazz.getSuperclass().getDeclaredField(filedName);
             }else{
                 field = clazz.getDeclaredField(filedName);

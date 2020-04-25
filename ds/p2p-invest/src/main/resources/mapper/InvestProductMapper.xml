@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yx.p2p.ds.invest.mapper.InvestProductMapper">
+
+    <select id="selectInvestProductByInvestId" resultType="InvestProduct">
+      select a.*
+        from p2p_invest_product a
+        inner join (select invest_product_id from p2p_invest where id=#{investId}) b
+         on a.id=b.invest_product_id
+    </select>
+
+</mapper>

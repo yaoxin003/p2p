@@ -1,10 +1,9 @@
 package com.yx.p2p.ds.crm.mapper;
 
-import com.yx.p2p.ds.model.Customer;
+import com.yx.p2p.ds.model.crm.Customer;
 import com.yx.p2p.ds.vo.CustomerVo;
 import org.apache.ibatis.annotations.Param;
 import tk.mybatis.mapper.common.Mapper;
-
 import java.util.List;
 
 /**

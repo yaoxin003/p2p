@@ -1,25 +1,15 @@
 package com.yx.p2p.ds.payment.controller;
 
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.enums.payment.PaymentBizStateEnum;
-import com.yx.p2p.ds.mock.thirdpay.enums.RetCodeEnum;
-import com.yx.p2p.ds.model.Payment;
 import com.yx.p2p.ds.service.PaymentService;
-import com.yx.p2p.ds.util.RASUtil;
-import com.yx.p2p.ds.util.SHAUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @description:接收各第三方网关支付的支付结果Controller

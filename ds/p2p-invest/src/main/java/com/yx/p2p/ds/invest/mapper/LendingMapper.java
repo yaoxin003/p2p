@@ -1,6 +1,6 @@
 package com.yx.p2p.ds.invest.mapper;
 
-import com.yx.p2p.ds.model.Lending;
+import com.yx.p2p.ds.model.invest.Lending;
 import tk.mybatis.mapper.common.Mapper;
 
 /**

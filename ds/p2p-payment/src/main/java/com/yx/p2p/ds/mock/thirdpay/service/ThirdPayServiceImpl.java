@@ -3,7 +3,7 @@ package com.yx.p2p.ds.mock.thirdpay.service;
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.mock.thirdpay.enums.RetCodeEnum;
-import com.yx.p2p.ds.model.Payment;
+import com.yx.p2p.ds.mock.thirdpay.vo.MockPayment;
 import com.yx.p2p.ds.util.HttpClientUtil;
 import com.yx.p2p.ds.util.RASUtil;
 import com.yx.p2p.ds.util.SHAUtil;
@@ -32,14 +32,14 @@ public class ThirdPayServiceImpl {
     @Value("${payment.url}")
     private String paymentUrl;
 
-    public Result dealGateway(Payment payment) {
-        logger.debug("【接收网关支付页面参数payment=】" + payment);
+    public Result dealGateway(MockPayment mockPaymentt) {
+        logger.debug("【接收网关支付页面参数payment=】" + mockPaymentt);
         //1.调用银行接口开始划扣
         logger.debug("【1.1.调用银行划扣接口，解密验签】");
         logger.debug("【1.2.对银行结果加签加密】");
         //2.对银行的支付结果加密
         logger.debug("【2.对银行的支付结果加签加密……开始】");
-        String bankPayResult = this.buildRASRet(payment);
+        String bankPayResult = this.buildRASRet(mockPaymentt);
         logger.debug("【3.对银行的支付结果加签加密……结束】");
         //3.调用p2p的payment系统（公司外网url地址）通知支付结果
         Result result = this.noticeGatewayResult(bankPayResult);
@@ -57,11 +57,16 @@ public class ThirdPayServiceImpl {
     }
 
     //加签加密
-    private String buildRASRet(Payment payment) {
+    private String buildRASRet(MockPayment mockPayment) {
         Map<String,String> map = new HashMap<>();
-        map.put("orderSn",payment.getOrderSn());
-        map.put("retCode", RetCodeEnum.PAY_SUC.getCode());
-        map.put("retInfo","支付成功");
+        map.put("orderSn",mockPayment.getOrderSn());
+        String retCode = mockPayment.getRetCode();
+        map.put("retCode", retCode);
+        if(retCode.equals(RetCodeEnum.PAY_SUC.getCode())){
+            map.put("retInfo","支付成功");
+        }else{
+            map.put("retInfo","支付失败");
+        }
         //加签
         String sign = SHAUtil.encryptSHA(map);
         map.put("sign",sign);

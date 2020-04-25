@@ -50,6 +50,15 @@
                 <td><input id="password" name="password" class="easyui-passwordbox" data-options="required:true" style="width:300px"/></td>
             </tr>
             <tr>
+                <td>模拟支付状态：</td>
+                <td>
+                    <select name="retCode" class="easyui-combobox" style="width:200px;">
+                        <option value="0000">支付成功</option>
+                        <option value="1001">余额不足</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
                 <td colspan="2" align="center">
                     <a href="javascript:void(0)" class="easyui-linkbutton" onclick="sub()">确认</a>
                 </td>

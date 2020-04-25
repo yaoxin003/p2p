@@ -1,6 +1,6 @@
 package com.yx.p2p.ds.payment.mapper;
 
-import com.yx.p2p.ds.model.BaseBank;
+import com.yx.p2p.ds.model.payment.BaseBank;
 import tk.mybatis.mapper.common.Mapper;
 
 /**

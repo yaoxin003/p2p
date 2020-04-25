@@ -1,6 +1,6 @@
 package com.yx.p2p.ds.vo;
 
-import com.yx.p2p.ds.model.CustomerBank;
+import com.yx.p2p.ds.model.payment.CustomerBank;
 
 /**
  * @description:

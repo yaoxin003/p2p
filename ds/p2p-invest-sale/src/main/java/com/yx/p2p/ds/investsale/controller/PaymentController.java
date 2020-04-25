@@ -1,12 +1,10 @@
 package com.yx.p2p.ds.investsale.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
-import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.model.BaseBank;
-import com.yx.p2p.ds.model.CustomerBank;
+import com.yx.p2p.ds.model.payment.BaseBank;
+import com.yx.p2p.ds.model.payment.CustomerBank;
 import com.yx.p2p.ds.server.PaymentServer;
-import com.yx.p2p.ds.vo.InvestVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;

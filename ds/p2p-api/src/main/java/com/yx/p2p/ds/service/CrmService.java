@@ -1,8 +1,9 @@
 package com.yx.p2p.ds.service;
 
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.model.Customer;
+import com.yx.p2p.ds.model.crm.Customer;
 import com.yx.p2p.ds.vo.CustomerVo;
+
 import java.util.List;
 
 /**

@@ -1,8 +1,7 @@
 package com.yx.p2p.ds.server;
 
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.model.Invest;
-import com.yx.p2p.ds.model.InvestProduct;
+import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.vo.InvestVo;
 
 import java.util.List;

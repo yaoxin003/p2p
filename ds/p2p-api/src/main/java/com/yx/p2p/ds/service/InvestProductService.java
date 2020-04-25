@@ -1,6 +1,6 @@
 package com.yx.p2p.ds.service;
 
-import com.yx.p2p.ds.model.InvestProduct;
+import com.yx.p2p.ds.model.invest.InvestProduct;
 
 import java.util.List;
 
@@ -16,4 +16,6 @@ public interface InvestProductService {
     public String getAllInvestProductJSON();
 
     public InvestProduct getInvestProductById(Integer investProductId);
+
+    public InvestProduct getInvestProductByInvestId(Integer investId);
 }

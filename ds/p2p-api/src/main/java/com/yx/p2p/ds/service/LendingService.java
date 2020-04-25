@@ -13,4 +13,6 @@ public interface LendingService {
     //添加新出借单
     public Result addNewLending(InvestMQVo investMQVo);
 
+    public Result checkNoLendingByOrderSn(String orderSn);
+
 }
