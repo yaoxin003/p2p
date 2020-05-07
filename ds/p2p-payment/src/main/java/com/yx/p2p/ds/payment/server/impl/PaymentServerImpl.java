@@ -10,6 +10,7 @@ import com.yx.p2p.ds.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description:
@@ -43,6 +44,11 @@ public class PaymentServerImpl implements PaymentServer {
 
     public CustomerBank getCustomerBankById(Integer customerBankId){
         return paymentService.getCustomerBankById(customerBankId);
+    }
+
+    //放款
+    public Result loan(Payment payment){
+        return paymentService.loan(payment);
     }
 
 }

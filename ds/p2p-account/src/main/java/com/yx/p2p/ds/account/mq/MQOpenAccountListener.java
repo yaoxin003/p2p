@@ -20,7 +20,8 @@ import java.io.UnsupportedEncodingException;
  * @author: yx
  * @date: 2020/04/22/10:36
  */
-@RocketMQMessageListener(consumerGroup = "${rocketmq.account.consumer.group.name}",
+@RocketMQMessageListener(
+        consumerGroup = "${rocketmq.account.consumer.group.name}",
         topic = "${mq.account.topic}",
         selectorType = SelectorType.TAG,
         selectorExpression = "accTagAccOpen",
@@ -34,13 +35,13 @@ public class MQOpenAccountListener implements RocketMQListener<MessageExt>{
     private AccountService accountService;
     @Override
     public void onMessage(MessageExt messageExt) {
-        logger.debug("接收开户通知messageExt=" + messageExt);
+        logger.debug("【接收开户通知MQListener】入参：messageExt=" + messageExt);
         try {
             String body = new String(messageExt.getBody(),"UTF-8");
             MasterAccMQVo masterAccMQVo = JSON.parseObject(body, MasterAccMQVo.class);
             accountService.openAccount(masterAccMQVo);
         } catch (UnsupportedEncodingException e) {
-           logger.debug("接收开户通知",e);
+           logger.debug("【接收开户通知】",e);
         }
     }
 }

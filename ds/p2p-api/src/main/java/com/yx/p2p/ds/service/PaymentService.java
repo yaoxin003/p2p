@@ -29,4 +29,6 @@ public interface PaymentService {
     public Result dealCompany1Gateway(String payResult);
 
     public CustomerBank getCustomerBankById(Integer customerBankId);
+
+    public Result loan(Payment payment);
 }

@@ -19,14 +19,18 @@ public class Payment extends BaseModel implements Serializable {
     private String bizId;//业务编号，如invest.id
     private String orderSn;//订单（系统前缀+年月日时分秒毫秒+时间戳）
     private String systemSource;//系统来源
+    private BigDecimal amount;//金额
+    private Integer type;//类型：PaymentTypeEnum投资充值，借款放款，转让提现
+    private String remark;//备注 PaymentTypeEnum.codeDesc
+    //客户信息
     private Integer customerId;//客户编号
     private String customerName;//客户姓名
     private String idCard;//身份证号码
+    //银行卡信息
     private String phone;//绑定手机号
     private String bankCode;//银行编号(p2p_payment_base_bank表中bankCode字段)
     private String bankAccount;//银行账户
     private String baseBankName;//银行总行名称
-    private BigDecimal amount;//金额
 
     public String getBizId() {
         return bizId;
@@ -116,12 +120,32 @@ public class Payment extends BaseModel implements Serializable {
         this.baseBankName = baseBankName;
     }
 
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
     @Override
     public String toString() {
-        return super.toString() + "Payment{" +
+        return "Payment{" +
                 "bizId='" + bizId + '\'' +
                 ", orderSn='" + orderSn + '\'' +
                 ", systemSource='" + systemSource + '\'' +
+                ", amount=" + amount +
+                ", type=" + type +
+                ", remark='" + remark + '\'' +
                 ", customerId=" + customerId +
                 ", customerName='" + customerName + '\'' +
                 ", idCard='" + idCard + '\'' +
@@ -129,7 +153,6 @@ public class Payment extends BaseModel implements Serializable {
                 ", bankCode='" + bankCode + '\'' +
                 ", bankAccount='" + bankAccount + '\'' +
                 ", baseBankName='" + baseBankName + '\'' +
-                ", amount=" + amount +
-                '}';
+                '}' + super.toString();
     }
 }

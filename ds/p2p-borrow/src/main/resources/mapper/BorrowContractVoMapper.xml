@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yx.p2p.ds.borrow.mapper.BorrowContractVoMapper">
+
+  <select id="selectBorrowContract" resultMap="selectBorrowContractMap" parameterType="com.yx.p2p.ds.model.borrow.Borrow">
+       select
+       b.id as b_id,bd.id as bd_id,
+       b.customer_name as b_customer_name,
+       bd.customer_name as bd_customer_name,
+       b.*,bd.*
+       from (select * from p2p_borrow where id=#{id}) b
+       inner join p2p_borrow_dtl bd on b.id=bd.borrow_id
+   </select>
+
+    <resultMap id="selectBorrowContractMap" type="com.yx.p2p.ds.vo.BorrowContractVo">
+        <result property="id" column="id"/>
+        <collection property="borrow" ofType="com.yx.p2p.ds.model.borrow.Borrow" autoMapping="true">
+            <result property="id" column="b_id"/>
+            <result property="customerName" column="b_customer_name"/>
+        </collection>
+        <collection property="borrowDtlList" ofType="com.yx.p2p.ds.model.borrow.BorrowDtl" autoMapping="true">
+            <result property="id" column="bd_id"/>
+            <result property="customerName" column="bd_customer_name"/>
+        </collection>
+    </resultMap>
+
+</mapper>

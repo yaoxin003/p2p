@@ -68,19 +68,18 @@ public class BeanHelper {
         try {
             Class<? extends Object> clazz = target.getClass();
             Field field = null;
-            if(clazz.getPackage().getName().contains(".vo")){
+            String clazzPackageName = clazz.getPackage().getName();
+            if(clazzPackageName.contains(".vo")){
                 field = clazz.getSuperclass().getSuperclass().getDeclaredField(filedName);
-            }else if(clazz.getPackage().getName().contains(".model")){
+            }else if(clazzPackageName.contains(".model")){
                 field = clazz.getSuperclass().getDeclaredField(filedName);
             }else{
                 field = clazz.getDeclaredField(filedName);
             }
             field.setAccessible(true);
             field.set(target,filedValue);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        }  catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -9,4 +9,5 @@ import tk.mybatis.mapper.common.Mapper;
  * @date: 2020/04/22/17:58
  */
 public interface DebtSubAccMapper extends Mapper<DebtSubAcc>{
+
 }

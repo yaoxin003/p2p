@@ -1,9 +1,8 @@
 package com.yx.p2p.ds.server;
 
 import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestProduct;
-import com.yx.p2p.ds.vo.InvestVo;
-
 import java.util.List;
 
 /**
@@ -20,10 +19,12 @@ public interface InvestServer {
     public InvestProduct getInvestProductById(Integer investProductId);
 
     //充值投资
-    public Result rechargeInvest(InvestVo investVo);
+    public Result rechargeInvest(Invest invest);
 
-    public List<InvestVo> getInvestVoList(InvestVo investVo);
+    public List<Invest> getInvestVoList(Invest invest);
 
     //补充网关支付
-    public Result compensateGateway(InvestVo investVo);
+    public Result compensateGateway(Invest invest);
+
+    public Invest getInvestByInvestId(Integer investId);
 }

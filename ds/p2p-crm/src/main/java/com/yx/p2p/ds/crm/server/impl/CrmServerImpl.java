@@ -17,8 +17,7 @@ import java.util.List;
  * @author: yx
  * @date: 2020/04/03/18:18
  */
-//dubbo注解，暴露服务
-@Service
+@Service//dubbo注解，暴露服务
 @Component//dubbo需要@Component注解，否则无法识别该服务
 public class CrmServerImpl implements CrmServer{
 

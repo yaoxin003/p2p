@@ -24,4 +24,7 @@ public interface PaymentServer {
     public Result gateway(Payment payment);
 
     public CustomerBank getCustomerBankById(Integer customerBankId);
+
+    //放款
+    public Result loan(Payment payment);
 }

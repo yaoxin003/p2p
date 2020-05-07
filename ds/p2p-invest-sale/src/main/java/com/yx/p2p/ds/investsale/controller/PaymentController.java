@@ -42,7 +42,7 @@ public class PaymentController {
     @RequestMapping(value="addCustomerBank")
     @ResponseBody
     public Result addCustomerBank(CustomerBank customerBank){
-        logger.debug("【customerBank=】" + customerBank);
+        logger.debug("准备调用绑卡接口【customerBank=】" + customerBank);
         Result result = paymentServer.checkAndAddCustomerBank(customerBank);
         return result;
     }

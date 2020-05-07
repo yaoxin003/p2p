@@ -5,9 +5,18 @@
 </head>
 <body>
 
+
+<!--首先显示投资产品列表功能-->
+<div id="viewProductDialog" class="easyui-dialog" title="投资产品介绍" style="width:490px;height:250px" draggable="false"
+     data-options="modal:true">
+    <table id="viewProductDataGrid" style="width:470px" cellspacing="5">
+    </table>
+</div>
+
+<!--客户列表功能-->
 <table id="dg"></table>
 
-
+<!--客户列表的工具栏-->
 <div id="tb" style="display:none;">
     <div id="customerDtn">
         <a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="addCustomer()">添加客户</a>
@@ -21,6 +30,7 @@
     </div>
 </div>
 
+<!--客户添加/修改对话框-->
 <div id="mydialog" class="easyui-dialog" title="添加/修改客户" style="width:300px;display:none;" draggable="false"
      data-options="modal:true,closed:true">
     <form id="myForm" action="" method="post">
@@ -61,13 +71,29 @@
     </form>
 </div>
 
-<div th:replace="opera::productDiv" ></div>
+<!--“投”按钮页面-->
+<div th:replace="invest::productDiv" ></div>
+
+<!--“资”按钮页面-->
 <div th:replace="asset::investDiv"></div>
 
 </body>
 <script type="text/javascript" th:inline="none">
 
-    //--------------------列表功能--------------------
+    //--------------------首先显示投资产品功能--------------------
+    $("#viewProductDataGrid").datagrid({
+        url : "/invest/getAllInvestProductList",
+        columns:[[
+            {field:'id',title:'编号',width:50},
+            {field:'name',title:'产品名称',width:100},
+            {field:'beginAmt',title:'起投金额',width:100},
+            {field:'yearIrr',title:'年化收益率',width:100},
+            {field:'dayCount',title:'固定期限/封闭期',width:100},
+        ]]
+    });
+
+
+    //--------------------客户列表功能--------------------
     $("#dg").datagrid({
         idField : 'id',//有idField保证了翻页选中不丢失
         fitColumns:true,
@@ -112,7 +138,7 @@
     var flag;//添加/修改标志位
     //添加客户
     function addCustomer(){
-        flag = "add";//添加/修改标志位
+       flag = "add";//添加/修改标志位
         $("#myForm").form('reset');
         $("#mydialog").dialog({
             id:'mydialog',

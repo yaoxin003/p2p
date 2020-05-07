@@ -18,9 +18,6 @@ public class InvestMQVo implements Serializable {
     private String bankAccount;//银行账户
     private String baseBankName;//银行总行名称
 
-    public static final String STATUS_OK = "ok";
-    public static final String STATUS_FAIL = "fail";
-
     public String getBizId() {
         return bizId;
     }

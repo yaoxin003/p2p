@@ -13,39 +13,70 @@ import java.math.BigDecimal;
 @Table(name="p2p_invest_match_req")
 public class InvestMatchReq extends BaseModel implements Serializable{
 
-    private String bizId;//业务编号，如invest.id
-    private String orderSn;//订单编号，如lending.id
-    private BigDecimal amount;//金额
-    private BigDecimal waitAmt;//待撮合金额
+    //----------------投资产品信息----------------
     private Integer productId;//产品编号
     private String productName;//产品姓名
     private BigDecimal yearIrr; //年化收益率
-    private Integer level;//优先级
-    private Integer customerId;//客户编号
+
+    //----------------客户信息----------------
+    private Integer investCustomerId;//投资客户编号
+    private String investCustomerName;//投资客户名称
+
+    //----------------投资信息----------------
+    private String investBizId;//业务编号，如invest.id
+    private BigDecimal investAmt;//金额
+
+    private String investOrderSn;//订单编号，如lending.id
+    private BigDecimal waitAmt;//待撮合金额
+    private Integer level;//优先级：值越大优先级越高
     private String remark;//备注
 
-    public String getBizId() {
-        return bizId;
+    public Integer getInvestCustomerId() {
+        return investCustomerId;
     }
 
-    public void setBizId(String bizId) {
-        this.bizId = bizId;
+    public void setInvestCustomerId(Integer investCustomerId) {
+        this.investCustomerId = investCustomerId;
     }
 
-    public String getOrderSn() {
-        return orderSn;
+    public String getInvestCustomerName() {
+        return investCustomerName;
     }
 
-    public void setOrderSn(String orderSn) {
-        this.orderSn = orderSn;
+    public void setInvestCustomerName(String investCustomerName) {
+        this.investCustomerName = investCustomerName;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public String getInvestBizId() {
+        return investBizId;
     }
 
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
+    public void setInvestBizId(String investBizId) {
+        this.investBizId = investBizId;
+    }
+
+    public String getInvestOrderSn() {
+        return investOrderSn;
+    }
+
+    public void setInvestOrderSn(String investOrderSn) {
+        this.investOrderSn = investOrderSn;
+    }
+
+    public BigDecimal getInvestAmt() {
+        return investAmt;
+    }
+
+    public void setInvestAmt(BigDecimal investAmt) {
+        this.investAmt = investAmt;
+    }
+
+    public BigDecimal getWaitAmt() {
+        return waitAmt;
+    }
+
+    public void setWaitAmt(BigDecimal waitAmt) {
+        this.waitAmt = waitAmt;
     }
 
     public Integer getProductId() {
@@ -80,14 +111,6 @@ public class InvestMatchReq extends BaseModel implements Serializable{
         this.level = level;
     }
 
-    public Integer getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(Integer customerId) {
-        this.customerId = customerId;
-    }
-
     public String getRemark() {
         return remark;
     }
@@ -96,27 +119,20 @@ public class InvestMatchReq extends BaseModel implements Serializable{
         this.remark = remark;
     }
 
-    public BigDecimal getWaitAmt() {
-        return waitAmt;
-    }
-
-    public void setWaitAmt(BigDecimal waitAmt) {
-        this.waitAmt = waitAmt;
-    }
-
     @Override
     public String toString() {
-        return super.toString() + "InvestMatchReq{" +
-                "bizId='" + bizId + '\'' +
-                ", orderSn='" + orderSn + '\'' +
-                ", amount=" + amount +
+        return "InvestMatchReq{" +
+                "investCustomerId=" + investCustomerId +
+                ", investCustomerName='" + investCustomerName + '\'' +
+                ", investBizId='" + investBizId + '\'' +
+                ", investOrderSn='" + investOrderSn + '\'' +
+                ", investAmt=" + investAmt +
                 ", waitAmt=" + waitAmt +
-                ", productId='" + productId + '\'' +
+                ", productId=" + productId +
                 ", productName='" + productName + '\'' +
                 ", yearIrr=" + yearIrr +
                 ", level=" + level +
-                ", customerId=" + customerId +
                 ", remark='" + remark + '\'' +
-                '}';
+                '}' + super.toString();
     }
 }

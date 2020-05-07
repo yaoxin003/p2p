@@ -17,4 +17,27 @@ public enum BorrowMatchReqLevelEnum {
         this.levelDesc = levelDesc;
     }
 
+    public Integer getLevel() {
+        return level;
+    }
+
+    public void setLevel(Integer level) {
+        this.level = level;
+    }
+
+    public String getLevelDesc() {
+        return levelDesc;
+    }
+
+    public void setLevelDesc(String levelDesc) {
+        this.levelDesc = levelDesc;
+    }
+
+    @Override
+    public String toString() {
+        return "BorrowMatchReqLevelEnum{" +
+                "level=" + level +
+                ", levelDesc='" + levelDesc + '\'' +
+                '}';
+    }
 }

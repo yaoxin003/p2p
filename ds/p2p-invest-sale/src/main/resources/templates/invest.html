@@ -26,9 +26,6 @@
                      投资天数<input name="dayCount" id="dayCount" class="easyui-textbox" style="width:50px"/>
                  <!--提交表单时使用该字段，保存选中使用具体的银行卡-->
                       客户银行卡编号<input name="customerBankId" id="customerBankId" class="easyui-textbox" style="width:50px"/>
-                      银行编码<input id="pBankCode" name="bankCode" class="easyui-textbox"/>
-                      银行账户<input id="pBankAccount" name="bankAccount" class="easyui-textbox"/>
-                      绑定手机号<input id="pPhone" name="phone" class="easyui-textbox"/>/>
              </span>
             <table id="planPayTable" style="width:600px" cellspacing="10">
                 <tr>
@@ -210,10 +207,6 @@
                      messger_show_center('提示信息','请选择一条银行卡');
                  }else{
                      $("#customerBankId").textbox("setValue",bankArr[0].id);
-                     $("#pBankCode").textbox("setValue",bankArr[0].bankCode);
-                     $("#pBankAccount").textbox("setValue",bankArr[0].bankAccount);
-                     $("#pPhone").textbox("setValue",bankArr[0].phone);
-
                      $.ajax({
                          type: 'post',
                          url : '/invest/lend',
@@ -261,7 +254,7 @@
 
          //添加银行
          function addBank(){
-            $("#baseBankName").textbox("setValue",$('#bankCode').combobox("getText"));
+            $("#baseBankName").textbox("setValue",$('#bankCode').combobox("getText"));//???
             var isValid = $("#addBankForm").form("validate");//表单验证
             if(isValid){
                 $.ajax({

@@ -19,7 +19,6 @@ public class InvestProduct extends BaseModel implements Serializable {
     private String name; //理财产品名称
     private BigDecimal beginAmt;//起投金额
     private BigDecimal yearIrr; //年化收益率
-    private String productType; //产品类型：1-季度投,2-双季投,3-投资宝
     private String investType; //投资类型:1-固定期限,2-非固定期限
     private Short dayCount;//投资天数(投资类型:1-固定期限)/封闭期(投资类型:2-非固定期限)
 
@@ -47,14 +46,6 @@ public class InvestProduct extends BaseModel implements Serializable {
         this.yearIrr = yearIrr;
     }
 
-    public String getProductType() {
-        return productType;
-    }
-
-    public void setProductType(String productType) {
-        this.productType = productType;
-    }
-
     public String getInvestType() {
         return investType;
     }
@@ -77,7 +68,6 @@ public class InvestProduct extends BaseModel implements Serializable {
                 ", name='" + name + '\'' +
                 ", beginAmt=" + beginAmt +
                 ", yearIrr=" + yearIrr +
-                ", productType='" + productType + '\'' +
                 ", investType='" + investType + '\'' +
                 ", dayCount=" + dayCount +
                 '}';

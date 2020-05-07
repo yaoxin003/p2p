@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * @description: 解决Dubbo BUG
- * ERROR [com.alibaba.dubbo.qos.server.Server:102] -  [DUBBO] qos-server can not bind localhost:22222, dubbo version: 2.6.0, current host: 127.0.0.1
+ * ERROR [com.alibaba.dubbo.qos.server.Server:102] -  [DUBBO] qos-server can not bind localhost:22222,
+ * dubbo version: 2.6.0, current host: 127.0.0.1
 java.net.BindException: Address already in use: bind
 参考内容：springboot+dubbo2.6.0关闭QOS服务
 https://blog.csdn.net/xdkprosperous/article/details/99583204
@@ -22,6 +23,4 @@ public class DubboQosInit implements ApplicationRunner {
         //关闭QOS服务
         Server.getInstance().stop();
     }
-
-
 }

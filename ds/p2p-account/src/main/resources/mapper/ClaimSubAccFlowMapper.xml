@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yx.p2p.ds.account.mapper.ClaimSubAccFlowMapper">
+
+    <insert id="insertBatchClaimSubAccFlow" parameterType="java.util.List">
+        insert into p2p_claim_sub_acc_flow
+        (
+        claim_sub_id,
+        customer_id,
+        biz_id,
+        order_sn,
+        amount,
+        remark,
+        create_time,
+        update_time,
+        creator,
+        reviser,
+        logic_state,
+        biz_state
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.claimSubId},
+            #{item.customerId},
+            #{item.bizId},
+            #{item.orderSn},
+            #{item.amount},
+            #{item.remark},
+            #{item.createTime},
+            #{item.updateTime},
+            #{item.creator},
+            #{item.reviser},
+            #{item.logicState},
+            #{item.bizState}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

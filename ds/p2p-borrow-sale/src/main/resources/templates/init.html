@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>客户管理页面</title>
+</head>
+<body>
+
+
+<!--首先显示投资产品列表功能-->
+<div id="viewProductDialog" class="easyui-dialog" title="借款产品介绍" style="width:790px;height:400px" draggable="false"
+     data-options="modal:true">
+    <table id="viewProductDataGrid" style="width:770px" cellspacing="5">
+    </table>
+    <div id="viewBrrowDiv" style="margin-top: 15px;margin-left:15px; display:none">
+        <div>
+            <input class="easyui-textbox" id="vBorrowProduct" label="借款产品" style="width:200px" data-options="disabled:true" />
+        </div>
+        <div>
+            <input id="vMonthFeeRate" class="easyui-textbox" label="月费率%" style="width:200px" data-options="disabled:true" />
+            <input id="vMonthRate" class="easyui-textbox" label="月利率%" style="width:200px" data-options="disabled:true" />
+            <input id="vMonthManageRate" class="easyui-textbox" label="月管理费率%" style="width:200px" data-options="disabled:true" />
+        </div>
+        <div>
+            <input class="easyui-numberbox" id="vBorrowAmt" label="借款金额" style="width:200px"
+                   data-options="required:true,min:0,precision:2,decimalSeparator:'.',validType:'viewMonthPayment'"/>
+            <select class="easyui-combobox" id="vBorrowMonthCount" name="vBorrowMonthCount" style="width:200px;" label="借款期限">
+                <option value="12">12个月</option>
+                <option value="24">24个月</option>
+                <option value="36">36个月</option>
+            </select>
+        </div>
+        <div>
+            <input class="easyui-textbox" id="vMonthPayment" label="月供" style="width:200px" data-options="disabled:true" />
+            <input class="easyui-textbox" id="vTotalBorrowFee" label="借款费用" style="width:200px" data-options="disabled:true" />
+        </div>
+
+    </div>
+</div>
+
+<!--客户列表功能-->
+<table id="dg"></table>
+
+<!--客户列表的工具栏-->
+<div id="tb" style="display:none;">
+    <div id="customerDtn">
+        <a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="addCustomer()">添加客户</a>
+        <a href="#" class="easyui-linkbutton" iconCls="icon-edit" onclick="updateCustomer()">修改客户</a>
+    </div>
+    <div id="searchDiv">
+        <form id="searchForm" action="" method="post">
+            &nbsp;&nbsp;&nbsp;&nbsp;身份证号码<input class="easyui-textbox" name="idCard" id="searchIdCard" style="width:200px;"/>
+            <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询客户</a>
+        </form>
+    </div>
+</div>
+
+<!--客户添加/修改对话框-->
+<div id="mydialog" class="easyui-dialog" title="添加/修改客户" style="width:300px;display:none;" draggable="false"
+     data-options="modal:true,closed:true">
+    <form id="myForm" action="" method="post">
+        <span  style="display:none;" >
+            <input name="id" class="easyui-textbox"/>
+            <!--修改功能使用idCardOld字段，添加不使用该字段-->
+            <input name="idCardOld" class="easyui-textbox"/>
+        </span>
+        <table>
+            <tr>
+                <td>姓名</td>
+                <td><input type="text" name="name" class="easyui-textbox" data-options="required:true" style="width:200px"/></td>
+            </tr>
+            <tr>
+                <td>性别</td>
+                <td>
+                    <select class="easyui-combobox" name="gender" data-options="required:true" style="width:200px">
+                        <option value="1">男</option>
+                        <option value="0">女</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>生日</td>
+                <td><input id="birthdayAdd" type="text" name="birthdayStr"  class="easyui-datebox" data-options="required:true" style="width:200px"/></td>
+            </tr>
+            <tr>
+                <td>身份证号码</td>
+                <td><input type="text" name="idCard" id="dialogIdCard" class="easyui-textbox" data-options="required:true,validType:'idCard'" style="width:200px"/></td>
+            </tr>
+            <tr align="center">
+                <td colspan="2">
+                    <a id="btn1" class="easyui-linkbutton">保存</a>
+                    <a id="btn2" class="easyui-linkbutton">关闭</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+<!--“借”按钮页面-->
+<div th:replace="borrow::productDiv" ></div>
+
+<!--“债”按钮页面-->
+<div th:replace="debt::borrowDiv"></div>
+
+</body>
+<script type="text/javascript" th:inline="none">
+
+    //--------------------首先显示投资产品功能--------------------
+    $("#viewProductDataGrid").datagrid({
+        url : "/borrow/getAllBorrowProductList",
+        idField : 'id',//有idField保证了翻页选中不丢失
+        fitColumns:true,
+        rownumbers:true,
+        striped:true,//隔行变色
+        singleSelect:true,
+        columns:[[
+            {field:'ck',checkbox:true,width:50},
+            {field:'name',title:'借款产品名称',width:100},
+            {field:'monthFeeRate',title:'月费率%',width:100},
+            {field:'monthRate',title:'月利率%',width:100},
+            {field:'monthManageRate',title:'月管理费率%',width:100},
+            {field:'loanDay',title:'最快放款天数',width:100},
+            {field:'remark',title:'说明',width:200},
+        ]],
+        loadMsg : '数据正在加载，请耐心等待……',
+        onLoadSuccess :  function(index,field,value){
+            $("#viewBrrowDiv").css("display", "block");
+            $(this).datagrid('selectRow',2);
+        },onSelect: function(rowIndex, rowData){
+            //设置默认值
+            $("#vBorrowProduct").textbox("setValue",rowData.name);
+            $("#vMonthFeeRate").textbox("setValue",rowData.monthFeeRate);
+            $("#vMonthRate").textbox("setValue",rowData.monthRate);
+            $("#vMonthManageRate").textbox("setValue",rowData.monthManageRate);
+            //计算月供
+            var borrowAmt = $("#vBorrowAmt").textbox("getValue");//借款金额
+            if(borrowAmt != ''){
+                var borrowAmtNum = parseFloat(borrowAmt);//借款金额
+                var monthFeeRateNum = parseFloat(rowData.monthFeeRate)*0.01;//月利率
+                var borrowMonthCount = $('#vBorrowMonthCount').combobox('getValue');//借款月数
+                var borrowMonthCountNum = new Number(borrowMonthCount);
+                var result = calMonthPayment(borrowAmtNum,monthFeeRateNum,borrowMonthCountNum);//计算月供
+                $("#vMonthPayment").textbox("setValue",result[0]);//月供
+                $("#vTotalBorrowFee").textbox("setValue",result[1]);//借款费用
+            }else{
+                $("#vMonthPayment").textbox("setValue",0);
+                $("#vTotalBorrowFee").textbox("setValue",0);
+            }
+        }
+    });
+
+    //validatebox 自定义校验
+    $.extend($.fn.validatebox.defaults.rules,{
+        //计算【借款产品列表】页面“月供”
+        viewMonthPayment:{
+            validator : function(value) {
+                var arr = $("#viewProductDataGrid").datagrid('getSelections');
+                if(arr.length == 1){
+                    var borrowAmt = new Number(value);//借款金额
+                    var borrowAmtNum =parseFloat(borrowAmt);
+                    var monthFeeRate = $("#vMonthFeeRate").textbox("getValue");//月利率
+                    var monthFeeRateNum = parseFloat(monthFeeRate)*0.01;
+                    var borrowMonthCount = $('#vBorrowMonthCount').combobox('getValue');//借款月数
+                    var borrowMonthCountNum = new Number(borrowMonthCount);
+                    var result = calMonthPayment(borrowAmtNum,monthFeeRateNum,borrowMonthCountNum);//计算月供
+                    $("#vMonthPayment").textbox("setValue",result[0]);//月供
+                    $("#vTotalBorrowFee").textbox("setValue",result[1]);//借款费用
+                    return true;
+                }else{
+                    return false;
+                }
+            },
+            message : '请选择【借款产品】'
+        }
+    });
+
+    $('#vBorrowMonthCount').combobox({
+        onChange: function(newValue, oldValue){
+            var borrowAmt = $("#vBorrowAmt").textbox("getValue");//借款金额
+            if(borrowAmt != ''){
+                var borrowAmtNum =parseFloat(borrowAmt);
+                var monthFeeRate = $("#vMonthFeeRate").textbox("getValue");//月利率
+                var monthFeeRateNum = parseFloat(monthFeeRate)*0.01;
+                var borrowMonthCountNum = new Number(newValue);//借款月数
+                var result = calMonthPayment(borrowAmtNum,monthFeeRateNum,borrowMonthCountNum);//计算月供
+                $("#vMonthPayment").textbox("setValue",result[0]);//月供
+                $("#vTotalBorrowFee").textbox("setValue",result[1]);//借款费用
+            }else{
+                $("#vMonthPayment").textbox("setValue",0);
+                $("#vTotalBorrowFee").textbox("setValue",0);
+                messger_show_center('提示信息','请填写借款金额');
+            }
+        }
+    });
+
+    //计算月供
+    // 月供=[借款金额×月利率×(1+月利率)^借款月数]÷[(1+月利率)^借款月数-1]
+    //borrowAmtNum:借款金额，monthFeeRateNum:月利率,borrowMonthCountNum:借款月数
+    function calMonthPayment(borrowAmtNum,monthFeeRateNum,borrowMonthCountNum) {
+        var monthPay1 = new Number(borrowAmtNum*monthFeeRateNum*Math.pow((1+monthFeeRateNum),borrowMonthCountNum)).toFixed(13);
+        var monthPay2 = new Number(Math.pow((1+monthFeeRateNum),borrowMonthCountNum)-1).toFixed(13);
+        var monthPay = new Number(monthPay1/monthPay2).toFixed(2);//月供
+        //借款费用=月供*借款月数-借款金额
+        var totalBorrowFee = monthPay*borrowMonthCountNum-borrowAmtNum;
+        var totalBorrowFeeNum = new Number(totalBorrowFee).toFixed(2);//借款费用
+        var result = [monthPay,totalBorrowFeeNum];
+        return result;
+    }
+
+    //--------------------客户列表功能--------------------
+    $("#dg").datagrid({
+        idField : 'id',//有idField保证了翻页选中不丢失
+        fitColumns:true,
+        rownumbers:true,
+        width: 1200,
+        url : "/crm/list",
+        striped:true,//隔行变色
+        title : '客户管理',
+        toolbar : '#tb',
+        singleSelect: true,
+        columns : [[
+            {field:'ck',checkbox:true,width:50},
+            {field:'id',title:'编号',width:50},
+            {field:'operate',title:'操作',width:100,
+                formatter: function(value,row,index){
+                    var str = "<a href='#' name='borrowProductBtn' onclick='borrowProduct(" + row.id + ")'></a>";
+                    str += "<a href='#' name='assetBtn' onclick='asset(" + row.id + ")'></a>";
+                    return str;
+                }
+            },
+            {field:'name',title:'姓名',width:100},
+            {field:'gender',title:'性别',width:100,
+                formatter:function(value){
+                    return genderStr(value);
+                }
+            },
+            {field:'birthday',title:'生日',width:100},
+            {field:'idCard',title:'身份证号码',width:200},
+            {field:'createTime',title:'创建时间',width:175},
+            {field:'creator',title:'创建人',width:100},
+            {field:'updateTime',title:'修改时间',width:175},
+            {field:'reviser',title:'修改人',width:100}
+        ]],
+        onLoadSuccess : function(data){
+            $("a[name='borrowProductBtn']").linkbutton({'text':'借',plain:true,iconCls:'icon-add'});//产品列表
+            $("a[name='assetBtn']").linkbutton({'text':'债',plain:true,iconCls:'icon-add'});//借款列表
+        },
+        loadMsg : '数据正在加载，请耐心等待……',
+        pagination : true,
+        pageList:[1,2,5,10,20,50]
+    });
+
+    var flag;//添加/修改标志位
+    //添加客户
+    function addCustomer(){
+       flag = "add";//添加/修改标志位
+        $("#myForm").form('reset');
+        $("#mydialog").dialog({
+            id:'mydialog',
+            title : '添加客户'
+        });
+        $("#mydialog").dialog("open");
+    }
+
+    //修改客户
+    function updateCustomer(){
+        flag = "update";//添加/修改标志位
+        var arr = $("#dg").datagrid('getSelections');
+        if(arr.length != 1){
+            messger_show_center('提示信息','请选择一行记录修改');
+        }else{
+            $("#mydialog").dialog({
+                id:'mydialog',
+                title : '修改客户'
+            });
+            $("#mydialog").dialog("open");
+            var dataParams =  {"idCard":arr[0].idCard};
+            ajaxModifyOpen(dataParams,'myForm','mydialog','post','/crm/getByIdCard');
+        }
+    }
+
+    function doSearch(){
+        $("#dg").datagrid('load',datagridForm($("#searchForm")));
+        $("#dg").datagrid('clearSelections');
+    }
+
+    function datagridForm(form){
+        var obj = {};
+        $.each(form.serializeArray(),function(index){
+            obj[this['name']] = this['value'];
+        });
+        return obj;
+    }
+
+    //--------------------添加/修改提交表单--------------------
+    $("#btn1").click(function(){
+        var formObj = $("#myForm");
+        if(formObj.form("validate")){
+            var url = flag == "add" ? "/crm/add" : "/crm/update";
+            ajaxAddUpdate('myForm','mydialog','dg','post',url);
+            //添加/修改后，使用身份证号查询数据
+            $("#searchIdCard").textbox('setValue',$("#dialogIdCard").textbox('getValue'));
+            doSearch();
+        }else{
+            messger_show_center('提示信息','数据验证不通过，不能保存');
+        }
+    });
+    //关闭窗口
+    $("#btn2").click(function(){
+        $("#mydialog").dialog("close");
+    });
+
+    //客户列表“借”按钮
+    function borrowProduct(customerId){
+        $("#customerId").textbox("setValue",customerId);
+        $("#productDialog").dialog("open");
+        $("#productDialog").window('center');//使Dialog居中显示
+    }
+
+    //客户列表“债”按钮
+    function asset(customerId){
+        $("#customerId").textbox("setValue",customerId);
+        $("#borrowDialog").dialog("open");
+        $("#borrowDialog").dialog("center");//使Dialog居中显示
+        showBorrowDatagrid(customerId);//在debt.html中编写
+    }
+
+</script>
+</html>

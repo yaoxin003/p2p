@@ -16,13 +16,13 @@ import org.springframework.stereotype.Component;
 import java.io.UnsupportedEncodingException;
 
 /**
- * @description:接收支付成功通知
+ * @description:接收投资充值支付成功通知
  * @author: yx
  * @date: 2020/04/19/17:50
  */
 
 @RocketMQMessageListener(
-        consumerGroup = "${rocketmq.pay.consumer.group.name}",
+        consumerGroup = "${rocketmq.account.consumer.group.name}",
         topic = "${mq.payment.topic}",
         selectorType = SelectorType.TAG,
         selectorExpression ="payTagInvestSuc",
@@ -37,7 +37,7 @@ public class MQInvestPayListener implements RocketMQListener<MessageExt>{
 
      @Override
     public void onMessage(MessageExt messageExt) {
-         logger.debug("接收投资支付成功【MQListener】messageExt=" + messageExt);
+         logger.debug("【接收投资支付成功MQListener】入参：messageExt=" + messageExt);
          try {
              String body = new String(messageExt.getBody(),"UTF-8");
              InvestMQVo investMQVo = JSON.parseObject(body, InvestMQVo.class);

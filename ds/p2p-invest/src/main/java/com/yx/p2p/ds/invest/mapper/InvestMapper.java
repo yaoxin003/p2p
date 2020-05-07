@@ -1,7 +1,6 @@
 package com.yx.p2p.ds.invest.mapper;
 
 import com.yx.p2p.ds.model.invest.Invest;
-import com.yx.p2p.ds.vo.InvestVo;
 import org.apache.ibatis.annotations.Param;
 import tk.mybatis.mapper.common.Mapper;
 
@@ -14,10 +13,10 @@ import java.util.List;
  */
 public interface InvestMapper extends Mapper<Invest> {
 
-    public List<InvestVo> queryInvestVoListByPagination(
-            @Param("investVo") InvestVo investVo ,@Param("offset") int offset, @Param("limit") int limit);
+    public List<Invest> queryInvestListByPagination(
+            @Param("invest") Invest invest ,@Param("offset") int offset, @Param("limit") int limit);
 
-    public Integer queryInvestVoCount(@Param("investVo") InvestVo investVo);
+    public Integer queryInvestCount(@Param("invest") Invest invest);
 
 
 }

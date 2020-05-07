@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>借款页面</title>
+</head>
+<body>
+    <div th:fragment="borrowDiv">
+        <div id="borrowDialog" class="easyui-dialog" title="【借款列表】"
+             draggable="false" data-options="modal:true,closed:true" style="display:none;width:1320px">
+            <table id="borrowTable" cellspacing="5"></table>
+        </div>
+
+        <div id="contractDialog" class="easyui-dialog" title="【借款合同】"
+             draggable="false" data-options="modal:true,closed:true" style="display:none;width:900px">
+            <div>
+                <form id="contractForm">
+                     <span  style="display:none;" >
+                            <input id="cBorrowId" name="id" class="easyui-textbox" style="width:50px"/>
+                    </span>
+                  <table>
+                      <tr>
+                          <td colspan="2"><input type="text" name="customerName" class="easyui-textbox" label="借款人" data-options="readonly:true" style="width:250px"></td>
+                          <td colspan="2"><input type="text" name="customerIdCard" class="easyui-textbox" label="身份证" data-options="readonly:true" style="width:250px"></td>
+                      </tr>
+                      <tr>
+                          <td colspan="4"><b>借款信息</b></td>
+                      </tr>
+                      <tr>
+                          <td width="220"><input type="text" name="borrowProductName" class="easyui-textbox" label="借款产品名称" data-options="readonly:true" style="width:250px"></td>
+                          <td width="220"><input type="text" name="monthFeeRate" class="easyui-textbox" label="月费率" data-options="readonly:true" style="width:250px"></td>
+                          <td width="220"><input type="text" name="monthRate" class="easyui-textbox" label="月利率" data-options="readonly:true" style="width:250px"></td>
+                          <td width="220"><input type="text" name="monthManageRate" class="easyui-textbox" label="月管理费率" data-options="readonly:true" style="width:250px"></td>
+                      </tr>
+                      <tr>
+                          <td><input type="text" name="borrowAmt" class="easyui-textbox" label="借款金额" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="borrowMonthCount" class="easyui-textbox" label="借款期限" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="yearRate" class="easyui-textbox" label="贷款年利率" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="totalBorrowFee" class="easyui-textbox" label="总借款费用" data-options="readonly:true" style="width:250px"></td>
+                      </tr>
+                      <tr>
+                          <td><input type="text" name="totalInterest" class="easyui-textbox" label="总利息" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="totalManageFee" class="easyui-textbox" label="总管理费" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="startDate" class="easyui-textbox" label="借款开始日期" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="endDate" class="easyui-textbox" label="借款结束日期" data-options="readonly:true" style="width:250px"></td>
+                      </tr>
+                      <tr>
+                          <td><input type="text" name="firstReturnDate" class="easyui-textbox" label="首期还款日期" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="monthReturnDay" class="easyui-textbox" label="月还款日" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="monthPayment" class="easyui-textbox" label="月供" data-options="readonly:true" style="width:250px"></td>
+                          <td>&nbsp;</td>
+                      </tr>
+                      <tr>
+                          <td colspan="4"><b>还款银行信息</b></td>
+                      </tr>
+                      <tr>
+                          <td><input type="text" name="baseBankName" class="easyui-textbox" label="银行总行名称" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="bankAccount" class="easyui-textbox" label="银行账户" data-options="readonly:true" style="width:250px"></td>
+                          <td><input type="text" name="phone" class="easyui-textbox" label="手机号" data-options="readonly:true" style="width:250px"></td>
+                          <td>&nbsp;</td>
+                      </tr>
+                  </table>
+              </form>
+          </div>
+          <div>&nbsp;</div>
+          <div id="contractTable"  style="width:850px"></div>
+          <div>&nbsp;</div>
+          <div style="text-align:center;padding:5px">
+              <a href="javascript:void(0)" class="easyui-linkbutton" onclick="applyLoan()">申请放款</a>
+          </div>
+      </div>
+
+      <script type="text/javascript" th:inline="none">
+          function showBorrowDatagrid(customerId){
+              $("#borrowTable").datagrid({
+                  idField : 'id',//有idField保证了翻页选中不丢失
+                  fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
+                  rownumbers:true,
+                  width: 1300,
+                  singleSelect:true,
+                  striped:true,//隔行变色
+                  url:'/borrow/getBorrowListByCustomerId',
+                  queryParams:{
+                      customerId : customerId
+                  },
+                  columns : [[
+                      {field:'operate',title:'操作',width:100,
+                          formatter:function(value,row,index){
+                              var str = "";
+                              if(row.bizState == '1'){//新借款
+                                  str = "<a href='#' name='borrowMatchOpr' onclick='borrowMatch(" + row.id + ")'></a>";
+                              }else if(row.bizState == '2'){//已签约
+                                  str = "<a href='#' name='viewBorrowContractOpr' onclick='viewBorrowContract(" + row.id + ")'></a>";
+                              }
+                              return str;
+                          }
+                      },
+                      {field:'bizState',title:'状态',width:100,
+                          formatter : function(value,row,index){
+                              return borrowBizStateDesc(value);
+                          }
+                      },
+                      {field:'id',title:'借款编号',width:100},
+                      {field:'borrowProductName',title:'产品名称',width:100},
+                      {field:'monthFeeRate',title:'月费率(扩大100倍)',width:100},
+                      {field:'monthRate',title:'月利率(扩大100倍)',width:100},
+                      {field:'monthManageRate',title:'月管理费率(扩大100倍)',width:100},
+                      {field:'borrowAmt',title:'借款金额',width:100},
+                      {field:'borrowMonthCount',title:'借款期限',width:100},
+                      {field:'totalBorrowFee',title:'总借款费用',width:100},
+                      {field:'totalInterest',title:'总利息',width:100},
+                      {field:'totalManageFee',title:'总管理费',width:100},
+                      {field:'startDate',title:'借款开始日期',width:150},
+                      {field:'endDate',title:'借款结束日期',width:150}
+                  ]],
+                  loadMsg : '数据正在加载，请耐心等待……',
+                  onLoadSuccess: function (data) {
+                      $("a[name='borrowMatchOpr']").linkbutton({'text':'付','plain':true,iconCls:'icon-add'});
+                      $("a[name='viewBorrowContractOpr']").linkbutton({'text':'合','plain':true,iconCls:'icon-add'});
+                  }
+              });
+          }
+
+          //借款列表“撮”按钮
+          function borrowMatch(borrowId){
+              //调用幂等性接口：融资撮合请求，返回借款撮合结果
+              $.ajax({
+                  type:'post',
+                  url : '/borrow/compensateDealBorrowMatchReq',
+                  data : {borrowId : borrowId},
+                  dataType: 'json',
+                  cache : false,
+                  success : function (result) {
+                      //关闭借款列表对话框
+                      if(result.status == 'ok' ){
+                          messger_show_center('提示信息','借款撮合成功！');
+                          viewBorrowContract(borrowId);
+                         // $("#planPayDialog").dialog("close");
+                          //$("#planPayForm").form('reset');
+                      }else{
+                          messger_show_center('错误信息',result.selfMsg);
+                      }
+                  }
+              });
+          }
+
+          //显示借款合同
+          function viewBorrowContract(borrowId) {
+              $.ajax({
+                  type: 'post',
+                  url: '/borrow/getBorrowContractByBorrowId',
+                  data: {"borrowId": borrowId},
+                  dataType: 'json',
+                  cache: false,
+                  success: function (result) {
+                      //显示信息
+                      $("#contractForm").form('load', result.borrow);
+                     //借款合同
+                      contractDatagrid(borrowId);
+                      //打开窗口
+                      $("#contractDialog").dialog("open");
+                  }
+              });
+          }
+
+          function contractDatagrid(borrowId){
+              $("#contractDialog").dialog("open");
+              $("#contractTable").datagrid({
+                  idField : 'id',
+                  cache: false,
+                  rownumbers:true,
+                  url: '/borrow/getBorrowContractByBorrowId?borrowId='+borrowId,
+                  columns:[[
+                      {field:'investBizId',title:'投资业务编号',width:50},
+                      {field:'customerName',title:'投资人姓名',width:100},
+                      {field:'customerIdCard',title:'投资人身份证号码',width:150},
+                      {field:'tradeAmt',title:'出借金额',width:100},
+                      {field:'matchShare',title:'占比',width:50},
+                      {field:'baseBankName',title:'银行总行名称',width:100},
+                      {field:'bankAccount',title:'银行账户',width:150},
+                      {field:'phone',title:'电话',width:150}
+                  ]],
+                  loadFilter : function(data){
+                      return data.borrowDtlList;
+                  }
+              });
+          }
+
+          //"放款"按钮
+          function applyLoan(){
+              var borrowId = $("#cBorrowId").textbox("getValue");
+              $.ajax({
+                  type: 'post',
+                  url: '/borrow/applyLoan',
+                  data: {"borrowId": borrowId},
+                  dataType: 'json',
+                  cache: false,
+                  success: function (result) {
+                      messger_show_center('提示信息','申请放款成功！');
+                      //打开窗口
+                      $("#contractDialog").dialog("close");
+                  }
+              });
+          }
+
+      //借款业务状态描述
+      function borrowBizStateDesc(value){
+          var str = "";
+          if(value == '1'){
+              str = "新增";
+          }else if(value == '2'){
+              str = "已签约";
+          }else{
+              str = "未知";
+          }
+          return str;
+      }
+      </script>
+  </div>
+</body>
+</html>

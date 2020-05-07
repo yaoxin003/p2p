@@ -43,10 +43,34 @@ public class DateUtil {
         return dateString;
     }
 
-    public static Date add(Date date,int dayCount){
+    public static Date addDay(Date date,int dayCount){
         Calendar c = Calendar.getInstance();
         c.setTime(date);
         c.add(Calendar.DAY_OF_MONTH,dayCount);
         return c.getTime();
     }
+
+    public static Date addMonth(Date date, int monthCount){
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.add(Calendar.MONDAY,monthCount);
+        return c.getTime();
+    }
+
+    //获得日
+    public static int getDay(Date date){
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        int day = c.get(Calendar.DATE);
+        return day;
+    }
+
+    //设置日
+    public static Date setDayOfDate(Date date,int day){
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.set(Calendar.DAY_OF_MONTH,day);
+        return c.getTime();
+    }
+
 }

@@ -8,7 +8,9 @@ package com.yx.p2p.ds.enums.payment;
 public enum PaymentBizStateEnum {
     NEW_ADD("1","新增"),//添加支付单
     PAY_SUC("2","支付成功"),
-    PAY_FAIL("3","支付失败");
+    PAY_FAIL("3","支付失败"),
+    LOAN_SUC("4","放款成功"),
+    LOAN_FAIL("5","放款失败");
 
     private String state;//状态
     private String stateDesc;//状态描述

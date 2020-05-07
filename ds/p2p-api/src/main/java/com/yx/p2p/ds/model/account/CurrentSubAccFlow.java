@@ -3,6 +3,7 @@ package com.yx.p2p.ds.model.account;
 import com.yx.p2p.ds.model.base.BaseModel;
 
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
@@ -11,7 +12,7 @@ import java.math.BigDecimal;
  * @date: 2020/04/23/8:03
  */
 @Table(name="p2p_current_sub_acc_flow")
-public class CurrentSubAccFlow extends BaseModel{
+public class CurrentSubAccFlow extends BaseModel implements Serializable{
     private Integer currentSubId ;//活期分户主键
     private Integer customerId; //客户编号
     private String bizId;//业务编号，如invest.id

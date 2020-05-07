@@ -5,18 +5,18 @@
     <sql id="investField">
         a.id,a.invest_product_id,a.customer_bank_id,a.customer_id,a.invest_amt,a.profit,a.start_date,a.end_date,
         a.create_time,a.update_time,a.creator,a.reviser,a.logic_state,a.biz_state,
-        ip.name as product_name,ip.year_irr,ip.day_count,ip.invest_type
+        a.invest_product_name,a.invest_year_irr,a.invest_day_count,a.invest_type
     </sql>
 
     <sql id="investCondition">
-        <if test="investVo != null">
-            <if test="investVo.customerId">
-                and a.customer_id = #{investVo.customerId}
+        <if test="invest != null">
+            <if test="invest.customerId">
+                and a.customer_id = #{invest.customerId}
             </if>
         </if>
     </sql>
 
-    <select id="queryInvestVoListByPagination" resultType="InvestVo">
+    <select id="queryInvestListByPagination" resultType="Invest">
       select <include refid="investField"/>
         from p2p_invest a
         inner join p2p_invest_product ip
@@ -32,7 +32,7 @@
         </if>
     </select>
 
-    <select id="queryInvestVoCount" resultType="Integer">
+    <select id="queryInvestCount" resultType="Integer">
       select count(a.id) from p2p_invest a
       where 1=1
       <include refid="investCondition"/>

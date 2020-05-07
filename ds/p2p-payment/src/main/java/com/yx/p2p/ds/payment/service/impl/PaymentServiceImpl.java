@@ -2,6 +2,7 @@ package com.yx.p2p.ds.payment.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.enums.payment.PaymentBizStateEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.mock.thirdpay.enums.RetCodeEnum;
@@ -68,10 +69,13 @@ public class PaymentServiceImpl implements PaymentService {
     @Value("${mq.payment.tag.invest.fail}")
     private String payInvestFailTag;
 
+    @Value("${mq.payment.tag.borrow.suc}")
+    private String payTagBorrowSuc;
+
     public List<BaseBank> getAllBaseBankList(){
-        List<BaseBank> baseBanks = baseBankMapper.selectAll();
-        logger.debug("【db.allBasebank】=" + baseBanks);
-        return baseBanks;
+        List<BaseBank> allBaseBankList = baseBankMapper.selectAll();
+        logger.debug("【查询数据库所有银行总行】allBaseBankList=" + allBaseBankList);
+        return allBaseBankList;
     }
 
     public List<CustomerBank> getCustomerBankListByCustomerId(Integer customerId){
@@ -210,22 +214,13 @@ public class PaymentServiceImpl implements PaymentService {
             result = Result.error(count,e.toString());
             logger.error(e.toString(),e);
         }
-        logger.debug("insertPayment.【result】=" + result);
+        logger.debug("【插入支付数据】count=" + count + "，【result】=" + result);
         return result;
     }
 
     private void buildAddPayment(Payment payment) {
-        BaseBank baseBank = this.queryDBBaseBank(payment.getBankCode());
-        payment.setBaseBankName(baseBank.getName());
-        //1.设置时间，操作人，状态
+        //设置时间，操作人，状态
         BeanHelper.setAddDefaultField(payment);
-    }
-
-    private BaseBank queryDBBaseBank(String bankCode) {
-        Example example = new Example(BaseBank.class);
-        example.createCriteria().andEqualTo("bankCode",bankCode);
-        BaseBank baseBank = baseBankMapper.selectOneByExample(example);
-        return baseBank;
     }
 
     //处理公司company1的网关支付结果
@@ -239,20 +234,20 @@ public class PaymentServiceImpl implements PaymentService {
         if(Result.checkStatus(thirdPayResult)){
             //2.修改payment表支付状态
             result = this.updatePaymentState(thirdPayResult);
-            //3.使用RocketMQ加入消息队列中通知其他系统（投资人支付通知invest和recored两个系统）
-            this.dealPayResultMQ(result,(Map<String,String>)thirdPayResult.getTarget());
+            if(Result.checkStatus(result)){
+                //3.使用RocketMQ加入消息队列中通知其他系统（投资人支付通知invest和recored两个系统）
+                this.dealInvestPayResultMQ(result,(Map<String,String>)thirdPayResult.getTarget());
+            }
         }
         return result;
     }
 
-    private void dealPayResultMQ(Result result, Map<String,String> thirdPayMap) {
-        logger.debug("3.【支付结果通知后，准备向RocketMQ发送数据】result=" + result);
-        if(Result.checkStatus(result)){
+    private void dealInvestPayResultMQ(Result result, Map<String,String> thirdPayMap) {
+        logger.debug("3.【支付投资支付结果通知后，准备向RocketMQ发送数据】result=" + result);
             String retCode = thirdPayMap.get("retCode");
             String orderSn = thirdPayMap.get("orderSn");
             Payment payment = this.queryDBPaymentByOrderSn(orderSn);
-            this.sendPayResultMQ(retCode,payment);//发送支付结果MQ
-        }
+            this.sendInvestPayResultMQ(retCode,payment);//发送支付结果MQ
     }
 
     private Payment queryDBPaymentByOrderSn(String orderSn) {
@@ -264,33 +259,34 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     //发送支付结果MQ
-    private Result sendPayResultMQ(String retCode,Payment payment) {
+    private Result sendInvestPayResultMQ(String retCode,Payment payment) {
         Result result = Result.success();
-        String mqJSON = this.buildPayResultMQJSON(retCode,payment);
-        this.sendPayMQ(retCode,mqJSON, payment.getOrderSn());
+        String mqJSON = this.buildInvestPayResultMQJSON(retCode,payment);
+        this.sendInvestPayMQ(retCode,mqJSON, payment.getOrderSn());
         return result;
     }
 
-    private void sendPayMQ(String retCode, String mqJSON,String mqKey) {
+    private void sendInvestPayMQ(String retCode, String mqJSON,String mqKey) {
         String payInvestTag = null;
+        logger.debug("【准备发送投资支付结果MQ】mqJSON=" + mqJSON + ",mqKey=" + mqKey);
         if(retCode.equals(RetCodeEnum.PAY_SUC.getCode())) {//支付成功
             payInvestTag = payInvestSucTag;
         }else{//支付失败
             payInvestTag = payInvestFailTag;
         }
         Message message = new Message(payTopic, payInvestTag, mqKey, mqJSON.getBytes());
-        logger.debug("【准备发送支付结果MQ】");
+
         SendResult sendResult = null;
         try {
             sendResult = rocketMQTemplate.getProducer().send(message);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        logger.debug("【发送支付结果MQ】，topic="+ payTopic + ",tag=" + payInvestTag + ",message=" + message);
-        logger.debug("【发送支付结果MQ】，sendResult" + sendResult);
+        logger.debug("【发送投资支付结果MQ】，topic="+ payTopic + ",tag=" + payInvestTag + ",message=" + message);
+        logger.debug("【发送投资支付结果MQ】，sendResult" + sendResult);
     }
 
-    private String buildPayResultMQJSON(String retCode,Payment payment) {
+    private String buildInvestPayResultMQJSON(String retCode,Payment payment) {
         InvestMQVo investMQVo = new InvestMQVo();
         //对象拷贝
         try {
@@ -299,9 +295,9 @@ public class PaymentServiceImpl implements PaymentService {
             e.printStackTrace();
         }
         if(retCode.equals(RetCodeEnum.PAY_SUC.getCode())) {//支付成功
-            investMQVo.setStatus(InvestMQVo.STATUS_OK);
+            investMQVo.setStatus(MQStatusEnum.OK.getStatus());
         }else{//支付失败
-            investMQVo.setStatus(InvestMQVo.STATUS_FAIL);
+            investMQVo.setStatus(MQStatusEnum.FAIL.getStatus());
         }
         logger.debug("【发送支付结果前对象】investMQVo=" + investMQVo);
         String investMQString = JSON.toJSONString(investMQVo);
@@ -402,6 +398,63 @@ public class PaymentServiceImpl implements PaymentService {
         CustomerBank customerBank = this.queryDBCustomerBank(customerBankId);
 
         return customerBank;
+    }
+
+    //放款
+    //1.添加放款支付单
+    //2.调用银行放款借款(加签加密)
+    //3.根据银行放款通知(解密验签)，更新支付单状态
+    //4.放款结果通知MQ(通知方：借款，撮合，投资，账户)
+    @Override
+    public Result loan(Payment payment) {
+        logger.debug("【放款接口】入参payment=" +payment);
+        //添加放款支付单状态
+        Result result = this.addPayment(payment);
+        logger.debug("【加签加密，调用银行放款同步接口】");
+        logger.debug("【解密验签，处理银行返回放款结果");
+        //更新支付单状态
+        result = this.updateLoanPayment(payment);
+        //放款结果通知MQ(通知方：借款，撮合，投资，账户)
+        result = this.dealLoanPayResultMQ(payment);
+        logger.debug("【放款接口】结果result=" +result);
+        return result;
+    }
+
+    private Result dealLoanPayResultMQ(Payment payment) {
+        Result result = Result.error();
+        Map<String,String> loanNotify = new HashMap<>();
+        loanNotify.put("bizId",payment.getBizId());//biz=borrow.id
+        loanNotify.put("orderSn",payment.getOrderSn());//orderSn=borrow.id
+        loanNotify.put("customerId",String.valueOf(payment.getCustomerId()));
+        loanNotify.put("status", MQStatusEnum.OK.getStatus());
+         String mqJSON = JSON.toJSONString(loanNotify);
+         this.sendLoanPayMQ(mqJSON,payment.getBizId());
+         result = Result.success();
+         return result;
+    }
+
+    //放款结果通知MQ(通知方：借款，撮合，投资，账户)
+    private void sendLoanPayMQ(String mqJSON,String mqKey) {
+        logger.debug("【准备发送放款支付结果MQ】入参mqJSON=" + mqJSON + ",mqKey=" + mqKey);
+        Message message = new Message(payTopic, payTagBorrowSuc, mqKey, mqJSON.getBytes());
+        SendResult sendResult = null;
+        try {
+            sendResult = rocketMQTemplate.getProducer().send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        logger.debug("【发送放款支付结果MQ】，topic="+ payTopic + ",tag=" + payTagBorrowSuc + ",message=" + message);
+        logger.debug("【发送放款支付结果MQ】，sendResult" + sendResult);
+    }
+
+    //更新放款订单状态
+    private Result updateLoanPayment(Payment payment) {
+        Result result = Result.error();
+        Payment param = new Payment();
+        param.setOrderSn(payment.getOrderSn());
+        param.setBizState(PaymentBizStateEnum.LOAN_SUC.getState());
+        result = this.updatePaymentDBByThirdPay(param);
+        return result;
     }
 
     private CustomerBank queryDBCustomerBank(Integer customerBankId) {

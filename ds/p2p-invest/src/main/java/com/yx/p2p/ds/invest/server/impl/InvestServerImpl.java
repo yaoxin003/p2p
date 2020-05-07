@@ -2,11 +2,11 @@ package com.yx.p2p.ds.invest.server.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.service.InvestProductService;
 import com.yx.p2p.ds.service.InvestService;
-import com.yx.p2p.ds.vo.InvestVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,17 +43,21 @@ public class InvestServerImpl implements InvestServer {
     }
 
     //充值投资
-    public Result rechargeInvest(InvestVo investVo){
-        return investService.rechargeInvest(investVo);
+    public Result rechargeInvest(Invest invest){
+        return investService.rechargeInvest(invest);
     }
 
-
-    public List<InvestVo> getInvestVoList(InvestVo investVo){
-        return investService.getInvestVoList(investVo);
+    public List<Invest> getInvestVoList(Invest invest){
+        return investService.getInvestVoList(invest);
     }
 
     //补偿网关支付
-    public Result compensateGateway(InvestVo investVo){
-        return investService.compensateGateway(investVo);
+    public Result compensateGateway(Invest invest){
+        return investService.compensateGateway(invest);
+    }
+
+
+    public Invest getInvestByInvestId(Integer investId){
+        return investService.getInvestByInvestId(investId);
     }
 }

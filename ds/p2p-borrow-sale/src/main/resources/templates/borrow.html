@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>操作页面</title>
+</head>
+<body>
+
+<div th:fragment="productDiv">
+    <div id="productDialog" class="easyui-dialog" title="【借款产品列表】"
+         draggable="false" data-options="modal:true,closed:true" style="display:none;width:790px;">
+        <table id="productTable" style="width:770px;" cellspacing="5">
+        </table>
+    </div>
+
+    <div id="planBorrowDialog" class="easyui-dialog" title="【准备借款】"
+         draggable="false" data-options="modal:true,closed:true" style="display:none;">
+        <span style="display:none;" >
+            <!--银行卡列表使用customerId-->
+            客户编号<input id="customerId" class="easyui-textbox" style="width:50px"/>
+            借款产品编号<input id="productId" name="borrowProductId" class="easyui-textbox" style="width:50px"/>
+        </span>
+        <form method="post" id="planBorrowForm">
+            <span style="display:none;" >
+                     客户编号<input id="pCustomerId"  name="customerId" class="easyui-textbox" style="width:50px"/>
+                     借款产品编号<input id="borrowProductId" name="borrowProductId" class="easyui-textbox" style="width:50px"/>
+                 <!--提交表单时使用该字段，保存选中使用具体的银行卡-->
+                      客户银行卡编号<input name="customerBankId" id="customerBankId" class="easyui-textbox" style="width:50px"/>
+            </span>
+            <table id="planBorrowTable" style="width:600px" cellspacing="10">
+                <tr>
+                    <td>
+                        <input class="easyui-textbox" label="借款产品" id="name" name="name" style="width:180px" data-options="readonly:true" />
+                    </td>
+                    <td width="300" colspan="2" align="right">
+                        <a href="javascript:(0)" class="easyui-linkbutton" onclick="backProductDialog()">返回【借款产品列表】</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td><input class="easyui-textbox" label="月费率" id="monthFeeRate" name="monthFeeRate" style="width:120px"/>%</td>
+                    <td><input class="easyui-textbox" label="月利率" id="monthRate" name="monthRate" style="width:120px"/>%</td>
+                    <td><input class="easyui-textbox" label="月管理费率" id="monthManageRate" name="monthManageRate" style="width:120px"/>%</td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="easyui-numberbox" id="borrowAmt" name="borrowAmt" label="借款金额" style="width:180px"
+                               data-options="required:true,min:0,precision:2,decimalSeparator:'.',validType:'monthPayment'"/>
+                    </td>
+                    <td colspan="2" align="left">
+                        <select class="easyui-combobox" id="borrowMonthCount" name="borrowMonthCount"
+                                style="width:200px;" label="借款期限">
+                            <option value="12">12个月</option>
+                            <option value="24">24个月</option>
+                            <option value="36">36个月</option>
+                        </select>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td>
+                        <input class="easyui-textbox" id="monthPayment" name="monthPayment" label="月供"
+                               style="width:200px" data-options="readonly:true" />
+                    </td>
+                    <td colspan="2" align="left">
+                        <input class="easyui-textbox" id="totalBorrowFee" name="totalBorrowFee" label="借款费用"
+                               style="width:200px" data-options="readonly:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+                        选择收款银行：
+                    </td>
+                </tr>
+                <tr>
+                    <td align="left" colspan="2">
+                        银行卡列表：
+                    </td>
+                    <td align="right">
+                        <a class="easyui-linkbutton" onclick="openAddBank()">添加银行卡</a>
+                    </td>
+                </tr>
+            </table>
+            <!--银行卡列表-->
+            <table id="banksTable">
+            </table>
+            <div style="text-align:center;padding:5px">
+                    <a href="javascript:void(0)" class="easyui-linkbutton" onclick="sign()">签约</a>
+            </div>
+        </form>
+    </div>
+
+    <!--打开添加银行页面-->
+    <div id="openAddBankDialog" class="easyui-dialog"
+         draggable="false" data-options="modal:true,closed:true" style="display:none;">
+        <form method="post" id="addBankForm">
+            <span  style="display:none;" >
+            <!--银行卡列表使用customerId-->
+                <input id="oCustomerId" name="customerId" class="easyui-textbox" style="width:50px"/>
+                <input id="baseBankName" name="baseBankName" class="easyui-textbox" style="width:50px"/>
+            </span>
+             <table cellspacing="20">
+                 <tr>
+                     <td>姓名：</td>
+                     <td><input type="text" id="crmName" name="crmName" class="easyui-textbox" style="width:150px"
+                                data-options="readonly:true"/></td>
+                 </tr>
+                 <tr>
+                     <td>身份证号码：</td>
+                     <td><input type="text" id="crmIdCard" name="crmIdCard" class="easyui-textbox" style="width:150px"
+                          data-options="readonly:true"/></td>
+                 </tr>
+                 <tr>
+                     <td>开户银行：</td>
+                     <td><input class="easyui-combobox" id="bankCode" name="bankCode" style="width:150px"
+                                data-options="required:true,url:'/payment/getAllBaseBankList',textField:'name',valueField:'bankCode',method:'get',"/></td>
+                 </tr>
+                 <tr>
+                     <td>账户号码：</td>
+                     <td><input type="text" name="bankAccount" id="bankAccount" class="easyui-numberbox"
+                                data-options="required:true" style="width:150px"/></td>
+                 </tr>
+                 <tr>
+                     <td>绑定手机号：</td>
+                     <td><input type="text" name="phone" id="phone" class="easyui-numberbox"
+                                data-options="required:true,validType:'length[11,11]'" style="width:150px"/></td>
+                 </tr>
+                 <tr>
+                     <td colspan="2" align="center">
+                         <a href="javascript:void(0)" class="easyui-linkbutton" onclick="addBank()">添加银行</a>
+                     </td>
+                 </tr>
+             </table>
+         </form>
+
+     </div>
+
+    <!--网关支付-->
+    <div id="gatewayDialog"></div>
+
+     <script type="text/javascript" th:inline="none">
+         //借款产品列表
+         $("#productTable").datagrid({
+             url : "/borrow/getAllBorrowProductList",
+             idField : 'id',//有idField保证了翻页选中不丢失
+             fitColumns:true,
+             rownumbers:true,
+             striped:true,//隔行变色
+             singleSelect:true,
+             columns:[[
+                 {field:'operate',title:'操作',width:100,
+                     formatter: function(value,row,index){
+                         var str = "<a href='#' name='borrowBtn' onclick='openBorrow(" + row.id + ")'></a>";
+                         return str;
+                     }
+                 },
+                 {field:'name',title:'借款产品名称',width:100},
+                 {field:'monthFeeRate',title:'月费率%',width:100},
+                 {field:'monthRate',title:'月利率%',width:100},
+                 {field:'monthManageRate',title:'月管理费率%',width:100},
+                 {field:'loanDay',title:'最快放款天数',width:100},
+                 {field:'remark',title:'说明',width:200}
+             ]],
+             onLoadSuccess : function(data){
+                 $("a[name='borrowBtn']").linkbutton({'text':'借款'});
+             },
+             loadMsg : '数据正在加载，请耐心等待……'
+         });
+
+         //计算【借款产品列表】页面“月供”
+         //validatebox 自定义校验
+         $.extend($.fn.validatebox.defaults.rules,{
+             monthPayment:{
+                 validator : function(value) {
+                     var borrowAmt = new Number(value);//借款金额
+                     var borrowAmtNum =parseFloat(borrowAmt);
+                     var monthFeeRate = $("#monthFeeRate").textbox("getValue");//月利率
+                     var monthFeeRateNum = parseFloat(monthFeeRate)*0.01;
+                     var borrowMonthCount = $('#borrowMonthCount').combobox('getValue');//借款月数
+                     var borrowMonthCountNum = new Number(borrowMonthCount);
+                     var result = calMonthPayment(borrowAmtNum,monthFeeRateNum,borrowMonthCountNum);//计算月供
+                     $("#monthPayment").textbox("setValue",result[0]);//月供
+                     $("#totalBorrowFee").textbox("setValue",result[1]);//借款费用
+                     return true;
+                 },
+                 message : '请选择【借款产品】'
+             }
+         });
+
+         //借款期限变更，动态计算月供
+         $('#borrowMonthCount').combobox({
+             onChange: function(newValue, oldValue){
+                 var borrowAmt = $("#borrowAmt").textbox("getValue");//借款金额
+                 if(borrowAmt != ''){
+                     var borrowAmtNum =parseFloat(borrowAmt);
+                     var monthFeeRate = $("#monthFeeRate").textbox("getValue");//月利率
+                     var monthFeeRateNum = parseFloat(monthFeeRate)*0.01;
+                     var borrowMonthCountNum = new Number(newValue);//借款月数
+                     var result = calMonthPayment(borrowAmtNum,monthFeeRateNum,borrowMonthCountNum);//计算月供
+                     $("#monthPayment").textbox("setValue",result[0]);//月供
+                     $("#totalBorrowFee").textbox("setValue",result[1]);//借款费用
+                 }else{
+                     $("#monthPayment").textbox("setValue",0);
+                     $("#totalBorrowFee").textbox("setValue",0);
+                     messger_show_center('提示信息','请填写借款金额');
+                 }
+             }
+         });
+
+         //打开借款页面
+        function openBorrow(productId){
+            //关闭借款产品列表
+            $("#productDialog").dialog("close");
+            $("#productId").textbox("setValue",productId);
+            var dataParams =  {"borrowProductId":productId};
+            ajaxModifyOpen(dataParams,'planBorrowForm','planBorrowDialog','post','/borrow/getBorrowProductById');
+            $("#planBorrowDialog").dialog("open");
+            $("#planBorrowDialog").window('center');//使Dialog居中显示
+            //银行卡列表
+            getBanks();
+        }
+         //银行卡列表
+         function getBanks(){
+             $("#banksTable").datagrid({
+                 idField : 'id',//有idField保证了翻页选中不丢失
+                 fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
+                 rownumbers:true,
+                 width: 600,
+                 singleSelect:true,
+                 striped:true,//隔行变色
+                 url:'/payment/getCustomerBankListByCustomerId',
+                 queryParams: {
+                     customerId : $("#customerId").textbox("getValue")
+                 },
+                 columns : [[
+                     {field:'ck',checkbox:true,width:50},
+                     {field:'id',title:'编号',width:50},
+                     {field:'baseBankName',title:'银行名称',width:150},
+                     {field:'bankAccount',title:'银行账户',width:150},
+                     {field:'phone',title:'绑定手机号',width:150}
+                 ]]
+             });
+         }
+
+        //返回【借款产品列表】页面
+        function backProductDialog(){
+            $("#planBorrowDialog").dialog("close");
+            $("#productDialog").dialog("open");
+            $("#productDialog").window('center');//使Dialog居中显示
+        }
+
+        //【签约】按钮
+         function sign(){
+             var isValid = $("#planBorrowForm").form("validate");
+             if(isValid){
+                 $("#borrowProductId").textbox("setValue",$("#productId").textbox("getValue"));
+                 $("#pCustomerId").textbox("setValue",$("#customerId").textbox("getValue"));
+                 //添加验证是否选中银行功能
+                 var bankArr = $("#banksTable").datagrid('getSelections');
+                 if(bankArr.length != 1){
+                     messger_show_center('提示信息','请选择一条银行卡');
+                 }else{
+                     $("#customerBankId").textbox("setValue",bankArr[0].id);
+                    $.ajax({
+                         type: 'post',
+                         url : '/borrow/sign',
+                         data: $("#planBorrowForm").serialize(),
+                         dataType : 'json',
+                         cache : false,
+                         success:function(result){
+                             if(result.status == 'ok'){
+                                 //借款撮合结果
+                                 messger_show_center('提示信息','签约成功');
+                                 $("#planBorrowDialog").dialog("close");
+                                 $("#planBorrowForm").form('reset');
+                             }else{
+                                 messger_show_center('错误信息',result.selfMsg);
+                             }
+                         }
+                     });
+                 }
+             }
+         }
+
+        //打开【添加银行】页面
+         function openAddBank(){
+             var customerId = $("#customerId").textbox("getValue");
+             //查询并这是客户姓名和身份证号
+             $.getJSON("/crm/getById?crmId="+customerId,
+                 function(data){
+                     $("#crmName").textbox("setValue",data.name);
+                     $("#crmIdCard").textbox("setValue",data.idCard);
+             });
+             $("#openAddBankDialog").dialog({
+                 title : '【添加银行】',
+                 width: 400,
+                 height: 400,
+                 closed: false,
+                 collapsible: false,
+                 minimizable: false,
+                 maximizable: false,
+                 cache: false,
+                 modal: true
+             });
+             $("#oCustomerId").textbox("setValue",customerId);
+             $("#openAddBankDialog").dialog("open");
+             $("#openAddBankDialog").window('center');//使Dialog居中显示
+         }
+
+         //添加银行
+         function addBank(){
+            $("#baseBankName").textbox("setValue",$('#bankCode').combobox("getText"));
+            var isValid = $("#addBankForm").form("validate");//表单验证
+            if(isValid){
+                $.ajax({
+                    type: 'post',
+                    url : '/payment/addCustomerBank',
+                    data: $("#addBankForm").serialize(),
+                    dataType : 'json',
+                    cache : false,
+                    success:function(result){
+                        if(result.status == 'ok'){
+                            messger_show_center('提示信息','添加客户银行卡成功！');
+                        }else{
+                            messger_show_center('错误信息',result.selfMsg);
+                        }
+                        $("#addBankForm").form('reset');
+                        //刷新银行卡列表
+                        $("#banksTable").datagrid('clearChecked');
+                        $("#banksTable").datagrid('reload');
+                        $("#openAddBankDialog").dialog("close");
+                    }
+                });
+            }
+         }
+
+         //显示借款撮合结果
+         function viewBorrowMatchRes(borrowMatchRes){
+            console.log(borrowMatchRes);
+         }
+     </script>
+ </div>
+ </body>
+ </html>

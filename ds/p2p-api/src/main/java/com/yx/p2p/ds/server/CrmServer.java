@@ -18,5 +18,5 @@ public interface CrmServer{
 
     public List<Customer> search(CustomerVo customerVo, Integer currentPage, Integer pageSize);
 
-    public Customer getCustomerById(Integer crmId);
+    public Customer getCustomerById(Integer customerId);
 }

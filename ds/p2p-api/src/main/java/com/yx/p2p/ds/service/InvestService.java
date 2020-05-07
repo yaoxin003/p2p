@@ -2,8 +2,8 @@ package com.yx.p2p.ds.service;
 
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
+import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.mq.InvestMQVo;
-import com.yx.p2p.ds.vo.InvestVo;
 
 import java.util.List;
 
@@ -15,16 +15,17 @@ import java.util.List;
 public interface InvestService {
 
     //充值投资
-    public Result rechargeInvest(InvestVo investVo);
+    public Result rechargeInvest(Invest invest);
 
     //更新投资业务状态
     public Result updateInvestBizState(Integer investId, InvestBizStateEnum investBizStateEnum);
 
-    public List<InvestVo> getInvestVoList(InvestVo investVo);
+    public List<Invest> getInvestVoList(Invest invest);
 
-    public Result compensateGateway(InvestVo investVo);
+    public Result compensateGateway(Invest invest);
 
     //接收支付结果
     public Result receivePayResult(InvestMQVo investMQVo);
 
+    public Invest getInvestByInvestId(Integer investId);
 }

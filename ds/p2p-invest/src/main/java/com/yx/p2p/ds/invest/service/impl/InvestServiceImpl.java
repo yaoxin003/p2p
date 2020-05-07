@@ -2,25 +2,25 @@ package com.yx.p2p.ds.invest.service.impl;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.fastjson.JSON;
-import com.yx.p2p.ds.constant.SysConstant;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.SystemSourceEnum;
 import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
 import com.yx.p2p.ds.enums.investproduct.InvestTypeEnum;
-import com.yx.p2p.ds.enums.lending.LendingTypeEnum;
 import com.yx.p2p.ds.enums.match.InvestMatchReqLevelEnum;
 import com.yx.p2p.ds.enums.match.MatchRemarkEnum;
+import com.yx.p2p.ds.enums.mq.MQStatusEnum;
+import com.yx.p2p.ds.enums.payment.PaymentTypeEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.invest.mapper.InvestMapper;
-import com.yx.p2p.ds.model.*;
 import com.yx.p2p.ds.model.crm.Customer;
 import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestProduct;
+import com.yx.p2p.ds.model.match.InvestMatchReq;
 import com.yx.p2p.ds.model.payment.CustomerBank;
 import com.yx.p2p.ds.model.payment.Payment;
 import com.yx.p2p.ds.mq.InvestMQVo;
-import com.yx.p2p.ds.mq.InvestMatchReqMQVo;
 import com.yx.p2p.ds.server.CrmServer;
+import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.InvestProductService;
 import com.yx.p2p.ds.service.InvestService;
@@ -29,12 +29,8 @@ import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
 import com.yx.p2p.ds.util.OrderUtil;
-import com.yx.p2p.ds.vo.InvestVo;
-import org.apache.rocketmq.client.exception.MQBrokerException;
-import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +38,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sun.plugin2.message.Serializer;
-import java.io.IOException;
+
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @description:
@@ -66,14 +59,14 @@ public class InvestServiceImpl implements InvestService {
     @Autowired
     private InvestProductService investProductService;
 
+    @Autowired
+    private LendingService lendingService;
+
     @Reference
     private PaymentServer paymentServer;
 
     @Reference
     private CrmServer crmServer;
-
-    @Autowired
-    private LendingService lendingService;
 
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
@@ -85,47 +78,27 @@ public class InvestServiceImpl implements InvestService {
     private String matchTagNewInvest;
 
     //投资充值
-    public Result rechargeInvest(InvestVo investVo){
+    public Result rechargeInvest(Invest invest){
         //添加新投资
-        Result result = this.addNewInvest(investVo);
+        Result result = this.addNewInvest(invest);
         if(Result.checkStatus(result)){
             //构建投资人支付信息
-            Payment payment = this.buildAddPayment(investVo);
+            Payment payment = this.buildAddPayment(invest);
             //网关支付
             result = paymentServer.gateway(payment);
         }else{
-            logger.error("生成投资失败【customerId=】" +  investVo.getCustomerId());
+            logger.error("生成投资失败【customerId=】" +  invest.getCustomerId());
         }
         return result;
     }
 
     //补偿网关支付（只打开了网关支付页面，并未支付）
-    public Result compensateGateway(InvestVo investVo){
-        Payment payment = this.buildCompensateGateway(investVo);
+    public Result compensateGateway(Invest invest){
+        Invest dbInvest = this.getInvestByInvestId(invest.getId());
+        Payment payment = this.buildAddPayment(dbInvest);
         //网关支付
         Result result = paymentServer.gateway(payment);
         return result;
-    }
-
-    private Payment buildCompensateGateway(InvestVo investVo) {
-        Payment payment = new Payment();
-        //封装Payment
-        String sysSourceName = SystemSourceEnum.INVEST.getName();
-        payment.setSystemSource(sysSourceName);
-        payment.setOrderSn(OrderUtil.genOrderSn(sysSourceName));
-        payment.setCustomerId(investVo.getCustomerId());
-        payment.setBizId(String.valueOf(investVo.getId()));
-        payment.setAmount(investVo.getInvestAmt());
-        //查询客户表数据库
-        Customer customer = crmServer.getCustomerById(investVo.getCustomerId());
-        payment.setCustomerName(customer.getName());
-        payment.setIdCard(customer.getIdCard());
-        //查询客户银行
-        CustomerBank customerBank = paymentServer.getCustomerBankById(investVo.getCustomerBankId());
-        payment.setBankAccount(customerBank.getBankAccount());
-        payment.setBankCode(customerBank.getBankCode());
-        payment.setPhone(customerBank.getPhone());
-        return payment;
     }
 
     //接收支付成功结果：
@@ -133,7 +106,7 @@ public class InvestServiceImpl implements InvestService {
     public Result receivePayResult(InvestMQVo investMQVo){
         logger.debug("【解析MQ支付结果】investMQVo=" + investMQVo);
         Result result = null;
-        if(investMQVo.getStatus().equals(InvestMQVo.STATUS_OK)){//支付成功
+        if(investMQVo.getStatus().equals(MQStatusEnum.OK.getStatus())){//支付成功
             result = this.receivePaySucResult(investMQVo);
         }else{//支付失败
             result = this.receivePayFailResult(investMQVo);
@@ -172,41 +145,51 @@ public class InvestServiceImpl implements InvestService {
     //发送新投资撮合MQ
     private Result dealInvestMatchReqMQ(Integer lendingId,InvestMQVo investMQVo) {
         Result result = Result.error();
-        InvestMatchReqMQVo matchMQVo = this.buildInvestMatchReqMQVo(lendingId,investMQVo);
-        this.sendInvestMatchReqMQ(matchMQVo);
+        InvestMatchReq investMatchReq = this.buildInvestMatchReq(lendingId,investMQVo);
+        this.sendInvestMatchReqMQ(investMatchReq);
         return result;
     }
 
 
-    private void sendInvestMatchReqMQ(InvestMatchReqMQVo matchMQVo) {
-        String mqVoStr = JSON.toJSONString(matchMQVo);
-        Message message = new Message(investMatchTopic,matchTagNewInvest,matchMQVo.getOrderSn(),mqVoStr.getBytes());
+    private void sendInvestMatchReqMQ(InvestMatchReq investMatchReq) {
+        String mqVoStr = JSON.toJSONString(investMatchReq);
+        Message message = new Message(investMatchTopic,matchTagNewInvest,
+                investMatchReq.getInvestOrderSn(),mqVoStr.getBytes());
         try {
             SendResult sendResult = rocketMQTemplate.getProducer().send(message);
-            logger.debug("【发送新投资撮合MQ】，topic="+ investMatchTopic + ",tag=" + matchTagNewInvest + ",message=" + message);
+            logger.debug("【发送新投资撮合MQ】，topic="+ investMatchTopic + "," +
+                    "tag=" + matchTagNewInvest + ",message=" + message);
             logger.debug("【发送新投资撮合结果MQ】，sendResult" + sendResult);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private InvestMatchReqMQVo buildInvestMatchReqMQVo(Integer lendingId,InvestMQVo investMQVo) {
+    public Invest getInvestByInvestId(Integer investId){
+        Invest invest = investMapper.selectByPrimaryKey(investId);
+        return invest;
+    }
+
+    private InvestMatchReq buildInvestMatchReq(Integer lendingId, InvestMQVo investMQVo) {
         String investId = investMQVo.getBizId();//invest.id
-        InvestProduct investProduct = investProductService.
-                getInvestProductByInvestId(Integer.parseInt(investId));
-        InvestMatchReqMQVo mqVo = new InvestMatchReqMQVo();
-        mqVo.setProductId(investProduct.getId());
-        mqVo.setProductName(investProduct.getName());
-        mqVo.setYearIrr(investProduct.getYearIrr());
-        mqVo.setAmount(investMQVo.getAmount());
-        mqVo.setBizId(investId);
-        mqVo.setLevel(InvestMatchReqLevelEnum.NEW_INVEST.getLevel());
-        mqVo.setCustomerId(investMQVo.getCustomerId());
-        mqVo.setOrderSn(String.valueOf(lendingId));//lending.id
-        mqVo.setRemark(MatchRemarkEnum.NEW_INVEST.getDesc());
-        mqVo.setWaitAmt(mqVo.getAmount());
-        logger.debug("【发送新投资撮合前对象】InvestMatchReqMQVo=" + investMQVo);
-        return mqVo;
+        Invest invest = this.getInvestByInvestId(Integer.parseInt(investId));
+        InvestMatchReq investMatchReq = new InvestMatchReq();
+        //投资产品信息
+        investMatchReq.setProductId(invest.getInvestProductId());
+        investMatchReq.setProductName(invest.getInvestProductName());
+        investMatchReq.setYearIrr(invest.getInvestYearIrr());
+        //客户信息
+        investMatchReq.setInvestCustomerId(investMQVo.getCustomerId());
+        investMatchReq.setInvestCustomerName(invest.getCustomerName());
+        //投资信息
+        investMatchReq.setInvestBizId(investId);
+        investMatchReq.setInvestAmt(investMQVo.getAmount());
+        investMatchReq.setInvestOrderSn(String.valueOf(lendingId));//lending.id
+        investMatchReq.setLevel(InvestMatchReqLevelEnum.NEW_INVEST.getLevel());
+        investMatchReq.setRemark(MatchRemarkEnum.NEW_INVEST.getDesc());
+        investMatchReq.setWaitAmt(investMatchReq.getInvestAmt());
+        logger.debug("【发送新投资撮合前对象】InvestMatchReq=" + investMQVo);
+        return investMatchReq;
     }
 
     //接收支付失败结果：
@@ -263,23 +246,25 @@ public class InvestServiceImpl implements InvestService {
         return invest;
     }
 
-    private Payment buildAddPayment(InvestVo investVo) {
-        //查询客户表数据库
-        Customer customer = crmServer.getCustomerById(investVo.getCustomerId());
+    private Payment buildAddPayment(Invest invest) {
+        logger.debug("【构建添加支付对象，入参】invest=" + invest);
         //封装Payment
         String sysSourceName = SystemSourceEnum.INVEST.getName();
         Payment payment = new Payment();
-        payment.setCustomerId(investVo.getCustomerId());
+        payment.setCustomerId(invest.getCustomerId());
         payment.setSystemSource(sysSourceName);
-        payment.setBizId(String.valueOf(investVo.getId()));
+        payment.setBizId(String.valueOf(invest.getId()));
         payment.setOrderSn(OrderUtil.genOrderSn(sysSourceName));
-        payment.setCustomerName(customer.getName());
-        payment.setIdCard(customer.getIdCard());
-        payment.setBankAccount(investVo.getBankAccount());
-        payment.setBankCode(investVo.getBankCode());
-        payment.setPhone(investVo.getPhone());
-        payment.setAmount(investVo.getInvestAmt());
-        logger.debug("【buildAddPayment from investVo to payment=】" + payment);
+        payment.setCustomerName(invest.getCustomerName());
+        payment.setIdCard(invest.getCustomerIdCard());
+        payment.setBankAccount(invest.getBankAccount());
+        payment.setBaseBankName(invest.getBaseBankName());
+        payment.setBankCode(invest.getBankCode());
+        payment.setPhone(invest.getPhone());
+        payment.setAmount(invest.getInvestAmt());
+        payment.setType(PaymentTypeEnum.INVEST_RECHARGE.getCode());
+        payment.setRemark(PaymentTypeEnum.INVEST_RECHARGE.getCodeDesc());
+        logger.debug("【构建添加支付对象】payment=" + payment);
         return payment;
     }
 
@@ -287,20 +272,17 @@ public class InvestServiceImpl implements InvestService {
     private Result addNewInvest(Invest invest){
         Result result = Result.success();
         try{
-            //1.查询投资产品
-            InvestProduct investProduct =
-                    investProductService.getInvestProductById(invest.getInvestProductId());
-            //2.封装新投资
-            result = this.buildNewInvest(investProduct,invest);
+            //1.封装新投资
+            result = this.buildNewInvest(invest);
             //3.插入数据库
-            result = this.addInvestInDB(invest);
+            result = this.addInvest2DB(invest);
         }catch(Exception e){
             result = LoggerUtil.addExceptionLog(e,logger);
         }
         return result;
     }
 
-    private Result addInvestInDB(Invest invest){
+    private Result addInvest2DB(Invest invest){
         Result result = Result.success();
         try{
             //设置时间，操作人，状态
@@ -313,11 +295,32 @@ public class InvestServiceImpl implements InvestService {
         return result;
     }
 
-    private Result buildNewInvest(InvestProduct investProduct,Invest invest) {
-        Result result = Result.success();
+    private Result buildNewInvest(Invest invest) {
+        Result result = Result.error();
+        //投资产品
+        InvestProduct investProduct =
+                investProductService.getInvestProductById(invest.getInvestProductId());
+        invest.setInvestProductName(investProduct.getName());
+        invest.setInvestYearIrr(investProduct.getYearIrr());
+        invest.setInvestType(investProduct.getInvestType());
+        invest.setInvestDayCount(investProduct.getDayCount());
+
+        //客户银行卡信息
+        CustomerBank customerBank = paymentServer.getCustomerBankById(invest.getCustomerBankId());
+        invest.setBankAccount(customerBank.getBankAccount());
+        invest.setBankCode(customerBank.getBankCode());
+        invest.setBaseBankName(customerBank.getBaseBankName());
+        invest.setPhone(customerBank.getPhone());
+
+        //客户信息
+        Customer customer = crmServer.getCustomerById(invest.getCustomerId());
+        invest.setCustomerIdCard(customer.getIdCard());
+        invest.setCustomerName(customer.getName());
+
         invest.setStartDate(new Date());//开始时间
         result = this.buildEndDate(investProduct,invest);//结束时间
         result = this.buildProfit(investProduct,invest);//计算收益
+        result = Result.success();
         logger.debug("【buildNewInvest.invest=】" + invest);
         return result;
     }
@@ -340,9 +343,10 @@ public class InvestServiceImpl implements InvestService {
         */
     private Result buildProfit(InvestProduct investProduct, Invest invest) {
         Result result = Result.success();
-        //日收益
-        BigDecimal dayProfit = invest.getInvestAmt().multiply(investProduct.getYearIrr())
-                .divide(new BigDecimal("365"), SysConstant.BIGDECIMAL_DIVIDE_ROUNDMODE,BigDecimal.ROUND_HALF_UP);
+        //日收益（保留2位四舍五入）：投资金额*年收益率/365
+        BigDecimal dayProfit =
+                BigDecimalUtil.divide2(invest.getInvestAmt().multiply(investProduct.getYearIrr()),
+                        new BigDecimal("365"));
         //收益
         BigDecimal profit = BigDecimalUtil.round2In45(
                 dayProfit.multiply(new BigDecimal(investProduct.getDayCount()))
@@ -361,21 +365,17 @@ public class InvestServiceImpl implements InvestService {
     }
 
         /**
-         * @description:
-         * 设置投资结束日期endDate
+         * @description: 设置投资结束日期endDate
          * 投资类型1-固定期限：非null，当前日期+InvestProduct.dayCount
          *  投资类型2-非固定期限：null
         * @author:  YX
         * @date:    2020/04/10 15:30
-        * @param: null
-        * @return:
-        * @throws:
         */
     private Result buildEndDate(InvestProduct investProduct,Invest invest) {
         Result result = Result.success();
         try{
             if(investProduct.getInvestType().equals(InvestTypeEnum.FIXED.getState())){
-                invest.setEndDate(DateUtil.add(invest.getStartDate(),investProduct.getDayCount()+1));
+                invest.setEndDate(DateUtil.addDay(invest.getStartDate(),investProduct.getDayCount()+1));
             }else{
                 invest.setEndDate(null);
             }
@@ -385,17 +385,18 @@ public class InvestServiceImpl implements InvestService {
         return result;
     }
 
-    public List<InvestVo> getInvestVoList(InvestVo investVo){
-        logger.debug("【investVo】" + investVo);
-        List<InvestVo> investVoList = this.queryDBnvestVoList(investVo);
+    public List<Invest> getInvestVoList(Invest invest){
+        logger.debug("【invest】" + invest);
+        List<Invest> investVoList = this.queryDBnvestVoList(invest);
         return investVoList;
     }
 
     //查询数据库
-    public List<InvestVo> queryDBnvestVoList(InvestVo investVo){
-        Integer count = investMapper.queryInvestVoCount(investVo);
-        List<InvestVo> investVoList = investMapper.queryInvestVoListByPagination(investVo,0,count);
+    public List<Invest> queryDBnvestVoList(Invest invest){
+        Integer count = investMapper.queryInvestCount(invest);
+        List<Invest> investVoList = investMapper.queryInvestListByPagination(invest,0,count);
         logger.debug("【查询数据库：queryDBInvestListByCustomerId】investList=" + investVoList);
         return investVoList;
     }
+
 }

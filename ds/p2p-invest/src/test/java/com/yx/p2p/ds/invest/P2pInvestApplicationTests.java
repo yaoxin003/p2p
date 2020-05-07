@@ -5,6 +5,7 @@ import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.service.InvestProductService;
 import com.yx.p2p.ds.service.InvestService;
 import com.yx.p2p.ds.util.DateUtil;
+import com.yx.p2p.ds.util.TestUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -36,11 +37,11 @@ public class P2pInvestApplicationTests {
 
 	@Test
 	public void testAddDate(){
-		Date newD1 = DateUtil.add(DateUtil.str2Date("2020-2-28"), 1);
+		Date newD1 = DateUtil.addDay(DateUtil.str2Date("2020-2-28"), 1);
 		logger.debug("【date.add】" + newD1);
-		Date newD2 = DateUtil.add(DateUtil.str2Date("2020-12-30"), 1);
+		Date newD2 = DateUtil.addDay(DateUtil.str2Date("2020-12-30"), 1);
 		logger.debug("【date.add】" + newD2);
-		Date newD3 = DateUtil.add(DateUtil.str2Date("2020-12-31"), 1);
+		Date newD3 = DateUtil.addDay(DateUtil.str2Date("2020-12-31"), 1);
 		logger.debug("【date.add】" + newD3);
 	}
 
@@ -59,11 +60,7 @@ public class P2pInvestApplicationTests {
 			method = clazz.getDeclaredMethod(methodName, methodParam.getClass());
 			method.setAccessible(true);
 			method.invoke(target,methodParam);
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -74,7 +71,6 @@ public class P2pInvestApplicationTests {
 		methodParamClass[0] = InvestProduct.class;
 		methodParamClass[1] = Invest.class;
 
-
 		InvestProduct investProduct = investProductService.getInvestProductById(1);
 		Invest invest = new Invest();
 		invest.setInvestProductId(1);
@@ -82,25 +78,10 @@ public class P2pInvestApplicationTests {
 
 		Object[] methodParamObj = new Object[]{investProduct, invest};
 
-		invokePrivateMethodParms(investService,"buildProfit",methodParamClass,methodParamObj);
+		TestUtil.invokePrivateMethodParms(investService,"buildProfit",methodParamClass,methodParamObj);
 
 		logger.debug("【invest=】" + invest);
 	}
 
-	private  static <T> void invokePrivateMethodParms(T target,String methodName,Class<?>[] methodParamClass,Object[] methodParamObj){
-		// 获取class
-		Class clazz = target.getClass();
-		Method method = null;
-		try {
-			method = clazz.getDeclaredMethod(methodName, methodParamClass);
-			method.setAccessible(true);
-			method.invoke(target,methodParamObj);
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-	}
+
 }

@@ -28,7 +28,6 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping("crm")
-@CrossOrigin
 public class CrmController {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -38,12 +37,14 @@ public class CrmController {
 
     @RequestMapping("init")
     public String init(){
+        logger.debug("【投资销售总页面】");
         return "init";
     }
 
     @RequestMapping("list")
     @ResponseBody
     public Map<String,Object> list(Integer page, Integer rows, CustomerVo customerVo){
+        logger.debug("【客户列表页面】");
         //查询条件判断
         String idCard = customerVo.getIdCard();
         List<Customer> crmList = null;
@@ -53,7 +54,7 @@ public class CrmController {
             logger.debug("【crmList=】" + crmList);
             return Pagination.buildMap(crmList.size(),crmList);
         }else{
-            logger.debug("【search empty】");
+            logger.debug("【客户列表页面：无查询条件】");
             crmList = new ArrayList<>();
             return Pagination.buildMap(0,crmList);
         }
@@ -69,14 +70,14 @@ public class CrmController {
     @RequestMapping("add")
     @ResponseBody
     public Result add(CustomerVo customerVo) throws Exception{
-        logger.debug("add【customerVo=】" + customerVo);
+        logger.debug("【添加客户】" + customerVo);
         return crmServer.add(customerVo);
     }
 
     @RequestMapping("update")
     @ResponseBody
     public Result update(CustomerVo customerVo) throws Exception{
-        logger.debug("update【customerVo=】" + customerVo);
+        logger.debug("【修改客户】" + customerVo);
         return crmServer.update(customerVo);
     }
 

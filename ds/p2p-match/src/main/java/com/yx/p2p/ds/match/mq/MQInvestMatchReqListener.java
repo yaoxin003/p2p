@@ -1,7 +1,8 @@
 package com.yx.p2p.ds.match.mq;
 
 import com.alibaba.fastjson.JSON;
-import com.yx.p2p.ds.mq.InvestMatchReqMQVo;
+import com.yx.p2p.ds.model.match.InvestMatchReq;
+import com.yx.p2p.ds.service.InvestMatchReqService;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -9,6 +10,7 @@ import org.apache.rocketmq.spring.annotation.SelectorType;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,13 +29,16 @@ public class MQInvestMatchReqListener implements RocketMQListener<MessageExt> {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @Autowired
+    private InvestMatchReqService investMatchReqService;
+
     @Override
     public void onMessage(MessageExt messageExt) {
       logger.debug("接收投资撮合请求【MQListener】messageExt=" + messageExt);
         try {
             String body = new String(messageExt.getBody(),"UTF-8");
-            InvestMatchReqMQVo mqVo = JSON.parseObject(body, InvestMatchReqMQVo.class);
-
+            InvestMatchReq investMatchReq = JSON.parseObject(body, InvestMatchReq.class);
+            investMatchReqService.addInvestMatchReq(investMatchReq);
         } catch (Exception e) {
             logger.debug("接收投资撮合请求【MQListener】",e);
         }

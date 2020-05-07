@@ -4,6 +4,8 @@ import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.mq.MasterAccMQVo;
 
+import java.util.HashMap;
+
 /**
  * @description:
  * @author: yx
@@ -16,4 +18,7 @@ public interface AccountService {
 
     //事务操作：投资充值
     public Result rechargeInvest(InvestMQVo investMQVo);
+
+    //事务操作：放款
+    public Result loan(HashMap<String, String> loanMap);
 }

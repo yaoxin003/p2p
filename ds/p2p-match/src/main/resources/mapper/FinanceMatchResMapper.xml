@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yx.p2p.ds.match.mapper.FinanceMatchResMapper">
+
+    <insert id="insertBatchFinanceMatchResList" parameterType="java.util.List">
+        insert into p2p_finance_match_res
+        (
+        invest_customer_id,
+        invest_customer_name,
+        finance_customer_id,
+        finance_customer_name,
+        invest_match_id,
+        finance_match_id,
+        invest_biz_id,
+        finance_biz_id,
+        invest_order_sn,
+        finance_order_sn,
+        trade_amt,
+        finance_amt,
+        match_share,
+        borrow_product_id,
+        borrow_year_rate,
+        borrow_product_name,
+        remark,
+        create_time,
+        update_time,
+        creator,
+        reviser,
+        logic_state,
+        biz_state
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.investCustomerId},
+            #{item.investCustomerName},
+            #{item.financeCustomerId},
+            #{item.financeCustomerName},
+            #{item.investMatchId},
+            #{item.financeMatchId},
+            #{item.investBizId},
+            #{item.financeBizId},
+            #{item.investOrderSn},
+            #{item.financeOrderSn},
+            #{item.tradeAmt},
+            #{item.financeAmt},
+            #{item.matchShare},
+            #{item.borrowProductId},
+            #{item.borrowYearRate},
+            #{item.borrowProductName},
+            #{item.remark},
+            #{item.createTime},
+            #{item.updateTime},
+            #{item.creator},
+            #{item.reviser},
+            #{item.logicState},
+            #{item.bizState}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

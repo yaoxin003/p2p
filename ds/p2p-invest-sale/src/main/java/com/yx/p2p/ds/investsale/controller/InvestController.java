@@ -2,11 +2,11 @@ package com.yx.p2p.ds.investsale.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.InvestSaleService;
-import com.yx.p2p.ds.vo.InvestVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,17 @@ public class InvestController {
     @Autowired
     private InvestSaleService investSaleService;
 
-    //投资产品列表
+
+    //全部投资产品列表
+    @RequestMapping("getAllInvestProductList")
+    @ResponseBody
+    public List<InvestProduct> getAllInvestProductList(){
+        List<InvestProduct> allInvestProductList = investServer.getAllInvestProductList();
+        logger.debug("【allInvestProductList=】" + allInvestProductList);
+        return allInvestProductList;
+    }
+
+    //投资产品列表JSON
     @RequestMapping("getAllInvestProductJSON")
     @ResponseBody
     public String getAllInvestProductJSON(){
@@ -55,22 +65,22 @@ public class InvestController {
     //出借
     @RequestMapping("lend")
     @ResponseBody
-    public Result lend(InvestVo investVo){
+    public Result lend(Invest invest){
         Result result = null;
-        logger.debug("调用【投资充值】功能begin。【investVo=】"+investVo);
+        logger.debug("调用【投资充值】功能begin。【invest=】"+invest);
         //投资充值
-        result = investServer.rechargeInvest(investVo);
+        result = investServer.rechargeInvest(invest);
         logger.debug("调用【投资充值】功能end。【result=】" + result);
         return result;
     }
 
     @RequestMapping("getInvestVoListByCustomerId")
     @ResponseBody
-    public List<InvestVo> getInvestVoListByCustomerId(Integer customerId){
+    public List<Invest> getInvestVoListByCustomerId(Integer customerId){
         logger.debug("【customerId=】" + customerId);
-        InvestVo investVo = new InvestVo();
-        investVo.setCustomerId(customerId);
-        List<InvestVo> investVoList = investServer.getInvestVoList(investVo);
+        Invest invest = new Invest();
+        invest.setCustomerId(customerId);
+        List<Invest> investVoList = investServer.getInvestVoList(invest);
         logger.debug("【getInvestVoListByCustomerId】investVoList=" + investVoList);
         return investVoList;
     }
@@ -78,9 +88,9 @@ public class InvestController {
     //补偿网关支付
     @RequestMapping(value="compensateGateway")
     @ResponseBody
-    public Result compensateGateway(InvestVo investVo){
-        logger.debug("【investVo=】" + investVo);
-        Result result = investServer.compensateGateway(investVo);
+    public Result compensateGateway(Invest invest){
+        logger.debug("【invest=】" + invest);
+        Result result = investServer.compensateGateway(invest);
         logger.debug("【补偿网关支付】result=" + result);
         return result;
     }

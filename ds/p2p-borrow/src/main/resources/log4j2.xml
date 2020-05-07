@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="DEBUG">
+       <appenders>
+        <!--这个输出控制台的配置-->
+        <Console name="STDOUT" >
+             <!--控制台只输出level及以上级别的信息（onMatch），其他的直接拒绝（onMismatch）-->
+            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY" />
+            <!-- 输出日志的格式-->
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%logger{50}:%L] - %msg%n" charset="UTF-8"/>
+        </Console>
+
+        <RollingRandomAccessFile name="FILE-INFO" fileName="logs/borrow-info.log"
+            filePattern="logs/borrow-info.%d{yyyy-MM-dd-HH}.log">
+            <ThresholdFilter level="info" onMatch="ACCEPT" onMismatch="DENY" />
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%logger{50}:%L] %tcid - %msg%n" charset="UTF-8" />
+            <TimeBasedTriggeringPolicy  interval="1" />
+            <DefaultRolloverStrategy max="1"  >
+               <Delete basePath="logs" maxDepth="2">
+                    <IfFileName glob="*borrow-info.*.log" />
+                    <IfLastModified age="1h" />
+               </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+
+
+        <RollingRandomAccessFile name="FILE-DEBUG" fileName="logs/borrow-debug.log"
+            filePattern="logs/borrow-debug.%d{yyyy-MM-dd-HH}.log">
+            <ThresholdFilter level="debug" onMatch="ACCEPT" onMismatch="DENY" />
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS}  [%t] %-5level [%logger{50}:%L] - %msg%n" charset="UTF-8" />
+            <TimeBasedTriggeringPolicy  interval="1" />
+            <DefaultRolloverStrategy max="1"  >
+               <Delete basePath="logs" maxDepth="2">
+                    <IfFileName glob="*borrow-debug.*.log" />
+                    <IfLastModified age="1h" />
+               </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="FILE-WARN" fileName="logs/borrow-warn.log"
+            filePattern="logs/borrow-warn.%d{yyyy-MM-dd-HH}.log">
+            <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY" />
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%logger{50}:%L] - %msg%n" charset="UTF-8" />
+            <TimeBasedTriggeringPolicy  interval="1" />
+             <DefaultRolloverStrategy max="1"  >
+               <Delete basePath="logs" maxDepth="2">
+                    <IfFileName glob="*borrow-warn.*.log" />
+                    <IfLastModified age="1h" />
+               </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="FILE-ERROR" fileName="logs/borrow-error.log"
+            filePattern="logs/borrow-error.%d{yyyy-MM-dd-HH}.log">
+            <ThresholdFilter level="error" onMatch="ACCEPT" onMismatch="DENY" />
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%logger{50}:%L] - %msg%n" charset="UTF-8" />
+            <TimeBasedTriggeringPolicy  interval="1" />
+            <DefaultRolloverStrategy max="1"  >
+               <Delete basePath="logs" maxDepth="2">
+                    <IfFileName glob="*borrow-error.*.log" />
+                    <IfLastModified age="1h" />
+               </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
+    </appenders>
+
+    <loggers>
+        <!--过滤掉一些无用的DEBUG信息-->
+        <!--日志级别以及优先级排序: OFF > FATAL > ERROR > WARN > INFO > DEBUG > TRACE > ALL -->
+
+        <logger name="com.yx.p2p.ds.borrow" level="DEBUG"></logger>
+
+        <AsyncRoot level="INFO" includeLocation="true" >
+            <AppenderRef ref="FILE-INFO" />
+            <AppenderRef ref="FILE-WARN" />
+            <AppenderRef ref="FILE-ERROR" />
+            <AppenderRef ref="STDOUT" />
+        </AsyncRoot>
+    </loggers>
+</configuration>
