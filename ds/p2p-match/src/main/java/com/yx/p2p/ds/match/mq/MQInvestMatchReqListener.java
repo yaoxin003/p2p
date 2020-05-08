@@ -19,7 +19,8 @@ import org.springframework.stereotype.Component;
  * @date: 2020/04/24/17:13
  */
 
-@RocketMQMessageListener( consumerGroup = "${rocketmq.match.consumer.group.name}",
+@RocketMQMessageListener(
+        consumerGroup = "${rocketmq.match.consumer.group.name}",
         topic = "${mq.invest.match.topic}",
         selectorExpression ="matchTagNewInvest",
         selectorType = SelectorType.TAG,

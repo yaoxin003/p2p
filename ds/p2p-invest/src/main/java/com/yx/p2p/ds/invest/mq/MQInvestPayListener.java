@@ -25,7 +25,8 @@ import java.io.UnsupportedEncodingException;
 @RocketMQMessageListener(
         consumerGroup = "${rocketmq.pay.consumer.group.name}",
         topic = "${mq.payment.topic}",
-        selectorExpression ="payTagInvestSuc || payTagInvestFail",
+        //selectorExpression ="payTagInvestSuc || payTagInvestFail",
+        selectorExpression ="payTagInvestSuc",
         selectorType = SelectorType.TAG,
         messageModel = MessageModel.BROADCASTING
 )

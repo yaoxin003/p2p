@@ -9,7 +9,9 @@ import com.yx.p2p.ds.enums.payment.PaymentBizStateEnum;
  */
 public enum BorrowBizStateEnum {
     NEW_ADD("1","新增"),//添加借款
-    SIGNED("2","已签约");//借款撮合成功
+    SIGNED("2","已签约"),//借款撮合成功
+    BORROW_SUCCESS("3","借款成功"),//借款撮合成功
+    BORROW_FAIL("4","借款失败");//借款撮合成功
 
     private String state;//状态
     private String stateDesc;//状态描述
@@ -34,5 +36,13 @@ public enum BorrowBizStateEnum {
 
     public void setStateDesc(String stateDesc) {
         this.stateDesc = stateDesc;
+    }
+
+    @Override
+    public String toString() {
+        return "BorrowBizStateEnum{" +
+                "state='" + state + '\'' +
+                ", stateDesc='" + stateDesc + '\'' +
+                '}';
     }
 }

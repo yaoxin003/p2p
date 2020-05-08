@@ -5,6 +5,7 @@ import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
 import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.mq.InvestMQVo;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -28,4 +29,7 @@ public interface InvestService {
     public Result receivePayResult(InvestMQVo investMQVo);
 
     public Invest getInvestByInvestId(Integer investId);
+
+    //放款通知
+    public Result loanNotice(HashMap<String, String> loanMap);
 }

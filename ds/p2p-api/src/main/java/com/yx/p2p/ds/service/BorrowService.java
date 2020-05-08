@@ -5,6 +5,7 @@ import com.yx.p2p.ds.model.borrow.Borrow;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.vo.BorrowContractVo;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -27,4 +28,7 @@ public interface BorrowService {
 
     //申请放款
     public Result applyLoan(Integer borrowId);
+
+    //放款通知
+    public Result loanNotice(HashMap<String, String> loanMap);
 }

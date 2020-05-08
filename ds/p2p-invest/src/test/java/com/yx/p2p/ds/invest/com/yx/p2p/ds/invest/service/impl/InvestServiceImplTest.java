@@ -1,34 +1,36 @@
-package com.yx.p2p.ds.account.service.impl;
+package com.yx.p2p.ds.invest.com.yx.p2p.ds.invest.service.impl;
 
-import com.yx.p2p.ds.account.P2pAccountApplication;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
-import com.yx.p2p.ds.service.AccountService;
+import com.yx.p2p.ds.invest.P2pInvestApplication;
+import com.yx.p2p.ds.service.InvestService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
 import java.util.HashMap;
 
 /**
  * @description:
  * @author: yx
- * @date: 2020/05/07/8:37
+ * @date: 2020/05/07/18:25
  */
-@SpringBootTest(classes = P2pAccountApplication.class)
 @RunWith(SpringRunner.class)
-public class AccountServiceImplTest {
+@SpringBootTest(classes = P2pInvestApplication.class)
+public class InvestServiceImplTest {
 
     @Autowired
-    private AccountService accountService;
+    private InvestService investService;
 
+    //放款通知
     @Test
     public void testLoanNotice(){
         HashMap<String,String> loanNotify = new HashMap<>();
-        loanNotify.put("bizId","1");//biz=borrow.id
-        loanNotify.put("orderSn","1");//orderSn=borrow.id
-        loanNotify.put("customerId","18");//融资客户
+        loanNotify.put("bizId","3");//biz=borrow.id
+        loanNotify.put("orderSn","3");//orderSn=borrow.id
+        loanNotify.put("customerId","15");//融资客户
         loanNotify.put("status", MQStatusEnum.OK.getStatus());
-        accountService.loanNotice(loanNotify);
+        investService.loanNotice(loanNotify);
     }
 }

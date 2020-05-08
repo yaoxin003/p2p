@@ -1,10 +1,9 @@
-package com.yx.p2p.ds.account.mq;
+package com.yx.p2p.ds.invest.mq;
 
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.enums.mq.MQStatusEnum;
-import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.service.AccountService;
+import com.yx.p2p.ds.service.InvestService;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -38,7 +37,7 @@ public class MQLoanPayListener implements RocketMQListener<MessageExt> {
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private AccountService accountService;
+    private InvestService investService;
 
     @Override
     public void onMessage(MessageExt messageExt) {
@@ -48,7 +47,7 @@ public class MQLoanPayListener implements RocketMQListener<MessageExt> {
             body = new String(messageExt.getBody(),"UTF-8");
             HashMap<String,String> loanMap = JSON.parseObject(body, HashMap.class);
             //放款
-           Result result = accountService.loanNotice(loanMap);
+           Result result = investService.loanNotice(loanMap);
             logger.debug("【放款支付通知】result=" + result);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

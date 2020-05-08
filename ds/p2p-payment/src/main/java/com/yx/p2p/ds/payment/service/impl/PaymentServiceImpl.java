@@ -262,7 +262,7 @@ public class PaymentServiceImpl implements PaymentService {
     private Result sendInvestPayResultMQ(String retCode,Payment payment) {
         Result result = Result.success();
         String mqJSON = this.buildInvestPayResultMQJSON(retCode,payment);
-        this.sendInvestPayMQ(retCode,mqJSON, payment.getOrderSn());
+        this.sendInvestPayMQ(retCode,mqJSON, payment.getBizId());
         return result;
     }
 

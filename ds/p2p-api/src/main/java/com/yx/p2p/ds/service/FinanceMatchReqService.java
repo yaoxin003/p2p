@@ -4,6 +4,7 @@ import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -17,4 +18,7 @@ public interface FinanceMatchReqService {
     public Result borrowMatchReq(FinanceMatchReq financeMatchReq);
 
     public List<FinanceMatchRes> getBorrowMatchResList(Integer financeCustomerId, String financeBizId);
+
+    //放款通知
+    public Result loanNotice(HashMap<String, String> loanMap);
 }

@@ -301,20 +301,21 @@ public class AccountServiceImpl implements AccountService {
      * @return
      */
     @Override
-    public Result loan(HashMap<String, String> loanMap) {
+    public Result loanNotice(HashMap<String, String> loanMap) {
         logger.debug("【放款，入参：loadMap=】" + loanMap);
         Result result = Result.error();
-        String orderSn = loanMap.get("orderSn");
-        String borrowId = loanMap.get("bizId");//借款编号
-        String customerId = loanMap.get("customerId");//融资客户
+        String orderSn = loanMap.get("orderSn");//都是借款编号borrowId
+        String borrowId = loanMap.get("bizId");//都是借款编号borrowId
+        String financeCustomerId = loanMap.get("customerId");//融资客户
         String status = loanMap.get("status");
         //1.验证是否已经插入过放款数据(借款人债务子账户流水)
-        result = this.checkNoLoan(orderSn);
+        result = this.checkNoLoanNotice(orderSn);
         if(Result.checkStatus(result)){
+            Integer financeCustomerIdInt = Integer.valueOf(financeCustomerId);
             //查询借款撮合数据
             List<FinanceMatchRes> borrowMatchResList = financeMatchReqServer.getBorrowMatchResList(
-                    Integer.valueOf(customerId), borrowId);
-            result = this.dealLoanData(customerId,borrowId,borrowMatchResList);
+                    financeCustomerIdInt, borrowId);
+            result = this.dealLoanNoticeData(financeCustomerIdInt,borrowId,borrowMatchResList);
         }
         result = Result.success();
         logger.debug("【放款，结果：result=】" + result);
@@ -330,34 +331,33 @@ public class AccountServiceImpl implements AccountService {
      * 更新操作：投资人活期金额减，债权金额加。
      */
     @Transactional
-    private Result dealLoanData(String customerId,String borrowId,List<FinanceMatchRes> borrowMatchResList) {
-        logger.debug("【准备处理放款，入参：customerId=】。入参：customerId="+ customerId
+    private Result dealLoanNoticeData(Integer financeCustomerId,String borrowId,List<FinanceMatchRes> borrowMatchResList) {
+        logger.debug("【准备处理放款】入参：customerId="+ financeCustomerId
                 + ",borrowId=" + borrowId+ ",borrowMatchResList=" + borrowMatchResList);
         Result result = Result.error();
         if(!borrowMatchResList.isEmpty()){
-            Integer customerIdInt = Integer.valueOf(customerId);
-            result = this.dealLoanBorrow(customerIdInt,borrowId,borrowMatchResList);
-            result = this.dealLoanInvest(customerIdInt,borrowId,borrowMatchResList);
+            result = this.dealLoanNoticeBorrow(financeCustomerId,borrowId,borrowMatchResList);
+            result = this.dealLoanNoticeInvest(financeCustomerId,borrowId,borrowMatchResList);
         }
         result = Result.success();
         return result;
     }
 
     //处理放款：投资人
-    private Result dealLoanInvest(Integer customerId, String borrowId, List<FinanceMatchRes> borrowMatchResList) {
+    private Result dealLoanNoticeInvest(Integer customerId, String borrowId, List<FinanceMatchRes> borrowMatchResList) {
         logger.debug("【借款人放款账户处理】插入投资账户处理。入参：customerId="+ customerId
                 + ",borrowId=" + borrowId+ ",borrowMatchResList=" + borrowMatchResList);
         Result result = Result.error();
         //借款人主账户
-        this.dealLoanInvestCurrent(borrowId,borrowMatchResList);
-        this.dealLoanInvestClaim(borrowId,borrowMatchResList);
+        this.dealLoanNoticeInvestCurrent(borrowId,borrowMatchResList);
+        this.dealLoanNoticeInvestClaim(borrowId,borrowMatchResList);
         result = Result.success();
         return result;
     }
 
     //处理放款：投资人债权户
     //插入：投资人债权子账户流水，债权子账户。
-    private Result dealLoanInvestClaim( String borrowId, List<FinanceMatchRes> borrowMatchResList) {
+    private Result dealLoanNoticeInvestClaim( String borrowId, List<FinanceMatchRes> borrowMatchResList) {
         logger.debug("【借款人放款账户处理】插入投资人债权子账户流水，债权子账户。" +
                 "入参：" + ",borrowId=" + borrowId+ ",borrowMatchResList=" + borrowMatchResList);
         Result result = Result.error();
@@ -411,7 +411,7 @@ public class AccountServiceImpl implements AccountService {
     }
     //处理放款：投资人活期户
     //插入：投资人活期子账户流水，活期子账户
-    private Result dealLoanInvestCurrent( String borrowId, List<FinanceMatchRes> borrowMatchResList) {
+    private Result dealLoanNoticeInvestCurrent( String borrowId, List<FinanceMatchRes> borrowMatchResList) {
         logger.debug("【借款人放款账户处理】插入投资人活期子账户流水，活期子账户。" +
                 "入参：" + "borrowId=" + borrowId+ ",borrowMatchResList=" + borrowMatchResList);
         Result result = Result.error();
@@ -470,7 +470,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     //处理放款：借款人
-    private Result dealLoanBorrow(Integer customerId, String borrowId, List<FinanceMatchRes> borrowMatchResList) {
+    private Result dealLoanNoticeBorrow(Integer customerId, String borrowId, List<FinanceMatchRes> borrowMatchResList) {
         logger.debug("【借款人放款账户处理】插入借款人债务子账户流水，债务子账户；"
                 +"更新操作：借款人债务金额增加。入参：customerId="+ customerId
                 + ",borrowId=" + borrowId+ ",borrowMatchResList=" + borrowMatchResList);
@@ -517,7 +517,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     //验证是否已经插入过放款数据(借款人债务子账户流水)
-    private Result checkNoLoan(String orderSn) {
+    private Result checkNoLoanNotice(String orderSn) {
         logger.debug("【检查没有放款数据】入参orderSn=" + orderSn);
         Result result = Result.error();
         DebtSubAccFlow debtSubAccFlow = new DebtSubAccFlow();

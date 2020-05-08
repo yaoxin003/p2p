@@ -88,6 +88,25 @@ create table p2p_lending (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='出借单表';
 
+create table p2p_invest_claim (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  invest_id int(16) NOT NULL COMMENT '投资编号',
+  lending_id int(16) NOT NULL COMMENT '出借单编号',
+  borrow_id int(16) NOT NULL COMMENT '借款编号',
+  buy_amt decimal(10,2) NOT NULL COMMENT '买入金额',
+  hold_share decimal(4,2) NOT NULL COMMENT '持有比例',
+  borrow_product_id int(16) NOT NULL COMMENT '借款产品编号',
+  borrow_product_name varchar(64) NOT NULL COMMENT '借款产品名称',
+  borrow_year_rate decimal(6,4) NOT NULL COMMENT '贷款年利率',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投资债权表';
+
 
 #--------------------p2p_payment--------------------
 create database p2p_payment default character set utf8 collate utf8_general_ci;

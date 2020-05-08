@@ -5,12 +5,12 @@ import com.yx.p2p.ds.borrow.mapper.BorrowContractVoMapper;
 import com.yx.p2p.ds.borrow.mapper.BorrowDtlMapper;
 import com.yx.p2p.ds.borrow.mapper.BorrowMapper;
 import com.yx.p2p.ds.borrow.mapper.CashflowMapper;
-import com.yx.p2p.ds.constant.SysConstant;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.SystemSourceEnum;
 import com.yx.p2p.ds.enums.borrow.BorrowBizStateEnum;
-import com.yx.p2p.ds.enums.match.BorrowMatchReqLevelEnum;
+import com.yx.p2p.ds.enums.match.FinanceMatchReqLevelEnum;
 import com.yx.p2p.ds.enums.match.MatchRemarkEnum;
+import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.enums.payment.PaymentTypeEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.model.borrow.Borrow;
@@ -40,10 +40,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.beans.Transient;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -133,7 +133,7 @@ public class BorrowServiceImpl implements BorrowService {
             result = this.addBorrowDtlList(matchResList);
             if(Result.checkStatus(result)){
                 // 更新借款状态已签约
-                this.updateBorrowBizStateSigned(borrow);
+                this.updateBorrowBizStateSigned(borrow.getId());
             }
         }catch (Exception e){
             //用catch捕获异常，不向上抛出异常，保证调用者不受该异常影响
@@ -175,22 +175,24 @@ public class BorrowServiceImpl implements BorrowService {
     }
 
     //更新借款状态已签约
-    private Result updateBorrowBizStateSigned(Borrow borrow) {
-        Result result = this.updateBorrowBizState(borrow);
+    private Result updateBorrowBizStateSigned(Integer borrowId) {
+        logger.debug("【更新借款业务状态为已签约】borrowId=" + borrowId);
+        Result result = this.updateBorrowBizState(borrowId,BorrowBizStateEnum.SIGNED);
         return result;
     }
 
     //更新数据库业务状态
-    private Result updateBorrowBizState(Borrow borrow) {
+    private Result updateBorrowBizState(Integer borrowId,BorrowBizStateEnum borrowBizStateEnum) {
+        logger.debug("【更新借款业务状态入参】borrowId=" + borrowId + ",borrowBizStateEnum=" + borrowBizStateEnum);
         Result result = Result.error();
         Borrow updateBorrow = new Borrow();
-        updateBorrow.setId(borrow.getId());
-        updateBorrow.setBizState(BorrowBizStateEnum.SIGNED.getState());
+        updateBorrow.setId(borrowId);
+        updateBorrow.setBizState(borrowBizStateEnum.getState());
         int count = borrowMapper.updateByPrimaryKeySelective(updateBorrow);
         if(count == 1){
             result = Result.success();
         }
-        logger.debug("【更新借款业务状态为已签约】count=" + count + ",result=" + result);
+        logger.debug("【更新借款业务状态结果】count=" + count + ",result=" + result);
         return result;
     }
 
@@ -224,7 +226,7 @@ public class BorrowServiceImpl implements BorrowService {
         borrowMatchReq.setFinanceAmt(borrow.getBorrowAmt());//借款金额
         borrowMatchReq.setFinanceBizId(borrowId);
         borrowMatchReq.setFinanceCustomerId(borrow.getCustomerId());
-        borrowMatchReq.setLevel(BorrowMatchReqLevelEnum.BORROW.getLevel());
+        borrowMatchReq.setLevel(FinanceMatchReqLevelEnum.BORROW.getLevel());
         borrowMatchReq.setFinanceOrderSn(borrowId);
         borrowMatchReq.setBorrowProductId(borrow.getBorrowProductId());
         borrowMatchReq.setBorrowProductName(borrow.getBorrowProductName());
@@ -595,4 +597,63 @@ public class BorrowServiceImpl implements BorrowService {
         logger.debug("【构建添加放款支付】payment=" + payment);
         return payment;
     }
+
+    //放款通知
+    //验证是否已经更新过借款状态
+    //根据通知结果更新借款业务状态。更新为借款成功，或借款失败
+    public Result loanNotice(HashMap<String, String> loanMap){
+        logger.debug("【放款，入参：loadMap=】" + loanMap);
+        Result result = Result.error();
+        String borrowId = loanMap.get("bizId");//借款编号
+        String status = loanMap.get("status");
+        Integer borrowIdInt = Integer.parseInt(borrowId);
+        //1.验证是否已经更新过借款状态
+        result = this.checkNoLoanNotice(borrowIdInt);
+        if(Result.checkStatus(result)) {
+            result = this.dealLoanNoticeData(borrowIdInt,status);
+        }
+        logger.debug("【放款，结果：result=】" + result);
+        return result;
+    }
+
+    //放款成功：借款业务状态改为借款成功
+    //放款失败：借款业务状态改为借款失败
+    private Result dealLoanNoticeData(Integer borrowId, String status) {
+        Result result = Result.error();
+        if(status.equals(MQStatusEnum.OK.getStatus())){//放款成功
+            result = this.updateBizStateBorrowSuc(borrowId);//借款成功
+        }else if(status.equals(MQStatusEnum.FAIL.getStatus())){//放款失败
+            result = this.updateBizStateBorrowFail(borrowId);//借款失败
+            result = Result.success();
+        }
+        return result;
+    }
+
+    //更新借款状态借款失败
+    private Result updateBizStateBorrowFail(Integer borrowId) {
+        logger.debug("【更新借款业务状态为借款失败】borrowId=" + borrowId);
+        Result result = this.updateBorrowBizState(borrowId,BorrowBizStateEnum.BORROW_FAIL);
+        return result;
+    }
+
+    //更新借款状态借款成功
+    private Result updateBizStateBorrowSuc(Integer borrowId) {
+        logger.debug("【更新借款业务状态为借款成功】borrowId=" + borrowId);
+        Result result = this.updateBorrowBizState(borrowId,BorrowBizStateEnum.BORROW_SUCCESS);
+        return result;
+    }
+
+    private Result checkNoLoanNotice(Integer borrowId) {
+        logger.debug("【验证是否已经更新过借款状态】入参borrowId=" + borrowId);
+        Result result = Result.error();
+        Borrow borrow = this.getBorrowByBorrowId(borrowId);
+        //业务状态为已签约，则可以继续业务操作
+        if(borrow != null && borrow.getBizState().equals(BorrowBizStateEnum.SIGNED.getState())){
+            result = Result.success();
+        }
+        logger.debug("【检查是否已经更新过借款状态】result.status=error说明已经执行操作；" +
+                "result.status=ok说明没有更新业务状态，继续执行。result=" + result);
+        return result;
+    }
+
 }

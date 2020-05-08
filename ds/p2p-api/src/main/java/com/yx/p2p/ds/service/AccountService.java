@@ -19,6 +19,6 @@ public interface AccountService {
     //事务操作：投资充值
     public Result rechargeInvest(InvestMQVo investMQVo);
 
-    //事务操作：放款
-    public Result loan(HashMap<String, String> loanMap);
+    //事务操作：放款通知
+    public Result loanNotice(HashMap<String, String> loanMap);
 }

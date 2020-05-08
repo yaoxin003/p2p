@@ -1,6 +1,7 @@
 package com.yx.p2p.ds.borrow.service.impl;
 
 import com.yx.p2p.ds.borrow.P2pBorrowApplication;
+import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.model.borrow.Borrow;
 import com.yx.p2p.ds.service.BorrowProductService;
 import com.yx.p2p.ds.service.BorrowService;
@@ -14,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
 
 /**
  * @description:
@@ -76,5 +78,16 @@ public class BorrowServiceImplTest {
 
         Object calMonthPay1 = TestUtil.invokePrivateMethodParms(borrowService,
                 "buildMonthReturnDayAndFirstReturnDate", methodParamClass1, methodParamObj1);
+    }
+
+    //放款通知
+    @Test
+    public void testLoanNotice(){
+        HashMap<String,String> loanNotify = new HashMap<>();
+        loanNotify.put("bizId","3");//biz=borrow.id
+        loanNotify.put("orderSn","3");//orderSn=borrow.id
+        loanNotify.put("customerId","15");//融资客户
+        loanNotify.put("status", MQStatusEnum.OK.getStatus());
+        borrowService.loanNotice(loanNotify);
     }
 }
