@@ -33,6 +33,8 @@ public class FinanceMatchReq extends BaseModel implements Serializable{
 
     private BigDecimal borrowYearRate;//贷款年利率
 
+    private Integer type;//融资撮合类型：1-借款，2-转让
+
     private String remark;//备注:借款/转让
 
     public Integer getFinanceCustomerId() {
@@ -123,6 +125,14 @@ public class FinanceMatchReq extends BaseModel implements Serializable{
         this.remark = remark;
     }
 
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         return "FinanceMatchReq{" +
@@ -136,6 +146,7 @@ public class FinanceMatchReq extends BaseModel implements Serializable{
                 ", borrowProductId=" + borrowProductId +
                 ", borrowProductName='" + borrowProductName + '\'' +
                 ", borrowYearRate=" + borrowYearRate +
+                ", type=" + type +
                 ", remark='" + remark + '\'' +
                 '}' + super.toString();
     }

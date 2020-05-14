@@ -18,5 +18,6 @@ public interface InvestMapper extends Mapper<Invest> {
 
     public Integer queryInvestCount(@Param("invest") Invest invest);
 
-
+    public void updateBizStateByTransferId(
+            @Param("transferId")Integer transferId, @Param("bizState") String bizState);
 }

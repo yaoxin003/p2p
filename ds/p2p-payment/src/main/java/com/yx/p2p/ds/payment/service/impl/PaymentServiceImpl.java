@@ -19,6 +19,7 @@ import com.yx.p2p.ds.util.RASUtil;
 import com.yx.p2p.ds.util.SHAUtil;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -60,17 +61,29 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
 
-    @Value("${mq.payment.topic}")
-    private String payTopic;
+    @Value("${mq.pay.invest.producer.group}")
+    private String payInvestProducerGroup;
 
-    @Value("${mq.payment.tag.invest.suc}")
+    @Value("${mq.pay.invest.topic}")
+    private String payInvestTopic;
+
+    @Value("${mq.pay.invest.suc.tag}")
     private String payInvestSucTag;
 
-    @Value("${mq.payment.tag.invest.fail}")
+    @Value("${mq.pay.invest.fail.tag}")
     private String payInvestFailTag;
 
-    @Value("${mq.payment.tag.borrow.suc}")
-    private String payTagBorrowSuc;
+    @Value("${mq.pay.borrow.producer.group}")
+    private String payBorrowProducerGroup;
+
+    @Value("${mq.pay.borrow.topic}")
+    private String payBorrowTopic;
+
+    @Value("${mq.pay.borrow.suc.tag}")
+    private String payBorrowSucTag;
+
+    @Value("${mq.pay.borrow.fail.tag}")
+    private String payBorrowFailTag;
 
     public List<BaseBank> getAllBaseBankList(){
         List<BaseBank> allBaseBankList = baseBankMapper.selectAll();
@@ -236,18 +249,18 @@ public class PaymentServiceImpl implements PaymentService {
             result = this.updatePaymentState(thirdPayResult);
             if(Result.checkStatus(result)){
                 //3.使用RocketMQ加入消息队列中通知其他系统（投资人支付通知invest和recored两个系统）
-                this.dealInvestPayResultMQ(result,(Map<String,String>)thirdPayResult.getTarget());
+                result = this.dealInvestPayResultMQ(result,(Map<String,String>)thirdPayResult.getTarget());
             }
         }
         return result;
     }
 
-    private void dealInvestPayResultMQ(Result result, Map<String,String> thirdPayMap) {
+    private Result dealInvestPayResultMQ(Result result, Map<String,String> thirdPayMap) {
         logger.debug("3.【支付投资支付结果通知后，准备向RocketMQ发送数据】result=" + result);
-            String retCode = thirdPayMap.get("retCode");
-            String orderSn = thirdPayMap.get("orderSn");
-            Payment payment = this.queryDBPaymentByOrderSn(orderSn);
-            this.sendInvestPayResultMQ(retCode,payment);//发送支付结果MQ
+        String retCode = thirdPayMap.get("retCode");
+        String orderSn = thirdPayMap.get("orderSn");
+        Payment payment = this.queryDBPaymentByOrderSn(orderSn);
+        return this.sendInvestPayResultMQ(retCode,payment);//发送支付结果MQ
     }
 
     private Payment queryDBPaymentByOrderSn(String orderSn) {
@@ -262,28 +275,35 @@ public class PaymentServiceImpl implements PaymentService {
     private Result sendInvestPayResultMQ(String retCode,Payment payment) {
         Result result = Result.success();
         String mqJSON = this.buildInvestPayResultMQJSON(retCode,payment);
-        this.sendInvestPayMQ(retCode,mqJSON, payment.getBizId());
+        result = this.sendInvestPayMQ(retCode,mqJSON, payment.getBizId());
         return result;
     }
 
-    private void sendInvestPayMQ(String retCode, String mqJSON,String mqKey) {
-        String payInvestTag = null;
+    private Result sendInvestPayMQ(String retCode, String mqJSON,String mqKey) {
         logger.debug("【准备发送投资支付结果MQ】mqJSON=" + mqJSON + ",mqKey=" + mqKey);
+        Result result = Result.error();
+        String payInvestTag = null;
         if(retCode.equals(RetCodeEnum.PAY_SUC.getCode())) {//支付成功
             payInvestTag = payInvestSucTag;
         }else{//支付失败
             payInvestTag = payInvestFailTag;
         }
-        Message message = new Message(payTopic, payInvestTag, mqKey, mqJSON.getBytes());
-
+        Message message = new Message(payInvestTopic, payInvestTag, mqKey, mqJSON.getBytes());
         SendResult sendResult = null;
+        DefaultMQProducer producer = null;
         try {
-            sendResult = rocketMQTemplate.getProducer().send(message);
+            //sendResult = rocketMQTemplate.getProducer().send(message);
+            producer = rocketMQTemplate.getProducer();
+            producer.setProducerGroup(payInvestProducerGroup);
+            sendResult = producer.send(message);
+            result = Result.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            result = LoggerUtil.addExceptionLog(e,logger);
         }
-        logger.debug("【发送投资支付结果MQ】，topic="+ payTopic + ",tag=" + payInvestTag + ",message=" + message);
+        logger.debug("【发送投资支付结果MQ】，producer=" + producer.getProducerGroup() +
+                ",topic="+ payInvestTopic + ",tag=" + payInvestTag + ",message=" + message);
         logger.debug("【发送投资支付结果MQ】，sendResult" + sendResult);
+        return result;
     }
 
     private String buildInvestPayResultMQJSON(String retCode,Payment payment) {
@@ -428,23 +448,30 @@ public class PaymentServiceImpl implements PaymentService {
         loanNotify.put("customerId",String.valueOf(payment.getCustomerId()));
         loanNotify.put("status", MQStatusEnum.OK.getStatus());
          String mqJSON = JSON.toJSONString(loanNotify);
-         this.sendLoanPayMQ(mqJSON,payment.getBizId());
-         result = Result.success();
+         result = this.sendLoanPayMQ(mqJSON,payment.getBizId());
          return result;
     }
 
     //放款结果通知MQ(通知方：借款，撮合，投资，账户)
-    private void sendLoanPayMQ(String mqJSON,String mqKey) {
+    private Result sendLoanPayMQ(String mqJSON,String mqKey) {
         logger.debug("【准备发送放款支付结果MQ】入参mqJSON=" + mqJSON + ",mqKey=" + mqKey);
-        Message message = new Message(payTopic, payTagBorrowSuc, mqKey, mqJSON.getBytes());
+        Result result = Result.error();
+        Message message = new Message(payBorrowTopic, payBorrowSucTag, mqKey, mqJSON.getBytes());
         SendResult sendResult = null;
+        DefaultMQProducer producer2 = null;
         try {
-            sendResult = rocketMQTemplate.getProducer().send(message);
+            //sendResult = rocketMQTemplate.getProducer().send(message);
+            producer2 = rocketMQTemplate.getProducer();
+            producer2.setProducerGroup(payBorrowProducerGroup);
+            sendResult = producer2.send(message);
+            result = Result.success();
         } catch (Exception e) {
-            e.printStackTrace();
+            result = LoggerUtil.addExceptionLog(e,logger);
         }
-        logger.debug("【发送放款支付结果MQ】，topic="+ payTopic + ",tag=" + payTagBorrowSuc + ",message=" + message);
+        logger.debug("【发送放款支付结果MQ】，producer2=" + producer2.getProducerGroup() +
+                "，topic="+ payBorrowTopic + ",tag=" + payBorrowSucTag + ",message=" + message);
         logger.debug("【发送放款支付结果MQ】，sendResult" + sendResult);
+        return result;
     }
 
     //更新放款订单状态

@@ -1,6 +1,7 @@
 package com.yx.p2p.ds.model.invest;
 
 import com.yx.p2p.ds.model.base.BaseModel;
+import com.yx.p2p.ds.model.match.InvestMatchReq;
 
 import javax.persistence.Table;
 import java.io.Serializable;
@@ -17,11 +18,26 @@ public class InvestClaim extends BaseModel implements Serializable{
     private Integer investId;//投资编号
     private Integer lendingId;//出借单编号
     private Integer borrowId;//借款编号
+    private Integer customerId;//客户编号
+    private String customerName;//客户姓名
     private BigDecimal buyAmt;//买入金额
+    private BigDecimal claimAmt;//债权金额：会增值变化
     private BigDecimal holdShare;//持有比例
     private Integer borrowProductId;//借款产品编号
     private String borrowProductName;//借款产品名称
     private BigDecimal borrowYearRate;//贷款年利率
+    private Integer parentId;//父投资债权编号：新借款为0/转让为父编号
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof InvestClaim){
+            InvestClaim investClaim = (InvestClaim) obj;
+            if(investClaim.getId() == this.getId()){
+                return true;
+            }
+        }
+        return false;
+    }
 
     public Integer getInvestId() {
         return investId;
@@ -47,12 +63,36 @@ public class InvestClaim extends BaseModel implements Serializable{
         this.borrowId = borrowId;
     }
 
+    public Integer getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Integer customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
     public BigDecimal getBuyAmt() {
         return buyAmt;
     }
 
     public void setBuyAmt(BigDecimal buyAmt) {
         this.buyAmt = buyAmt;
+    }
+
+    public BigDecimal getClaimAmt() {
+        return claimAmt;
+    }
+
+    public void setClaimAmt(BigDecimal claimAmt) {
+        this.claimAmt = claimAmt;
     }
 
     public BigDecimal getHoldShare() {
@@ -87,17 +127,29 @@ public class InvestClaim extends BaseModel implements Serializable{
         this.borrowYearRate = borrowYearRate;
     }
 
+    public Integer getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Integer parentId) {
+        this.parentId = parentId;
+    }
+
     @Override
     public String toString() {
         return "InvestClaim{" +
                 "investId=" + investId +
                 ", lendingId=" + lendingId +
                 ", borrowId=" + borrowId +
+                ", customerId=" + customerId +
+                ", customerName='" + customerName + '\'' +
                 ", buyAmt=" + buyAmt +
+                ", claimAmt=" + claimAmt +
                 ", holdShare=" + holdShare +
                 ", borrowProductId=" + borrowProductId +
                 ", borrowProductName='" + borrowProductName + '\'' +
                 ", borrowYearRate=" + borrowYearRate +
-                '}';
+                ", parentId=" + parentId +
+                '}' + super.toString();
     }
 }

@@ -3,6 +3,8 @@ package com.yx.p2p.ds.server;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestProduct;
+import com.yx.p2p.ds.model.match.FinanceMatchRes;
+
 import java.util.List;
 
 /**
@@ -27,4 +29,9 @@ public interface InvestServer {
     public Result compensateGateway(Invest invest);
 
     public Invest getInvestByInvestId(Integer investId);
+
+    //转让赎回申请
+    public Result transferApply(Integer investId);
+
+
 }

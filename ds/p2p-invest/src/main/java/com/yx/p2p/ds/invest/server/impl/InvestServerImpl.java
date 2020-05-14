@@ -4,9 +4,11 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestProduct;
+import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.service.InvestProductService;
 import com.yx.p2p.ds.service.InvestService;
+import com.yx.p2p.ds.service.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,9 @@ public class InvestServerImpl implements InvestServer {
 
     @Autowired
     private InvestService investService;
+
+    @Autowired
+    private TransferService transferService;
 
     public List<InvestProduct> getAllInvestProductList(){
         return investProductService.getAllInvestProductList();
@@ -60,4 +65,11 @@ public class InvestServerImpl implements InvestServer {
     public Invest getInvestByInvestId(Integer investId){
         return investService.getInvestByInvestId(investId);
     }
+
+    //转让赎回申请
+    @Override
+    public Result transferApply(Integer investId) {
+        return transferService.transferApply(investId);
+    }
+
 }

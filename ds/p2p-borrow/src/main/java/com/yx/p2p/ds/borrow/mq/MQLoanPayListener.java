@@ -24,10 +24,10 @@ import java.util.HashMap;
  * @date: 2020/05/05/18:46
  */
 @RocketMQMessageListener(
-        consumerGroup = "${rocketmq.pay.consumer.group.name}",
-        topic = "${mq.payment.topic}",
+        consumerGroup = "${mq.pay.borrow.consumer.group}",
+        topic = "${mq.pay.borrow.topic}",
         selectorType = SelectorType.TAG,
-        selectorExpression ="payTagBorrowSuc || payTagBorrowFail",
+        selectorExpression ="payBorrowSucTag || payBorrowFailTag",
         messageModel = MessageModel.BROADCASTING
 )
 @Component

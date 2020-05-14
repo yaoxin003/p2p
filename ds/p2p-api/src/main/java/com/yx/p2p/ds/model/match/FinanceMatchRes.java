@@ -3,6 +3,7 @@ package com.yx.p2p.ds.model.match;
 import com.yx.p2p.ds.model.base.BaseModel;
 
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -30,7 +31,7 @@ public class FinanceMatchRes extends BaseModel implements Serializable{
 
     private String investOrderSn;//投资订单编号
 
-    private String financeOrderSn;//融资订单编号:借款编号/转让协议明细编号
+    private String financeOrderSn;//融资订单编号:借款编号/投资持有债权编号
 
     private BigDecimal tradeAmt;//交易金额
 

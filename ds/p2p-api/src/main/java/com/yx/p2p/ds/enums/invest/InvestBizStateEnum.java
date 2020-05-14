@@ -9,8 +9,10 @@ public enum InvestBizStateEnum {
     NEW_ADD("1","新增"),//添加新投资
     INVEST_SUC("2","投资成功"),//接收支付结果：支付成功
     INVEST_CANCEL("3","投资撤销"),//接收支付结果：支付失效
-    MATCHING("4","撮合中"),//发送撮合系统
-    ALL_LEND("5","满额");//全额出借
+    MATCHING("4","撮合中"),//发送撮合系统，暂时没有上
+    FULL_AMT("5","满额"),//全额出借
+    TRANSFERING("6","转让中"),//发起转让
+    TRANSFER_SUC("7","转让成功");//转让交割后
 
     private String state;//状态
     private String stateDesc;//状态描述

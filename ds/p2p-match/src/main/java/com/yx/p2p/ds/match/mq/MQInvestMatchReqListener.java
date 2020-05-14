@@ -20,9 +20,9 @@ import org.springframework.stereotype.Component;
  */
 
 @RocketMQMessageListener(
-        consumerGroup = "${rocketmq.match.consumer.group.name}",
-        topic = "${mq.invest.match.topic}",
-        selectorExpression ="matchTagNewInvest",
+        consumerGroup = "${mq.match.invest.consumer.group}",
+        topic = "${mq.match.invest.topic}",
+        selectorExpression ="matchInvestTag",
         selectorType = SelectorType.TAG,
         messageModel = MessageModel.BROADCASTING)
 @Component

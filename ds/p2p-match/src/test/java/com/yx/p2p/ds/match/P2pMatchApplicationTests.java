@@ -1,7 +1,7 @@
 package com.yx.p2p.ds.match;
 
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
-import com.yx.p2p.ds.service.FinanceMatchReqService;
+import com.yx.p2p.ds.service.BorrowMatchReqService;
 import com.yx.p2p.ds.util.TestUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 public class P2pMatchApplicationTests {
 
 	@Autowired
-	private FinanceMatchReqService financeMatchReqService;
+	private BorrowMatchReqService borrowMatchReqService;
 
 	@Test
 	public void testSelectWaitMatchAmtInvestReqList(){
@@ -25,7 +25,7 @@ public class P2pMatchApplicationTests {
 
 		Object[] methodParamObj = new Object[]{new FinanceMatchReq()};
 
-		TestUtil.invokePrivateMethodParms(financeMatchReqService,
+		TestUtil.invokePrivateMethodParms(borrowMatchReqService,
 				"getWaitMatchAmtInvestReqList",
 				methodParamClass,methodParamObj);
 	}

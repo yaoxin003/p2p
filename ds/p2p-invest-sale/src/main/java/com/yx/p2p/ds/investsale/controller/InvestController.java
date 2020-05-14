@@ -67,10 +67,10 @@ public class InvestController {
     @ResponseBody
     public Result lend(Invest invest){
         Result result = null;
-        logger.debug("调用【投资充值】功能begin。【invest=】"+invest);
+        logger.debug("【调用投资充值功能】【投资系统】入参invest="+invest);
         //投资充值
         result = investServer.rechargeInvest(invest);
-        logger.debug("调用【投资充值】功能end。【result=】" + result);
+        logger.debug("【调用投资充值功能】【投资系统】结果result=" + result);
         return result;
     }
 
@@ -92,6 +92,16 @@ public class InvestController {
         logger.debug("【invest=】" + invest);
         Result result = investServer.compensateGateway(invest);
         logger.debug("【补偿网关支付】result=" + result);
+        return result;
+    }
+
+    //转让赎回申请
+    @RequestMapping(value="transferApply")
+    @ResponseBody
+    public Result transferApply(Integer investId){
+        logger.debug("【转让赎回申请】入参：investId=" + investId);
+        Result result = investServer.transferApply(investId);
+        logger.debug("【转让赎回申请】结果：result=" + result);
         return result;
     }
 }

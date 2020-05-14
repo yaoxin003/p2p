@@ -1,5 +1,6 @@
 package com.yx.p2p.ds.invest.com.yx.p2p.ds.invest.service.impl;
 
+import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.invest.P2pInvestApplication;
 import com.yx.p2p.ds.service.InvestService;
@@ -32,5 +33,12 @@ public class InvestServiceImplTest {
         loanNotify.put("customerId","15");//融资客户
         loanNotify.put("status", MQStatusEnum.OK.getStatus());
         investService.loanNotice(loanNotify);
+    }
+
+    @Test
+    public void testUpdateBizStateByTransferId(){
+        Integer transferId = 99;
+        InvestBizStateEnum bizStateEnum = InvestBizStateEnum.TRANSFER_SUC;
+        investService.updateBizStateByTransferId(transferId,bizStateEnum);
     }
 }

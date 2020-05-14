@@ -3,7 +3,7 @@ package com.yx.p2p.ds.match.service.impl;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.match.P2pMatchApplication;
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
-import com.yx.p2p.ds.service.FinanceMatchReqService;
+import com.yx.p2p.ds.service.BorrowMatchReqService;
 import com.yx.p2p.ds.util.TestUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,7 +23,7 @@ import java.util.HashMap;
 public class FinanceMatchReqServiceImplTest {
 
     @Autowired
-    private FinanceMatchReqService financeMatchReqService;
+    private BorrowMatchReqService borrowMatchReqService;
 
     @Test
     public void testSelectWaitMatchAmtInvestReqList(){
@@ -32,7 +32,7 @@ public class FinanceMatchReqServiceImplTest {
 
         Object[] methodParamObj = new Object[]{new FinanceMatchReq()};
 
-        TestUtil.invokePrivateMethodParms(financeMatchReqService,
+        TestUtil.invokePrivateMethodParms(borrowMatchReqService,
                 "getWaitMatchAmtInvestReqList",
                 methodParamClass,methodParamObj);
     }
@@ -44,6 +44,7 @@ public class FinanceMatchReqServiceImplTest {
         loanNotify.put("orderSn","3");//orderSn=borrow.id
         loanNotify.put("customerId","15");//融资客户
         loanNotify.put("status", MQStatusEnum.OK.getStatus());
-        financeMatchReqService.loanNotice(loanNotify);
+        borrowMatchReqService.loanNotice(loanNotify);
     }
+
 }

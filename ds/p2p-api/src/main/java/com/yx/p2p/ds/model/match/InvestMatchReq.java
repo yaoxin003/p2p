@@ -31,6 +31,17 @@ public class InvestMatchReq extends BaseModel implements Serializable{
     private Integer level;//优先级：值越大优先级越高
     private String remark;//备注
 
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof InvestMatchReq ){
+            InvestMatchReq investMatchReq = (InvestMatchReq) obj;
+            if(investMatchReq.getId() == this.getId()){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Integer getInvestCustomerId() {
         return investCustomerId;
     }

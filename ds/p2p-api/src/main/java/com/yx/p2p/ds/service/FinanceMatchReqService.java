@@ -3,22 +3,16 @@ package com.yx.p2p.ds.service;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
-
-import java.util.HashMap;
+import com.yx.p2p.ds.model.match.InvestMatchReq;
 import java.util.List;
 
 /**
- * @description:融资撮合请求
+ * @description:
  * @author: yx
- * @date: 2020/04/30/14:38
+ * @date: 2020/05/11/9:10
  */
 public interface FinanceMatchReqService {
-
-    //借款撮合请求
-    public Result borrowMatchReq(FinanceMatchReq financeMatchReq);
-
-    public List<FinanceMatchRes> getBorrowMatchResList(Integer financeCustomerId, String financeBizId);
-
-    //放款通知
-    public Result loanNotice(HashMap<String, String> loanMap);
+    //处理融资撮合
+    public Result dealFinanceMatch(FinanceMatchReq financeMatchReq, List<InvestMatchReq> resNoMatchInvestReqList,
+                                   List<InvestMatchReq> resMatchedInvestReqList, List<FinanceMatchRes> resFinanceMatchResList);
 }

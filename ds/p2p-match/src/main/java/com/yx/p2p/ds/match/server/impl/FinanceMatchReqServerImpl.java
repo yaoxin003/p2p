@@ -5,7 +5,8 @@ import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.server.FinanceMatchReqServer;
-import com.yx.p2p.ds.service.FinanceMatchReqService;
+import com.yx.p2p.ds.service.BorrowMatchReqService;
+import com.yx.p2p.ds.service.TransferMatchReqService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,15 +22,19 @@ import java.util.List;
 public class FinanceMatchReqServerImpl implements FinanceMatchReqServer {
 
     @Autowired
-    private FinanceMatchReqService financeMatchReqService;
+    private BorrowMatchReqService borrowMatchReqService;
+
+    @Autowired
+    private TransferMatchReqService transferMatchReqService;
 
     //借款撮合请求
     //Result.target=借款撮合结果
     public Result borrowMatchReq(FinanceMatchReq financeMatchReq){
-        return financeMatchReqService.borrowMatchReq(financeMatchReq);
+        return borrowMatchReqService.borrowMatchReq(financeMatchReq);
     }
 
     public List<FinanceMatchRes> getBorrowMatchResList(Integer financeCustomerId, String financeBizId){
-        return financeMatchReqService.getBorrowMatchResList(financeCustomerId,financeBizId);
+        return borrowMatchReqService.getBorrowMatchResList(financeCustomerId,financeBizId);
     }
+
 }

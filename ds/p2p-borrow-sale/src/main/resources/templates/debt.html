@@ -196,8 +196,10 @@
                   cache: false,
                   success: function (result) {
                       messger_show_center('提示信息','申请放款成功！');
-                      //打开窗口
+                      //关闭“借款合同”窗口
                       $("#contractDialog").dialog("close");
+                      //关闭“借款列表”
+                      $("#borrowDialog").dialog("close");
                   }
               });
           }

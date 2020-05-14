@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yx.p2p.ds.invest.mapper.TransferDtlMapper">
+
+    <insert id="insertBatchTransferDtl" parameterType="java.util.List">
+        insert into p2p_transfer_dtl
+        (
+        transfer_id,
+        invest_claim_id,
+        invest_id,
+        lending_id,
+        borrow_id,
+        customer_id,
+        customer_name,
+        buy_amt,
+        hold_share,
+        borrow_product_id,
+        borrow_product_name,
+        borrow_year_rate,
+        create_time,
+        update_time,
+        creator,
+        reviser,
+        logic_state,
+        biz_state
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.transferId},
+            #{item.investClaimId},
+            #{item.investId},
+            #{item.lendingId},
+            #{item.borrowId},
+            #{item.customerId},
+            #{item.customerName},
+            #{item.buyAmt},
+            #{item.holdShare},
+            #{item.borrowProductId},
+            #{item.borrowProductName},
+            #{item.borrowYearRate},
+            #{item.createTime},
+            #{item.updateTime},
+            #{item.creator},
+            #{item.reviser},
+            #{item.logicState},
+            #{item.bizState}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

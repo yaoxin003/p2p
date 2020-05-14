@@ -11,12 +11,13 @@ import com.yx.p2p.ds.enums.match.MatchRemarkEnum;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.enums.payment.PaymentTypeEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
+import com.yx.p2p.ds.invest.mapper.InvestClaimHistoryMapper;
 import com.yx.p2p.ds.invest.mapper.InvestClaimMapper;
 import com.yx.p2p.ds.invest.mapper.InvestMapper;
-import com.yx.p2p.ds.model.account.DebtSubAccFlow;
 import com.yx.p2p.ds.model.crm.Customer;
 import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestClaim;
+import com.yx.p2p.ds.model.invest.InvestClaimHistory;
 import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.model.match.InvestMatchReq;
@@ -25,8 +26,8 @@ import com.yx.p2p.ds.model.payment.Payment;
 import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.server.CrmServer;
 import com.yx.p2p.ds.server.FinanceMatchReqServer;
-import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
+import com.yx.p2p.ds.service.InvestClaimHistoryService;
 import com.yx.p2p.ds.service.InvestProductService;
 import com.yx.p2p.ds.service.InvestService;
 import com.yx.p2p.ds.service.LendingService;
@@ -34,6 +35,9 @@ import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
 import com.yx.p2p.ds.util.OrderUtil;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.ibatis.annotations.Param;
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -43,12 +47,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * @description:
@@ -72,6 +73,9 @@ public class InvestServiceImpl implements InvestService {
     @Autowired
     private InvestClaimMapper investClaimMapper;
 
+    @Autowired
+    private InvestClaimHistoryMapper investClaimHistoryMapper;
+
     @Reference
     private PaymentServer paymentServer;
 
@@ -81,14 +85,22 @@ public class InvestServiceImpl implements InvestService {
     @Reference
     private FinanceMatchReqServer financeMatchReqServer;
 
+
+    @Autowired
+    private InvestClaimHistoryService investClaimHistoryService;
+
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
 
-    @Value("${mq.invest.match.topic}")
-    private String investMatchTopic;
+    @Value("${mq.match.invest.producer.group}")
+    private String matchInvestProducerGroup;
 
-    @Value("${mq.match.tag.new.invest}")
-    private String matchTagNewInvest;
+    @Value("${mq.match.invest.topic}")
+    private String matchInvestTopic;
+
+    @Value("${mq.match.invest.tag}")
+    private String matchInvestTag;
+
 
     //投资充值
     public Result rechargeInvest(Invest invest){
@@ -166,21 +178,23 @@ public class InvestServiceImpl implements InvestService {
 
     private void sendInvestMatchReqMQ(InvestMatchReq investMatchReq) {
         String mqVoStr = JSON.toJSONString(investMatchReq);
-        Message message = new Message(investMatchTopic,matchTagNewInvest,
-                investMatchReq.getInvestOrderSn(),mqVoStr.getBytes());
+        DefaultMQProducer producer = null;
         try {
-            SendResult sendResult = rocketMQTemplate.getProducer().send(message);
-            logger.debug("【发送新投资撮合MQ】，topic="+ investMatchTopic + "," +
-                    "tag=" + matchTagNewInvest + ",message=" + message);
-            logger.debug("【发送新投资撮合结果MQ】，sendResult" + sendResult);
+            Message message = new Message(matchInvestTopic,matchInvestTag,
+                    investMatchReq.getInvestOrderSn(),mqVoStr.getBytes());
+            producer = rocketMQTemplate.getProducer();
+            producer.setProducerGroup(matchInvestProducerGroup);
+            SendResult sendResult = producer.send(message);
+            logger.debug("【发送投资撮合新投资MQ】，producer=" + producer.getProducerGroup() +
+                    "，topic="+ matchInvestTopic + ",tag=" + matchInvestTag + ",message=" + message);
+            logger.debug("【发送投资撮合新投资结果MQ】，sendResult" + sendResult);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public Invest getInvestByInvestId(Integer investId){
-        Invest invest = investMapper.selectByPrimaryKey(investId);
-        return invest;
+        return this.queryDBInvestByInvestId(investId);
     }
 
     private InvestMatchReq buildInvestMatchReq(Integer lendingId, InvestMQVo investMQVo) {
@@ -352,7 +366,6 @@ public class InvestServiceImpl implements InvestService {
         * @param: investProduct
         * @param: invest
         * @return: void
-        * @throws:
         */
     private Result buildProfit(InvestProduct investProduct, Invest invest) {
         Result result = Result.success();
@@ -414,7 +427,7 @@ public class InvestServiceImpl implements InvestService {
 
     //放款通知
     //查询借款撮合结果
-    //添加投资债权明细
+    //添加投资债权明细和历史
     public Result loanNotice(HashMap<String, String> loanMap){
         logger.debug("【放款，入参：loadMap=】" + loanMap);
         Result result = Result.error();
@@ -437,44 +450,73 @@ public class InvestServiceImpl implements InvestService {
     }
 
     private Result dealLoanNoticeData(Integer financeCustomerId, Integer borrowId, List<FinanceMatchRes> borrowMatchResList) {
-        logger.debug("【插入投资债权明细】入参：financeCustomerId="+ financeCustomerId
+        logger.debug("【批量插入投资债权明细】入参：financeCustomerId="+ financeCustomerId
                 + ",borrowId=" + borrowId+ ",borrowMatchResList=" + borrowMatchResList);
         Result result = Result.error();
         if(!borrowMatchResList.isEmpty()){
-            List<InvestClaim> investClaimList = new ArrayList<InvestClaim>();
-            for(FinanceMatchRes financeMatchRes : borrowMatchResList){
-                Integer investId = Integer.valueOf(financeMatchRes.getInvestBizId());
-                InvestClaim investClaim = new InvestClaim();
-                investClaim.setBorrowId(borrowId);
-                investClaim.setBorrowProductId(financeMatchRes.getBorrowProductId());
-                investClaim.setBorrowProductName(financeMatchRes.getBorrowProductName());
-                investClaim.setBorrowYearRate(financeMatchRes.getBorrowYearRate());
-                investClaim.setBuyAmt(financeMatchRes.getTradeAmt());
-                investClaim.setHoldShare(financeMatchRes.getMatchShare());
-                investClaim.setInvestId(Integer.valueOf(financeMatchRes.getInvestBizId()));
-                investClaim.setLendingId(Integer.valueOf(financeMatchRes.getInvestBizId()));
-                BeanHelper.setAddDefaultField(investClaim);
-                investClaimList.add(investClaim);
-            }
+            List<InvestClaim> investClaimList = this.buildAddInvestClaimList(borrowId,borrowMatchResList);
+            //检查并处理出借单满额
+            result = lendingService.checkAndDealFullAmt(investClaimList);
             //批量插入投资债权明细
-            investClaimMapper.insertBathInvestClaim(investClaimList);
+            investClaimMapper.insertList(investClaimList);
+            //批量插入投资债权明细历史
+            result = investClaimHistoryService.genInvestClaimHistoryList(investClaimList);
         }
         result = Result.success();
         return result;
     }
 
-    //验证是否已经插入过放款数据(投资债权明细)
-        private Result checkNoLoanNotice(Integer borrowId) {
-            logger.debug("【检查没有放款数据】入参borrowId=" + borrowId);
-            Result result = Result.error();
+    private List<InvestClaim> buildAddInvestClaimList(Integer borrowId,List<FinanceMatchRes> borrowMatchResList) {
+        List<InvestClaim> investClaimList = new ArrayList<>();
+        for(FinanceMatchRes financeMatchRes : borrowMatchResList){
+            Integer investId = Integer.valueOf(financeMatchRes.getInvestBizId());
             InvestClaim investClaim = new InvestClaim();
+            investClaim.setParentId(0);//父投资债权编号：新借款为0/转让为父编号
             investClaim.setBorrowId(borrowId);
-            List<InvestClaim> investClaims = investClaimMapper.select(investClaim);
-            if(investClaims.isEmpty()){
-                result = Result.success();
-            }
-            logger.debug("【检查没有投资债权数据】result.status=error说明已经执行操作；" +
-                    "result.status=ok说明没有投资债权数据，继续执行。result=" + result);
-            return result;
+            investClaim.setCustomerId(financeMatchRes.getFinanceCustomerId());
+            investClaim.setCustomerName(financeMatchRes.getFinanceCustomerName());
+            investClaim.setBorrowProductId(financeMatchRes.getBorrowProductId());
+            investClaim.setBorrowProductName(financeMatchRes.getBorrowProductName());
+            investClaim.setBorrowYearRate(financeMatchRes.getBorrowYearRate());
+            investClaim.setBuyAmt(financeMatchRes.getTradeAmt());//买入金额：不会变化
+            investClaim.setClaimAmt(investClaim.getBuyAmt());//债权金额：会增值变化
+            investClaim.setHoldShare(financeMatchRes.getMatchShare());
+            investClaim.setInvestId(investId);
+            investClaim.setLendingId(Integer.valueOf(financeMatchRes.getInvestOrderSn()));
+            BeanHelper.setAddDefaultField(investClaim);
+            investClaimList.add(investClaim);
         }
+        return investClaimList;
+    }
+
+    //验证是否已经插入过放款数据(投资债权明细)
+    private Result checkNoLoanNotice(Integer borrowId) {
+        logger.debug("【检查没有放款数据】入参borrowId=" + borrowId);
+        Result result = Result.error();
+        InvestClaim investClaim = new InvestClaim();
+        investClaim.setBorrowId(borrowId);
+        List<InvestClaim> investClaims = this.queryDBInvestClaminList(investClaim);
+        if(investClaims.isEmpty()){
+            result = Result.success();
+        }
+        logger.debug("【检查没有投资债权数据】result.status=error说明已经执行操作；" +
+                "result.status=ok说明没有投资债权数据，继续执行。result=" + result);
+        return result;
+   }
+
+   public List<InvestClaim> getInvestClaimList(InvestClaim investClaim){
+        return this.queryDBInvestClaminList(investClaim);
+   }
+
+    private List<InvestClaim> queryDBInvestClaminList(InvestClaim investClaim) {
+        logger.debug("【查询数据库：投资债权明细集合】入参：investClaim=" + investClaim);
+        List<InvestClaim> investClaimList = investClaimMapper.select(investClaim);
+        logger.debug("【查询数据库：投资债权明细集合】结果：investClaims=" + investClaimList);
+        return investClaimList;
+    }
+
+    @Override
+    public void updateBizStateByTransferId(Integer transferId, InvestBizStateEnum InvestBizStateEnum) {
+        investMapper.updateBizStateByTransferId( transferId,InvestBizStateEnum.getState());
+    }
 }

@@ -9,6 +9,7 @@ import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.SystemSourceEnum;
 import com.yx.p2p.ds.enums.borrow.BorrowBizStateEnum;
 import com.yx.p2p.ds.enums.match.FinanceMatchReqLevelEnum;
+import com.yx.p2p.ds.enums.match.FinanceMatchReqTypeEnum;
 import com.yx.p2p.ds.enums.match.MatchRemarkEnum;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.enums.payment.PaymentTypeEnum;
@@ -221,6 +222,7 @@ public class BorrowServiceImpl implements BorrowService {
     private Result buildBorrowMatchReq(Borrow borrow, FinanceMatchReq borrowMatchReq) {
         logger.debug("【构建借款撮合开始】borrow=" + borrow);
         Result result = Result.error();
+        borrowMatchReq.setType(FinanceMatchReqTypeEnum.BORROW.getType());//借款
         String borrowId = String.valueOf(borrow.getId());
         borrowMatchReq.setFinanceCustomerName(borrow.getCustomerName());//借款人姓名
         borrowMatchReq.setFinanceAmt(borrow.getBorrowAmt());//借款金额

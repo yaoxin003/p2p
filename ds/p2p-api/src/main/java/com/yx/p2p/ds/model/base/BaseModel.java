@@ -1,7 +1,7 @@
 package com.yx.p2p.ds.model.base;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
+import tk.mybatis.mapper.annotation.KeySql;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;

@@ -3,10 +3,12 @@ package com.yx.p2p.ds.service;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
 import com.yx.p2p.ds.model.invest.Invest;
+import com.yx.p2p.ds.model.invest.InvestClaim;
 import com.yx.p2p.ds.mq.InvestMQVo;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description:
@@ -30,6 +32,10 @@ public interface InvestService {
 
     public Invest getInvestByInvestId(Integer investId);
 
+    public List<InvestClaim> getInvestClaimList(InvestClaim investClaim);
+
     //放款通知
     public Result loanNotice(HashMap<String, String> loanMap);
+
+    public void updateBizStateByTransferId(Integer transferId, InvestBizStateEnum transferSuc);
 }

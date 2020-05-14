@@ -29,6 +29,8 @@
                                 var str = "";
                                 if(row.bizState == '1'){
                                     str = "<a href='#' name='paymentOpr' onclick='payment(" + row.id + "," + row.customerId + "," + row.investAmt + ","+ row.customerBankId + ")'></a>";
+                                }else if(row.bizState == '5'){
+                                    str = "<a href='#' name='transferOpr' onclick='transfer(" + row.id + ")'></a>";
                                 }
                                 return str;
                             }
@@ -62,6 +64,7 @@
                     loadMsg : '数据正在加载，请耐心等待……',
                     onLoadSuccess: function (data) {
                         $("a[name='paymentOpr']").linkbutton({'text':'付','plain':true,iconCls:'icon-add'});
+                        $("a[name='transferOpr']").linkbutton({'text':'赎','plain':true,iconCls:'icon-add'});
                     }
                 });
             }
@@ -97,10 +100,31 @@
                 str = "投资成功";
             }else if (value== '3'){
                 str = "投资撤销";
+            }else if(value=='5'){
+                str = "满额";
+            }else if(value=='6'){
+                str = "赎回";
             }else{
                 str = "未知";
             }
             return str;
+        }
+
+        //投资列表“赎”按钮
+        function transfer(investId){
+            $.ajax({
+                type:'post',
+                url : '/invest/transferApply',
+                data : { investId : investId},
+                cache: false,
+                success :function(result){
+                    if(result.status == 'ok'){
+                        messger_show_center('提示信息','投资赎回申请已发送！');
+                    }else{
+                        messger_show_center('错误信息',result.selfMsg);
+                    }
+                }
+            });
         }
         </script>
     </div>

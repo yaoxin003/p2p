@@ -37,7 +37,7 @@ RocketMQ4.5.1（NameSrv和Broker）
     启动Broker方式：nohup sh mqbroker -n 192.168.1.121:9876 > nohup_broker.out &
     控制台路径：cd /usr/local/rocketmq-externals-master/rocketmq-console/target
     #启动方式：java -jar ./rocketmq-console-ng-1.0.1.jar
-    后台启动方式：nohup java -jar ./rocketmq-console-ng-1.0.1.jar > nohup_rocketmq.out &
+    后台启动方式：nohup java -jar rocketmq-console-ng-1.0.1.jar > nohup_rocketmq.out &
     控制台地址：http://192.168.1.121:7082
     
 
