@@ -37,7 +37,8 @@ public class FinanceMatchReqServiceImpl implements FinanceMatchReqService {
      */
     public Result dealFinanceMatch(FinanceMatchReq financeMatchReq,List<InvestMatchReq> resNoMatchInvestReqList,
                                    List<InvestMatchReq> resMatchedInvestReqList,List<FinanceMatchRes> resFinanceMatchResList){
-        logger.debug("【准备进入融资撮合方法中】");
+        logger.debug("【准备进入融资撮合方法中】入参：financeMatchReq="+ financeMatchReq + ",resNoMatchInvestReqList=" + resNoMatchInvestReqList,
+                ",resMatchedInvestReqList=" + resMatchedInvestReqList + ",resFinanceMatchResList=" + resFinanceMatchResList);
         Result result = Result.error();
         BigDecimal zero = BigDecimal.ZERO;
         String fOrderSn = financeMatchReq.getFinanceOrderSn();
@@ -117,6 +118,7 @@ public class FinanceMatchReqServiceImpl implements FinanceMatchReqService {
         financeMatchRes.setBorrowProductName(financeMatchReq.getBorrowProductName());
         financeMatchRes.setBorrowYearRate(financeMatchReq.getBorrowYearRate());
         financeMatchRes.setFinanceBizId(financeMatchReq.getFinanceBizId());
+        financeMatchRes.setFinanceExtBizId(financeMatchReq.getFinanceExtBizId());
         financeMatchRes.setFinanceOrderSn(financeMatchReq.getFinanceOrderSn());
         financeMatchRes.setInvestBizId(investReq.getInvestBizId());
         financeMatchRes.setInvestMatchId(investReq.getId());

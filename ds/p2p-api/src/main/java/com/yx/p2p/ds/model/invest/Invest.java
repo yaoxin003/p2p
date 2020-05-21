@@ -18,6 +18,18 @@ import java.util.Date;
 @Table(name="p2p_invest")
 public class Invest extends BaseModel implements Serializable {
 
+    //----------------投资信息----------------
+    private BigDecimal investAmt;//投资金额
+    private BigDecimal profit;//收益
+    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
+    private Date startDate;//投资开始日期
+    /**
+     * 投资类型1-固定期限：非null，当前日期+1+InvestProduct.dayCount
+     * 投资类型2-非固定期限：null
+     */
+    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
+    private Date endDate;//投资到期日期
+
     //----------------投资产品信息----------------
     private Integer investProductId;//投资产品编号(p2p_invest_product表主键)
     private String investProductName; //理财产品名称
@@ -36,19 +48,6 @@ public class Invest extends BaseModel implements Serializable {
     private String bankCode;//银行编码(p2p_payment_base_bank表中bankCode字段)
     private String bankAccount;//银行账户
     private String phone;//绑定手机号
-
-
-    //----------------投资信息----------------
-    private BigDecimal investAmt;//投资金额
-    private BigDecimal profit;//收益
-    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
-    private Date startDate;//投资开始日期
-    /**
-     * 投资类型1-固定期限：非null，当前日期+1+InvestProduct.dayCount
-     * 投资类型2-非固定期限：null
-     */
-    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
-    private Date endDate;//投资到期日期
 
     public Integer getInvestProductId() {
         return investProductId;

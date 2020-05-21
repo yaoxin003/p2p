@@ -15,18 +15,23 @@ import java.math.BigDecimal;
 @Table(name="p2p_invest_claim")
 public class InvestClaim extends BaseModel implements Serializable{
 
-    private Integer investId;//投资编号
-    private Integer lendingId;//出借单编号
-    private Integer borrowId;//借款编号
-    private Integer customerId;//客户编号
-    private String customerName;//客户姓名
+
+    //----------------撮合信息----------------
     private BigDecimal buyAmt;//买入金额
     private BigDecimal claimAmt;//债权金额：会增值变化
     private BigDecimal holdShare;//持有比例
+    private Integer parentId;//父投资债权编号：新借款为0/转让为父编号
+    //----------------投资信息信息----------------
+    private Integer investId;//投资编号
+    private Integer lendingId;//出借单编号
+    //----------------借款信息----------------
+    private Integer borrowId;//借款编号
+    private Integer customerId;//借款客户编号
+    private String customerName;//借款客户姓名
     private Integer borrowProductId;//借款产品编号
     private String borrowProductName;//借款产品名称
     private BigDecimal borrowYearRate;//贷款年利率
-    private Integer parentId;//父投资债权编号：新借款为0/转让为父编号
+
 
     @Override
     public boolean equals(Object obj) {

@@ -17,4 +17,6 @@ public class SysConstant {
 
     public static final Integer BIGDECIMAL_DIVIDE_ROUNDMODE_13 = 13;
 
+    /*--------------------mongoDB参数--------------------*/
+    public static final Integer DEBT_DAILY_VALUE_MONGO_PAGE_COUNT = 3;//债务某日价值分页数量
 }

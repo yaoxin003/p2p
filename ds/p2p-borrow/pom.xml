@@ -30,6 +30,17 @@
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 
+		<!--MongoDB-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-sync</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>com.yx.p2p.ds</groupId>
 			<artifactId>p2p-web-util</artifactId>

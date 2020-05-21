@@ -30,6 +30,7 @@ import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.BorrowProductService;
 import com.yx.p2p.ds.service.BorrowService;
+import com.yx.p2p.ds.service.DebtDailyValueService;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
@@ -72,6 +73,9 @@ public class BorrowServiceImpl implements BorrowService {
     @Autowired
     private BorrowContractVoMapper borrowContractVoMapper;
 
+    @Autowired
+    private DebtDailyValueService debtDailyValueService;
+
     @Reference
     private FinanceMatchReqServer financeMatchReqServer;
 
@@ -84,10 +88,10 @@ public class BorrowServiceImpl implements BorrowService {
     @Reference
     private InvestServer investServer;
 
-
     /**
         * @description: 借款签约
         *  1.事务操作：添加借款数据,借款和现金流
+         *  2.添加债务每日价值(MongoDB)不抛出异常，不影响其他业务
         *  2.调用撮合系统发送借款撮合（幂等性接口：多次调用若撮合成功反复调用都为成功且返回撮合结果）
         * 3.更新借款状态为已签约，借款状态更新失败不会影响添加借款和调用借款撮合
         * @author:  YX
@@ -99,12 +103,25 @@ public class BorrowServiceImpl implements BorrowService {
     public Result sign(Borrow borrow) {
         logger.debug("【借款签约】borrow=" + borrow);
         //事务操作：添加借款数据,借款和现金流
-        Result result = this.addBorrowAndCashflow(borrow);
+        List<Cashflow> cashflows = new ArrayList<>();
+        Result result = this.addBorrowAndCashflow(borrow,cashflows);
         if(Result.checkStatus(result)){
+            //添加债务每日价值(开启新线程插入MongoDB)
+            this.addBatchDebtDailyValueByNewThread(borrow, cashflows);
             //发送借款撮合并签约
             result = this.sendBorrowMatchAndSign(borrow);
         }
         return result;
+    }
+
+    private void addBatchDebtDailyValueByNewThread(Borrow borrow, List<Cashflow> cashflows) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                logger.debug("【开启一个新线程：批量添加债务每日价值】");
+                debtDailyValueService.addBatchDebtDailyValue(borrow, cashflows);
+            }
+        }).start();
     }
 
     //发送借款撮合并签约
@@ -199,11 +216,11 @@ public class BorrowServiceImpl implements BorrowService {
 
     //事务操作：添加借款数据,借款和现金流
     @Transactional
-    private Result addBorrowAndCashflow(Borrow borrow) {
+    private Result addBorrowAndCashflow(Borrow borrow,List<Cashflow> cashflows) {
         //添加借款数据
         Result result = this.addNewBorrow(borrow);
         //添加现金流
-        result = this.addCashflow(borrow);
+        result = this.addCashflow(borrow,cashflows);
         return result;
     }
 
@@ -227,6 +244,7 @@ public class BorrowServiceImpl implements BorrowService {
         borrowMatchReq.setFinanceCustomerName(borrow.getCustomerName());//借款人姓名
         borrowMatchReq.setFinanceAmt(borrow.getBorrowAmt());//借款金额
         borrowMatchReq.setFinanceBizId(borrowId);
+        borrowMatchReq.setFinanceExtBizId(borrowId);
         borrowMatchReq.setFinanceCustomerId(borrow.getCustomerId());
         borrowMatchReq.setLevel(FinanceMatchReqLevelEnum.BORROW.getLevel());
         borrowMatchReq.setFinanceOrderSn(borrowId);
@@ -242,9 +260,8 @@ public class BorrowServiceImpl implements BorrowService {
     }
 
     //添加现金流
-    private Result addCashflow(Borrow borrow) {
+    private Result addCashflow(Borrow borrow,List<Cashflow> cashflows) {
         //构建现金流
-        List<Cashflow> cashflows = new ArrayList<>();
         Result result = this.buildCashflow(borrow,cashflows);
         this.insertCashFlowList2DB(cashflows);
         return result;
@@ -282,18 +299,24 @@ public class BorrowServiceImpl implements BorrowService {
         //还款
         BigDecimal remainPrincipal = borrow.getBorrowAmt();//总剩余本金
         BigDecimal paidPrincipal = zero;//已还本金
+        Date tradeDate =  borrow.getFirstReturnDate();
         for(int i=1; i <= borrowMonthCount; i++){
             Cashflow returnFlow = new Cashflow();
             returnFlow.setBorrowId(borrow.getId());
             returnFlow.setReturnDateNo(i);//还款日期编号(借款为0，还款从1开始)
-            returnFlow.setTradeDate(borrow.getStartDate());//交易日期：借款开始日期/还款日期
+            //交易日期：借款开始日期/还款日期
+            if(i==1){
+                returnFlow.setTradeDate(tradeDate);//交易日期：借款开始日期
+            }else{
+                tradeDate = DateUtil.addMonth(tradeDate,1);
+                returnFlow.setTradeDate(tradeDate);//交易日期：还款日期
+            }
             returnFlow.setManageFee(borrow.getMonthManageFee());//月管理费
             returnFlow.setMonthPayment(borrow.getMonthPayment());//月供：借款金额/月供
             //月利息=总剩余本金*月利率
             BigDecimal monthRate =
                     BigDecimalUtil.divide4(borrow.getMonthRate(),new BigDecimal("100"));//月利率
-            BigDecimal monthInterest = remainPrincipal.multiply(monthRate);
-
+            BigDecimal monthInterest = BigDecimalUtil.round2In45(remainPrincipal.multiply(monthRate));
             returnFlow.setInterest(monthInterest);//月利息
             //月本金=月本息-月利息
             BigDecimal monthPrincipal =
@@ -434,18 +457,17 @@ public class BorrowServiceImpl implements BorrowService {
 
         Date firstReturnDate = startDate;
         if(monthReturnDay <= 15){
-            firstReturnDate = DateUtil.setDayOfDate(firstReturnDate,28);
-            logger.debug("if==>firstReturnDate=" + firstReturnDate);
-        }else{
             firstReturnDate = DateUtil.setDayOfDate(firstReturnDate,15);
-            logger.debug("else1==>firstReturnDate=" + firstReturnDate);
             firstReturnDate = DateUtil.addMonth(firstReturnDate,1);
-            logger.debug("else2==>firstReturnDate=" + firstReturnDate);
+        }else{
+            firstReturnDate = DateUtil.setDayOfDate(firstReturnDate,28);
+            firstReturnDate = DateUtil.addMonth(firstReturnDate,1);
         }
+        monthReturnDay = DateUtil.getDay(firstReturnDate);
         borrow.setMonthReturnDay(monthReturnDay);
         borrow.setFirstReturnDate(firstReturnDate);
-        logger.debug("【每月还款日】monthReturnDay=" + monthReturnDay);
-        logger.debug("【首个还款日期】firstReturnDate=" + DateUtil.dateYMD2Str(firstReturnDate));
+        logger.debug("【每月还款日】monthReturnDay=" + borrow.getMonthReturnDay());
+        logger.debug("【首个还款日期】firstReturnDate=" + DateUtil.dateYMD2Str(borrow.getFirstReturnDate()));
     }
 
     //总管理费=总借款费用-总利息

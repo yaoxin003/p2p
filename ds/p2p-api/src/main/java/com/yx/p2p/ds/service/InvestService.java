@@ -37,5 +37,4 @@ public interface InvestService {
     //放款通知
     public Result loanNotice(HashMap<String, String> loanMap);
 
-    public void updateBizStateByTransferId(Integer transferId, InvestBizStateEnum transferSuc);
 }

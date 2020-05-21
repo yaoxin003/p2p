@@ -15,6 +15,7 @@ import com.yx.p2p.ds.server.FinanceMatchReqServer;
 import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.service.BorrowMatchReqService;
 import com.yx.p2p.ds.service.FinanceMatchReqService;
+import com.yx.p2p.ds.service.InvestMatchReqService;
 import com.yx.p2p.ds.service.TransferMatchReqService;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
@@ -53,6 +54,9 @@ public class TransferMatchReqServiceImpl implements TransferMatchReqService {
     private BorrowMatchReqService borrowMatchReqService;
 
     @Autowired
+    private InvestMatchReqService investMatchReqService;
+
+    @Autowired
     private FinanceMatchReqService financeMatchReqService;
 
     @Autowired
@@ -83,19 +87,19 @@ public class TransferMatchReqServiceImpl implements TransferMatchReqService {
     //5.事务操作：更新投资撮合请求集合，更新转让撮合请求，批量插入转让撮合结果
     //6.债权交割(MQ)
     @Override
-    @Transactional
     public Result transferMatchReq(List<Map<String,Object>> transferMatchReqMapList) {
         Result result = Result.error();
         logger.debug("【解析MQ转让撮合请求】入参：transferMatchReqMapList=" + transferMatchReqMapList);
         for (Map<String, Object> transferMatchReqMap : transferMatchReqMapList) {
             String transferIdStr = (String)transferMatchReqMap.get("transferId");
+            String financeExtBizId = (String)transferMatchReqMap.get("financeExtBizId");
             List<Map<String,String>> transferMatchReqList =
                     (List<Map<String,String>>)transferMatchReqMap.get("transferList");
-            List<FinanceMatchReq> financeMatchReqList = this.buildFinanceMatchReqList(transferMatchReqList);
+            List<FinanceMatchReq> financeMatchReqList = this.buildFinanceMatchReqList(financeExtBizId,transferMatchReqList);
             //1.查询是否已经转让撮合，若未撮合：
             //2.加撮合锁redis
             //3.判断投资金额是否大于转让债权集合金额，若大于：
-            List<InvestMatchReq> resNoMatchInvestReqList = borrowMatchReqService.getWaitMatchAmtInvestReqList();//未撮投资
+            List<InvestMatchReq> resNoMatchInvestReqList = investMatchReqService.getWaitMatchAmtInvestReqList();//未撮投资
             result = this.checkTransfer(financeMatchReqList,resNoMatchInvestReqList);
             if(Result.checkStatus(result)){
                 //4.循环撮合转让债权集合中的每笔债权
@@ -122,7 +126,7 @@ public class TransferMatchReqServiceImpl implements TransferMatchReqService {
                 logger.debug("【resAllFinanceMatchResList=】" + resAllFinanceMatchResList);
 
                 //封装债权交割MQListener 入参List<Map<String,Object>>
-                Map<String,Object> changeClaimMap = this.buildChangeClaimMapList(transferIdStr,resAllFinanceMatchResList);
+                Map<String,Object> changeClaimMap = this.buildChangeClaimMapList(transferIdStr,financeExtBizId,resAllFinanceMatchResList);
                 //6.债权交割MQ
                 logger.debug("【changeClaimMap=】" + changeClaimMap);
                 this.sendChangeClaimMQ(transferIdStr,changeClaimMap);
@@ -150,34 +154,38 @@ public class TransferMatchReqServiceImpl implements TransferMatchReqService {
     }
 
     //构建债权交割MQ参数
-    private Map<String,Object> buildChangeClaimMapList(String transferId,List<FinanceMatchRes> resAllFinanceMatchResList) {
+    private Map<String,Object> buildChangeClaimMapList(String transferId,String financeExtBizId,
+                                                       List<FinanceMatchRes> resAllFinanceMatchResList) {
         Map<String,Object> outMap = new HashMap<>();
         outMap.put("transferId",transferId);
+        outMap.put("financeExtBizId",financeExtBizId);
         List<Map<String,String>> outList = new ArrayList<>();
         for (FinanceMatchRes financeMatchRes : resAllFinanceMatchResList) {
             Map<String,String> inMap = new HashMap<>();
-            inMap.put("transferId",transferId);
-            inMap.put("customerId",String.valueOf(financeMatchRes.getFinanceCustomerId()));
-            inMap.put("customerName",financeMatchRes.getFinanceCustomerName());
-            inMap.put("investId",financeMatchRes.getInvestBizId());
-            inMap.put("lendingId",financeMatchRes.getInvestOrderSn());
-            inMap.put("borrowId",financeMatchRes.getFinanceBizId());
+            inMap.put("financeCustomerId",String.valueOf(financeMatchRes.getFinanceCustomerId()));
+            inMap.put("financeCustomerName",financeMatchRes.getFinanceCustomerName());
+            inMap.put("financeBizId",transferId);
+            inMap.put("financeOrderSn",financeMatchRes.getFinanceOrderSn());
+            inMap.put("investCustomerId",String.valueOf(financeMatchRes.getInvestCustomerId()));
+            inMap.put("investCustomerName",financeMatchRes.getInvestCustomerName());
+            inMap.put("investBizId",financeMatchRes.getInvestBizId());
+            inMap.put("investOrderSn",financeMatchRes.getInvestOrderSn());
             inMap.put("tradeAmt",String.valueOf(financeMatchRes.getTradeAmt()));//tradeAmt
+            inMap.put("matchShare",String.valueOf(financeMatchRes.getMatchShare()));
             inMap.put("borrowProductId",String.valueOf(financeMatchRes.getBorrowProductId()));
             inMap.put("borrowProductName",financeMatchRes.getBorrowProductName());
             inMap.put("borrowYearRate",String.valueOf(financeMatchRes.getBorrowYearRate()));
-            inMap.put("matchShare",String.valueOf(financeMatchRes.getMatchShare()));
-            inMap.put("investClaimId",financeMatchRes.getFinanceOrderSn());
             outList.add(inMap);
         }
         outMap.put("transferList",outList);
         return outMap;
     }
 
-    private List<FinanceMatchReq> buildFinanceMatchReqList(List<Map<String, String>> transferMatchReqList) {
+    private List<FinanceMatchReq> buildFinanceMatchReqList( String financeExtBizId,List<Map<String, String>> transferMatchReqList) {
         List<FinanceMatchReq> financeMatchReqList = new ArrayList<>();
         for (Map<String, String> map : transferMatchReqList) {
             FinanceMatchReq financeMatchReq = new FinanceMatchReq();
+            financeMatchReq.setFinanceExtBizId(financeExtBizId);
             try {
                 BeanUtils.copyProperties(financeMatchReq,map);
             } catch (Exception e) {
@@ -186,7 +194,7 @@ public class TransferMatchReqServiceImpl implements TransferMatchReqService {
             BeanHelper.setAddDefaultField(financeMatchReq);
             financeMatchReqList.add(financeMatchReq);
         }
-        logger.debug("【构建融资撮合请求集合】financeMatchReqList=" + financeMatchReqList);
+        logger.debug("【构建融资撮合请求集合】结果：financeMatchReqList=" + financeMatchReqList);
         return financeMatchReqList;
     }
 
@@ -213,6 +221,7 @@ public class TransferMatchReqServiceImpl implements TransferMatchReqService {
 
 
     //5.事务操作：更新投资撮合请求集合，更新转让撮合请求，批量插入转让撮合结果
+    @Transactional
     public Result updateInvestAndTransferAndAddResMatch(List<InvestMatchReq> resMatchedInvestReqList,
              List<FinanceMatchReq> financeMatchReqList, Map<String,List<FinanceMatchRes>> resFinanceMatchResMap,
                                                         List<FinanceMatchRes> resFinanceMatchResList){

@@ -19,6 +19,8 @@ public class FinanceMatchReq extends BaseModel implements Serializable{
 
     private String financeBizId;//融资业务编号:借款编号/转让协议编号
 
+    private String financeExtBizId;//融资扩展业务编号:借款编号/转让投资编号（撮合系统不使用该字段，给账户系统和投资系统使用）
+
     private String financeOrderSn;//融资订单编号:借款编号/转让协议明细编号
 
     private BigDecimal financeAmt;//融资金额:借款金额/转让协议明细金额
@@ -59,6 +61,14 @@ public class FinanceMatchReq extends BaseModel implements Serializable{
 
     public void setFinanceBizId(String financeBizId) {
         this.financeBizId = financeBizId;
+    }
+
+    public String getFinanceExtBizId() {
+        return financeExtBizId;
+    }
+
+    public void setFinanceExtBizId(String financeExtBizId) {
+        this.financeExtBizId = financeExtBizId;
     }
 
     public String getFinanceOrderSn() {
@@ -139,6 +149,7 @@ public class FinanceMatchReq extends BaseModel implements Serializable{
                 "financeCustomerId=" + financeCustomerId +
                 ", financeCustomerName=" + financeCustomerName +
                 ", financeBizId='" + financeBizId + '\'' +
+                ", financeExtBizId='" + financeExtBizId + '\'' +
                 ", financeOrderSn='" + financeOrderSn + '\'' +
                 ", financeAmt=" + financeAmt +
                 ", waitAmt=" + waitAmt +

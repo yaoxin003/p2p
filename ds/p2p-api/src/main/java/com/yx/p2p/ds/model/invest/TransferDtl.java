@@ -1,10 +1,12 @@
 package com.yx.p2p.ds.model.invest;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yx.p2p.ds.model.base.BaseModel;
 
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 
 /**
  * @description:转让协议明细
@@ -14,16 +16,25 @@ import java.math.BigDecimal;
 @Table(name="p2p_transfer_dtl")
 public class TransferDtl extends BaseModel implements Serializable{
 
-    private Integer transferId;//转让协议编号
+    //----------------转让协议编号----------------
+    private Integer transferId;
+
     //----------------投资债权明细----------------
     private Integer investClaimId;//投资债权明细编号
-    private Integer investId;//投资编号
-    private Integer lendingId;//出借单编号
-    private Integer borrowId;//借款编号
-    private Integer customerId;//客户编号
-    private String customerName;//客户姓名
+
+    //----------------撮合信息----------------
     private BigDecimal buyAmt;//买入金额
     private BigDecimal holdShare;//持有比例
+
+    //----------------投资信息信息----------------
+    private Integer investId;//投资编号
+    private Integer lendingId;//出借单编号
+
+
+    //----------------借款信息----------------
+    private Integer borrowId;//借款编号
+    private Integer customerId;//借款客户编号
+    private String customerName;//借款客户姓名
     private Integer borrowProductId;//借款产品编号
     private String borrowProductName;//借款产品名称
     private BigDecimal borrowYearRate;//贷款年利率

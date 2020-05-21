@@ -14,8 +14,10 @@ Java版本：JDK1.8.0_131
 系统技术：
 SpringBoot2.1.0.RELEASE+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4，
 Dubbo2.6.0+Zookeeper3.4.8
+MySQL+MongoDB3.4
 Redis4.0.14+Elastic Search
 Nginx+RocketMQ4.5.1
+
 SHA加签验签，RSA非对称加密解密
 
 #--------------------linux环境下服务安装路径和启动方法--------------------
@@ -39,6 +41,10 @@ RocketMQ4.5.1（NameSrv和Broker）
     #启动方式：java -jar ./rocketmq-console-ng-1.0.1.jar
     后台启动方式：nohup java -jar rocketmq-console-ng-1.0.1.jar > nohup_rocketmq.out &
     控制台地址：http://192.168.1.121:7082
+启动mongodb
+     路径：cd /usr/local/mongodb-linux-x86_64-3.4.18/bin/
+     启动: ./mongod -f mdb.conf
+     
     
 
 #--------------------服务名称和端口号--------------------
@@ -120,6 +126,11 @@ key=crm_info_idcard_*** value=json(crm对象)
 发送支付结果到MQ（给Invest和Account系统）
 
 七.账户管理
+简述：
+投资充值：投资人：投资活期户增。
+借款放款：借款人：投资活期户减，投资债权户增。
+转让交割：受让人：投资活期户增，投资债权户减。
+          转让人：投资活期户减，投资债权户增。
 1.开户（MQ）
 验证是否已经开户
 未开户则添加主账户
@@ -132,6 +143,8 @@ key=crm_info_idcard_*** value=json(crm对象)
 更新操作：借款人债务金额增加；
 插入：投资人活期子账户流水，活期子账户；投资人债权子账户流水，债权子账户。
 更新操作：投资人活期金额减，债权金额加。
+
+
 
 
 

@@ -515,8 +515,5 @@ public class InvestServiceImpl implements InvestService {
         return investClaimList;
     }
 
-    @Override
-    public void updateBizStateByTransferId(Integer transferId, InvestBizStateEnum InvestBizStateEnum) {
-        investMapper.updateBizStateByTransferId( transferId,InvestBizStateEnum.getState());
-    }
+
 }

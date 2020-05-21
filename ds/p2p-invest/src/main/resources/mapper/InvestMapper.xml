@@ -38,9 +38,4 @@
       <include refid="investCondition"/>
     </select>
 
-    <update id="updateBizStateByTransferId" >
-      update p2p_invest i set i.biz_state=#{bizState}
-      where i.id=(select t.id from p2p_transfer t where t.id=#{transferId})
-    </update>
-
 </mapper>

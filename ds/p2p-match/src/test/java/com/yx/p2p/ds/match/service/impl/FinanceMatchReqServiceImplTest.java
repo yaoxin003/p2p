@@ -4,6 +4,7 @@ import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.match.P2pMatchApplication;
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
 import com.yx.p2p.ds.service.BorrowMatchReqService;
+import com.yx.p2p.ds.service.InvestMatchReqService;
 import com.yx.p2p.ds.util.TestUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +26,9 @@ public class FinanceMatchReqServiceImplTest {
     @Autowired
     private BorrowMatchReqService borrowMatchReqService;
 
+    @Autowired
+    private InvestMatchReqService investMatchReqService;
+
     @Test
     public void testSelectWaitMatchAmtInvestReqList(){
         Class<?>[] methodParamClass =  new Class[1];
@@ -32,7 +36,7 @@ public class FinanceMatchReqServiceImplTest {
 
         Object[] methodParamObj = new Object[]{new FinanceMatchReq()};
 
-        TestUtil.invokePrivateMethodParms(borrowMatchReqService,
+        TestUtil.invokePrivateMethodParms(investMatchReqService,
                 "getWaitMatchAmtInvestReqList",
                 methodParamClass,methodParamObj);
     }

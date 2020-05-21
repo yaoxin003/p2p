@@ -20,7 +20,7 @@ public class Payment extends BaseModel implements Serializable {
     private String orderSn;//订单（系统前缀+年月日时分秒毫秒+时间戳）
     private String systemSource;//系统来源
     private BigDecimal amount;//金额
-    private Integer type;//类型：PaymentTypeEnum投资充值，借款放款，转让提现
+    private Integer type;//类型：PaymentTypeEnum投资充值，借款代付，转让代付
     private String remark;//备注 PaymentTypeEnum.codeDesc
     //客户信息
     private Integer customerId;//客户编号

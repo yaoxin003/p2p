@@ -458,17 +458,16 @@ public class PaymentServiceImpl implements PaymentService {
         Result result = Result.error();
         Message message = new Message(payBorrowTopic, payBorrowSucTag, mqKey, mqJSON.getBytes());
         SendResult sendResult = null;
-        DefaultMQProducer producer2 = null;
+        DefaultMQProducer producer = null;
         try {
-            //sendResult = rocketMQTemplate.getProducer().send(message);
-            producer2 = rocketMQTemplate.getProducer();
-            producer2.setProducerGroup(payBorrowProducerGroup);
-            sendResult = producer2.send(message);
+            producer = rocketMQTemplate.getProducer();
+            producer.setProducerGroup(payBorrowProducerGroup);
+            sendResult = producer.send(message);
             result = Result.success();
         } catch (Exception e) {
             result = LoggerUtil.addExceptionLog(e,logger);
         }
-        logger.debug("【发送放款支付结果MQ】，producer2=" + producer2.getProducerGroup() +
+        logger.debug("【发送放款支付结果MQ】，producer=" + producer.getProducerGroup() +
                 "，topic="+ payBorrowTopic + ",tag=" + payBorrowSucTag + ",message=" + message);
         logger.debug("【发送放款支付结果MQ】，sendResult" + sendResult);
         return result;

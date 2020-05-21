@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * @description:借款明细（保存了借款和投资信息，数据来源于撮合和投资）
+ * @description:原始借款合同借款明细（保存了借款和投资信息，数据来源于撮合和投资。）
  * @author: yx
  * @date: 2020/05/04/8:20
  */

@@ -37,8 +37,8 @@ public class InvestServiceImplTest {
 
     @Test
     public void testUpdateBizStateByTransferId(){
-        Integer transferId = 99;
+        Integer investId = 99;
         InvestBizStateEnum bizStateEnum = InvestBizStateEnum.TRANSFER_SUC;
-        investService.updateBizStateByTransferId(transferId,bizStateEnum);
+        investService.updateInvestBizState(investId,bizStateEnum);
     }
 }

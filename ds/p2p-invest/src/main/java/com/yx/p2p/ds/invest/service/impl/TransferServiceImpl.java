@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -139,6 +140,13 @@ public class TransferServiceImpl implements TransferService {
         return vo;
     }
 
+    private Transfer getTransfer(Integer transferId){
+        Transfer paramT = new Transfer();
+        paramT.setId(transferId);
+        Transfer transfer = transferMapper.selectOne(paramT);
+        return transfer;
+    }
+
     private Result dealTransferMatch(TransferContractVo resTransferContractVo) {
         Result result = Result.error();
         List<Map<String,Object>> transferMatchMapList = this.buildTransferMatchMap(resTransferContractVo);
@@ -176,12 +184,13 @@ public class TransferServiceImpl implements TransferService {
         List<Map<String,Object>> transferMatchReqMapList = new ArrayList<>();
         Map<String,Object> transferMatchReqMap = new HashMap<>();
         transferMatchReqMap.put("transferId",String.valueOf(resTransferContractVo.getTransfer().getId()));
-        transferMatchReqMap.put("transferAmt",String.valueOf(resTransferContractVo.getTransfer().getTransferAmt()));
+        //转让人投资编号
+        transferMatchReqMap.put("financeExtBizId",String.valueOf(resTransferContractVo.getTransfer().getInvestId()));
         List<Map<String,String>> transferMatchReqList = new ArrayList<>();
         for (TransferDtlSaleBefore transferDtlSB : transferDtlSBList) {
             Map<String,String> transferMatchMap = new HashMap<>();
-            transferMatchMap.put("financeCustomerId",String.valueOf(transferDtlSB.getCustomerId()));
-            transferMatchMap.put("financeCustomerName",transferDtlSB.getCustomerName());
+            transferMatchMap.put("financeCustomerId",String.valueOf(transfer.getCustomerId()));
+            transferMatchMap.put("financeCustomerName",transfer.getCustomerName());
             transferMatchMap.put("financeBizId",String.valueOf(transferId));
             transferMatchMap.put("financeOrderSn",String.valueOf(transferDtlSB.getInvestClaimId()));//p2p_invest_claim.id
             transferMatchMap.put("financeAmt",String.valueOf(transferDtlSB.getClaimAmt()));
@@ -276,33 +285,86 @@ public class TransferServiceImpl implements TransferService {
         return transferDtlSBList;
     }
 
-      //投资债权交割
+    /**
+        * @description: 投资债权交割
+        *  幂等性验证：检查没有投资债权交割
+        *  检查并处理出借单满额
+         *  批量插入协议明细
+         *  批量插入新投资持有债权明细历史
+         *  删除旧投资持有债权明细
+         *  变更协议状态为转让成功
+         *  变更投资状态为转让成功
+        * @author:  YX
+        * @date:    2020/05/15 17:29
+        * @param: paramClaimMap
+        * @return: com.yx.p2p.ds.easyui.Result
+        */
     public Result changeInvestclaim(Map<String, Object> paramClaimMap){
+        logger.debug("【投资债权交割】入参paramClaimMap=" + paramClaimMap);
         Result result = Result.error();
         Integer transferId = Integer.valueOf((String)paramClaimMap.get("transferId"));
-        //构建业务数据
-        List<Integer> resOldClaimIdList = new ArrayList<>();//旧投资债权明细Id，用于批量插入明细历史和删除明细
-        List<InvestClaim> resNewClaimList = new ArrayList<>();//新投资债权明细，用于批量插入数据库
-        HashMap<Integer,List<InvestClaim>> claimMap = new HashMap<>();
-        for (Map<String, String> inClaimMap : (List<Map<String, String>>)paramClaimMap.get("transferList")) {
-            this.genNewInvestClaimList(inClaimMap,claimMap);
+        Integer investId = Integer.valueOf((String)paramClaimMap.get("financeExtBizId"));
+        //幂等性验证：检查没有投资债权交割
+        result = this.checkNoChangeInvestClaim(transferId);
+        if(Result.checkStatus(result)){
+            //构建业务数据
+            List<Integer> resOldClaimIdList = new ArrayList<>();//旧投资债权明细Id，用于批量插入明细历史和删除明细
+            List<InvestClaim> resNewClaimList = new ArrayList<>();//新投资债权明细，用于批量插入数据库
+            HashMap<Integer,List<InvestClaim>> claimMap = new HashMap<>();
+            for (Map<String, String> inClaimMap : (List<Map<String, String>>)paramClaimMap.get("transferList")) {
+                this.genNewInvestClaimList(inClaimMap,claimMap);
+            }
+            //处理新投资债权明细的持有债权比例：新持有比例=原比例*撮合比例
+            result = this.dealHoldShare(claimMap,resOldClaimIdList,resNewClaimList);
+            logger.debug("债权交割数据：【resOldClaimIdList=】" + resOldClaimIdList);
+            logger.debug("债权交割数据：【resNewClaimList=】" + resNewClaimList);
+            //检查并处理出借单满额
+            result = lendingService.checkAndDealFullAmt(resNewClaimList);
+            //批量插入协议明细
+            result = this.genTransferDtl(transferId,resNewClaimList);
+            //批量插入新投资持有债权明细
+            investClaimMapper.insertList(resNewClaimList);
+            //批量插入新投资持有债权明细历史
+            investClaimHistoryService.genInvestClaimHistoryList(resNewClaimList);
+            //删除旧投资持有债权明细
+            investClaimMapper.deleteBatchInvestClaim(resOldClaimIdList);
+            //变更协议状态为转让成功
+            this.updateTransferBizState(transferId, TransferBizStateEnum.TRANSFER_SUC);
+            //变更投资状态为转让成功
+            investService.updateInvestBizState(investId,InvestBizStateEnum.TRANSFER_SUC);
         }
-        //处理新投资债权明细的持有债权比例：新持有比例=原比例*撮合比例
-        result = this.dealHoldShare(claimMap,resOldClaimIdList,resNewClaimList);
-        logger.debug("债权交割数据：【resOldClaimIdList=】" + resOldClaimIdList);
-        logger.debug("债权交割数据：【resNewClaimList=】" + resNewClaimList);
-        //检查并处理出借单满额
-        result = lendingService.checkAndDealFullAmt(resNewClaimList);
-        //批量插入新投资持有债权明细
-        investClaimMapper.insertList(resNewClaimList);
-        //批量插入新投资持有债权明细历史
-        investClaimHistoryService.genInvestClaimHistoryList(resNewClaimList);
-        //删除旧投资持有债权明细
-        investClaimMapper.deleteBatchInvestClaim(resOldClaimIdList);
-        //变更协议状态为已赎回
-        this.updateTransferBizState(transferId, TransferBizStateEnum.TRANSFER_SUC);
-        //变更投资状态为已赎回
-        investService.updateBizStateByTransferId(transferId,InvestBizStateEnum.TRANSFER_SUC);
+        return result;
+    }
+
+    private Result genTransferDtl(Integer transferId,List<InvestClaim> resNewClaimList) {
+        Result result = Result.error();
+        ArrayList<TransferDtl> transferDtlList = new ArrayList<>();
+        for (InvestClaim investClaim : resNewClaimList) {
+            TransferDtl transferDtl = new TransferDtl();
+            transferDtl.setTransferId(transferId);
+            try {
+                BeanUtils.copyProperties(transferDtl,investClaim);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+            transferDtl.setInvestClaimId(investClaim.getParentId());//旧持有债权比例编号
+            BeanHelper.setAddDefaultField(transferDtl);
+            transferDtlList.add(transferDtl);
+        }
+
+        transferDtlMapper.insertList(transferDtlList);
+        result = Result.success();
+        return result;
+    }
+
+    //幂等性验证：检查没有投资债权交割。如果协议状态为新增则继续操作
+    private Result checkNoChangeInvestClaim(Integer transferId) {
+        Result result = Result.error();
+        Transfer transfer = this.getTransfer(transferId);
+        if(transfer != null && TransferBizStateEnum.NEW_ADD.getState().equals(transfer.getBizState())){
+            result = Result.success();
+        }
         return result;
     }
 
@@ -318,21 +380,18 @@ public class TransferServiceImpl implements TransferService {
 
     private void genNewInvestClaimList(Map<String, String> paramClaimMap,
                                        HashMap<Integer, List<InvestClaim>> claimMap) {
-        Integer investClaimId = Integer.valueOf((String)paramClaimMap.get("investClaimId"));
         //插入新投资持有债权明细
         InvestClaim newClaim = new InvestClaim();
-        newClaim.setCustomerId(Integer.valueOf((String)paramClaimMap.get("customerId")));
-        newClaim.setCustomerName((String)paramClaimMap.get("customerName"));
-        newClaim.setInvestId(Integer.valueOf((String)paramClaimMap.get("investId")));
-        newClaim.setLendingId(Integer.valueOf((String)paramClaimMap.get("lendingId")));
-        newClaim.setBorrowId(Integer.valueOf((String)paramClaimMap.get("borrowId")));
+        Integer investClaimId = Integer.valueOf((String)paramClaimMap.get("financeOrderSn"));
+        newClaim.setParentId(investClaimId);
+        newClaim.setInvestId(Integer.valueOf((String)paramClaimMap.get("investBizId")));
+        newClaim.setLendingId(Integer.valueOf((String)paramClaimMap.get("investOrderSn")));
         newClaim.setBuyAmt(new BigDecimal((String)paramClaimMap.get("tradeAmt")));
         newClaim.setClaimAmt(newClaim.getBuyAmt());
-        newClaim.setBorrowYearRate(new BigDecimal((String)paramClaimMap.get("borrowYearRate")));
-        newClaim.setBorrowProductName((String)paramClaimMap.get("borrowProductName"));
-        newClaim.setBorrowProductId(Integer.valueOf((String)paramClaimMap.get("borrowProductId")));
         newClaim.setHoldShare(new BigDecimal((String)paramClaimMap.get("matchShare")));//临时设置一会需要根据该值修改
-        newClaim.setParentId(investClaimId);
+        newClaim.setBorrowProductId(Integer.valueOf((String)paramClaimMap.get("borrowProductId")));
+        newClaim.setBorrowProductName((String)paramClaimMap.get("borrowProductName"));
+        newClaim.setBorrowYearRate(new BigDecimal((String)paramClaimMap.get("borrowYearRate")));
 
         List<InvestClaim> investClaimList = claimMap.get(investClaimId);
         if(investClaimList == null){
@@ -351,19 +410,21 @@ public class TransferServiceImpl implements TransferService {
         //处理新投资债权明细的持有债权比例：新持有比例=原比例*撮合比例
         logger.debug("处理新投资债权明细的持有债权比例：新持有比例=原比例*撮合比例");
         for (Integer claimId : claimMap.keySet()) {
-            resOldClaimIdList.add(claimId);//
+            resOldClaimIdList.add(claimId);
+            InvestClaim oldClaim = investClaimMapper.selectByPrimaryKey(claimId);
             if(claimMap.get(claimId).size() == 1){//只有1条数据，说明撮合比例为1，不需要特殊处理
                 logger.debug("【转让撮合债权只有1条数据，说明撮合比例为1】");
                 InvestClaim newClaim = claimMap.get(claimId).get(0);
-                InvestClaim oldClaim = investClaimMapper.selectByPrimaryKey(claimId);
                 //新持有比例=原比例*撮合比例，因为撮合比例=1.
                 newClaim.setHoldShare(oldClaim.getHoldShare());
+                newClaim.setBorrowId(oldClaim.getBorrowId());
+                newClaim.setCustomerId(oldClaim.getCustomerId());
+                newClaim.setCustomerName(oldClaim.getCustomerName());
                 BeanHelper.setAddDefaultField(newClaim);
                 resNewClaimList.add(newClaim);
             }else{//撮合多余1条
                 logger.debug("【转让撮合债权大于1条数据，说明撮合比例为1】");
                 List<InvestClaim> newClaimList = claimMap.get(claimId);
-                InvestClaim oldClaim = investClaimMapper.selectByPrimaryKey(claimId);
                 BigDecimal remainHoldShare = oldClaim.getHoldShare();
                 int newClaimCount = newClaimList.size();
                 for(int i=0; i< newClaimCount; i++){
@@ -378,6 +439,9 @@ public class TransferServiceImpl implements TransferService {
                         newClaim.setHoldShare(newHoldShare);
                         remainHoldShare = remainHoldShare.subtract(newHoldShare);
                     }
+                    newClaim.setBorrowId(oldClaim.getBorrowId());
+                    newClaim.setCustomerId(oldClaim.getCustomerId());
+                    newClaim.setCustomerName(oldClaim.getCustomerName());
                     BeanHelper.setAddDefaultField(newClaim);
                     resNewClaimList.add(newClaim);
                 }

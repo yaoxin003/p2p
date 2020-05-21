@@ -14,6 +14,7 @@ import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.model.match.InvestMatchReq;
 import com.yx.p2p.ds.service.BorrowMatchReqService;
 import com.yx.p2p.ds.service.FinanceMatchReqService;
+import com.yx.p2p.ds.service.InvestMatchReqService;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,9 @@ public class BorrowMatchReqServiceImpl implements BorrowMatchReqService {
     @Autowired
     private FinanceMatchReqService financeMatchReqService;
 
+    @Autowired
+    private InvestMatchReqService investMatchReqService;
+
     //幂等性接口：借款撮合请求
     //1.借款撮合
     //2.事务操作：更新投资撮合请求，添加借款撮合请求和借款撮合结果
@@ -57,7 +61,7 @@ public class BorrowMatchReqServiceImpl implements BorrowMatchReqService {
         //处理借款撮合
         Result result = this.checkNoBorrowMatch(borrowMatchReq);//检查借款未撮合
         if(Result.checkStatus(result)){//未撮合
-            List<InvestMatchReq> resNoMatchInvestReqList = this.getWaitMatchAmtInvestReqList();
+            List<InvestMatchReq> resNoMatchInvestReqList = investMatchReqService.getWaitMatchAmtInvestReqList();
             List<InvestMatchReq> resMatchedInvestReqList = new ArrayList<>();
             List<FinanceMatchRes> resultBorrowMatchResList = new ArrayList<>();
             result = financeMatchReqService.dealFinanceMatch(borrowMatchReq,resNoMatchInvestReqList,resMatchedInvestReqList,resultBorrowMatchResList);
@@ -141,25 +145,6 @@ public class BorrowMatchReqServiceImpl implements BorrowMatchReqService {
         return result;
     }
 
-    public List<InvestMatchReq> getWaitMatchAmtInvestReqList() {
-        List<InvestMatchReq> investReqList = this.selectWaitMatchAmtInvestReqList();
-        return investReqList;
-    }
-
-    //查询数据库中投资撮合数据。
-    // where条件：状态新增或撮合中，排序：按照level倒序
-    private List<InvestMatchReq> selectWaitMatchAmtInvestReqList() {
-        Example example = new Example(InvestMatchReq.class);
-        List<String> bizStateList = new ArrayList<>();
-        bizStateList.add(InvestMatchReqBizStateEnum.NEW_ADD.getState());
-        bizStateList.add(InvestMatchReqBizStateEnum.MATCHING.getState());
-        example.createCriteria().andIn("bizState",bizStateList)
-                                .andGreaterThan("waitAmt",new BigDecimal("0"));
-        example.setOrderByClause("level desc");
-        List<InvestMatchReq> investReqList = investMatchReqMapper.selectByExample(example);
-        logger.debug("【查询数据库获得投资撮合请求】investReqList=" + investReqList);
-        return investReqList;
-    }
 
     //放款通知
     //幂等性检查：查询撮合请求数据的业务状态是否为撮合确认

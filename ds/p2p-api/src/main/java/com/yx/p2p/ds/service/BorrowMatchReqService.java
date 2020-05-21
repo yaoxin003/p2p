@@ -23,7 +23,5 @@ public interface BorrowMatchReqService {
     //放款通知
     public Result loanNotice(HashMap<String, String> loanMap);
 
-    //获得待撮合的投资撮合请求集合
-    public List<InvestMatchReq> getWaitMatchAmtInvestReqList();
 
 }

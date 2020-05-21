@@ -7,6 +7,7 @@ import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.model.account.*;
 import com.yx.p2p.ds.model.borrow.Borrow;
+import com.yx.p2p.ds.model.invest.InvestClaim;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.mq.MasterAccMQVo;
@@ -26,6 +27,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description:
@@ -349,8 +351,8 @@ public class AccountServiceImpl implements AccountService {
                 + ",borrowId=" + borrowId+ ",borrowMatchResList=" + borrowMatchResList);
         Result result = Result.error();
         //借款人主账户
-        this.dealLoanNoticeInvestCurrent(borrowId,borrowMatchResList);
-        this.dealLoanNoticeInvestClaim(borrowId,borrowMatchResList);
+        this.dealLoanNoticeInvestCurrent(borrowId,borrowMatchResList);//投资人活期户
+        this.dealLoanNoticeInvestClaim(borrowId,borrowMatchResList);//投资人债权户
         result = Result.success();
         return result;
     }
@@ -374,7 +376,15 @@ public class AccountServiceImpl implements AccountService {
             BeanHelper.setAddDefaultField(claimSubAccFlow);
             claimSubAccFlowList.add(claimSubAccFlow);
         }
-        //投资人债权子账户流水
+        //投资人债权户处理（债权增）：债权子账户，债权子账户流水
+        result = this.dealClaimAccount(claimSubAccFlowList);
+        result = Result.success();
+        return result;
+    }
+
+    //债权户处理：债权子账户，债权子账户流水
+    private Result dealClaimAccount(List<ClaimSubAccFlow> claimSubAccFlowList) {
+        Result result = Result.error();
         for(ClaimSubAccFlow claimSubAccFlow : claimSubAccFlowList){
             MasterAcc masterAcc = this.queryDBMasterAcc(claimSubAccFlow.getCustomerId());
             //更新投资人主账户债权金额
@@ -409,6 +419,7 @@ public class AccountServiceImpl implements AccountService {
         result = Result.success();
         return result;
     }
+
     //处理放款：投资人活期户
     //插入：投资人活期子账户流水，活期子账户
     private Result dealLoanNoticeInvestCurrent( String borrowId, List<FinanceMatchRes> borrowMatchResList) {
@@ -432,10 +443,19 @@ public class AccountServiceImpl implements AccountService {
             BeanHelper.setAddDefaultField(currentSubAccFlow);
             currentSubAccFlowList.add(currentSubAccFlow);
         }
+        //投资人活期户处理（活期减(加一个负值））：活期子账户，活期子账户流水
+        result =  this.dealCurrentAccount(currentSubAccFlowList);
+        result = Result.success();
+        return result;
+    }
+
+    //活期户处理：活期子账户，活期子账户流水
+    private Result dealCurrentAccount(List<CurrentSubAccFlow> currentSubAccFlowList) {
+        Result result = Result.error();
         //投资人活期子账户流水
         for(CurrentSubAccFlow currentSubAccFlow : currentSubAccFlowList){
             MasterAcc masterAcc = this.queryDBMasterAcc(currentSubAccFlow.getCustomerId());
-            //更新投资人主账户活期金额(加一个负值）
+            //更新投资人主账户活期金额
             MasterAcc paramMaster = new MasterAcc();
             paramMaster.setId(masterAcc.getId());
             paramMaster.setCurrentAmt(masterAcc.getCurrentAmt().add(currentSubAccFlow.getAmount()));
@@ -456,7 +476,7 @@ public class AccountServiceImpl implements AccountService {
                 currentSubAccMapper.insert(currentSubAcc);
             }else{//更新
                 currentSubAcc.setId(dbCurrentSubAcc.getId());
-                //更新投资人子账户活期金额(加一个负值）
+                //更新投资人子账户活期金额
                 currentSubAcc.setAmount(dbCurrentSubAcc.getAmount().add(currentSubAccFlow.getAmount()));
                 BeanHelper.setUpdateDefaultField(currentSubAcc);
                 currentSubAccMapper.updateByPrimaryKeySelective(currentSubAcc);
@@ -531,6 +551,109 @@ public class AccountServiceImpl implements AccountService {
         return result;
     }
 
+    //投资债权交割
+    //受让人：投资债权户减，投资活期户加
+    //转让人：投资债权户加，投资活期户减
+    public Result changeInvestclaim(Map<String, Object> paramClaimMap){
+        logger.debug("【投资债权交割】入参：paramClaimMap=" + paramClaimMap);
+        Result result = Result.error();
+        Integer transferId = Integer.valueOf((String)paramClaimMap.get("transferId"));//转让协议编号
+        Integer financeInvestId = Integer.valueOf((String)paramClaimMap.get("financeExtBizId"));//转让人投资编号
+        List<Map<String, String>> tradeMapList = (List<Map<String, String>>)paramClaimMap.get("transferList");
+        //受让人（投资）：投资活期户减，转让人（融资）：投资活期户加
+        result = this.dealChangeClaimInvestCurrent(transferId,financeInvestId,tradeMapList);
+        //受让人（投资）：投资债权户加，转让人（融资）：投资债权户减
+        result = this.dealChangeClaimInvestClaim(transferId,financeInvestId,tradeMapList);
+        result = Result.success();
+        return result;
+    }
 
+    //受让人（投资）：投资债权户加，转让人（融资）：投资债权户减
+    private Result dealChangeClaimInvestClaim(Integer transferId,Integer financeInvestId, List<Map<String, String>> tradeMapList) {
+        Result result = Result.error();
+        logger.debug("【投资债权交割，受让人（投资）：投资债权户加，转让人（融资）：投资债权户减】入参："+
+                "transferId="+ transferId  + ",financeInvestId="+ financeInvestId + ",tradeMapList=" + tradeMapList);
+        List<ClaimSubAccFlow> investClaimFlowList = new ArrayList<>();
+        List<ClaimSubAccFlow> financeClaimFlowList = new ArrayList<>();
+        BigDecimal zero = BigDecimal.ZERO;
+        for (Map<String, String> tradeMap : tradeMapList) {
+            //受让人（投资）：投资债权户加
+            ClaimSubAccFlow investClaimAccFlow = new ClaimSubAccFlow();
+            investClaimAccFlow.setAmount(new BigDecimal(tradeMap.get("tradeAmt")));
+            investClaimAccFlow.setCustomerId(Integer.valueOf(tradeMap.get("investCustomerId")));
+            investClaimAccFlow.setBizId(tradeMap.get("investBizId"));
+            investClaimAccFlow.setOrderSn(tradeMap.get("investOrderSn"));
+            investClaimAccFlow.setRemark("转让客户" + tradeMap.get("financeCustomerName") +
+                    ",客户编号" + tradeMap.get("financeCustomerId") + ",转让协议编号" + transferId );
+            BeanHelper.setAddDefaultField(investClaimAccFlow);
+            investClaimFlowList.add(investClaimAccFlow);
+            //转让人（融资）：投资债权户减
+            ClaimSubAccFlow financeClaimFlow = new ClaimSubAccFlow();
+            //若是活期户减则使用负值：交易金额
+            BigDecimal negativeTradeAmt = BigDecimal.ZERO;//负交易金额，初始值为0
+            negativeTradeAmt = zero.subtract(new BigDecimal(tradeMap.get("tradeAmt")));
+            financeClaimFlow.setAmount(negativeTradeAmt);
+            financeClaimFlow.setCustomerId(Integer.valueOf(tradeMap.get("financeCustomerId")));
+            financeClaimFlow.setBizId(String.valueOf(financeInvestId));
+            financeClaimFlow.setOrderSn(String.valueOf(financeInvestId));
+            financeClaimFlow.setRemark("受让客户" + tradeMap.get("investCustomerName") +
+                    ",客户编号" + tradeMap.get("investCustomerId") + ",转让协议编号" + transferId );
+            BeanHelper.setAddDefaultField(financeClaimFlow);
+            financeClaimFlowList.add(financeClaimFlow);
+        }
+        //受让人（投资）：投资债权户加
+        logger.debug("【受让人（投资）：投资债权户加】investClaimFlowList=" + investClaimFlowList);
+        result = this.dealClaimAccount(investClaimFlowList);
+        //转让人（融资）：投资债权户减
+        logger.debug("【转让人（融资）：投资债权户减】financeClaimFlowList=" + financeClaimFlowList);
+        result = this.dealClaimAccount(financeClaimFlowList);
+        result = Result.success();
+        return result;
+    }
+
+    //受让人（投资）：投资活期户减，转让人（融资）：投资活期户加
+    private Result dealChangeClaimInvestCurrent(Integer transferId, Integer financeInvestId,List<Map<String, String>> tradeMapList) {
+        Result result = Result.error();
+        logger.debug("【投资债权交割，受让人（投资）：投资活期户减，转让人（融资）：投资活期户加】入参："+
+                        "transferId="+ transferId + ",financeInvestId="+ financeInvestId + ",tradeMapList=" + tradeMapList);
+        List<CurrentSubAccFlow> financeCurrentFlowList = new ArrayList<>();
+        List<CurrentSubAccFlow> investCurrentFlowList = new ArrayList<>();
+        BigDecimal zero = BigDecimal.ZERO;
+        for (Map<String, String> tradeMap : tradeMapList) {
+            //受让人（投资）：投资活期户减
+            CurrentSubAccFlow investCurrentFlow = new CurrentSubAccFlow();//活期子账户流水
+            //若是活期户减则使用负值：交易金额
+            BigDecimal negativeTradeAmt = BigDecimal.ZERO;//负交易金额，初始值为0
+            negativeTradeAmt = zero.subtract(new BigDecimal(tradeMap.get("tradeAmt")));
+            investCurrentFlow.setAmount(negativeTradeAmt);
+            investCurrentFlow.setCustomerId(Integer.valueOf(tradeMap.get("investCustomerId")));
+            investCurrentFlow.setBizId(tradeMap.get("investBizId"));
+            investCurrentFlow.setOrderSn(tradeMap.get("investOrderSn"));
+            investCurrentFlow.setRemark("债权转让：转让客户" + tradeMap.get("financeCustomerName") +
+                    ",客户编号" + tradeMap.get("investCustomerId") + ",转让编号" + transferId);
+            BeanHelper.setAddDefaultField(investCurrentFlow);
+            investCurrentFlowList.add(investCurrentFlow);
+
+            //转让人（融资）：投资活期户加
+            CurrentSubAccFlow financeCurrentFlow = new CurrentSubAccFlow();//活期子账户流水
+            //交易金额
+            financeCurrentFlow.setAmount(new BigDecimal(tradeMap.get("tradeAmt")));
+            financeCurrentFlow.setCustomerId(Integer.valueOf(tradeMap.get("financeCustomerId")));
+            financeCurrentFlow.setBizId(String.valueOf(financeInvestId));
+            financeCurrentFlow.setOrderSn(String.valueOf(financeInvestId));
+            financeCurrentFlow.setRemark("债权转让：受让客户" + tradeMap.get("investCustomerName") +
+                    ",客户编号" + tradeMap.get("investCustomerId") + ",转让编号" + transferId);
+            BeanHelper.setAddDefaultField(financeCurrentFlow);
+            financeCurrentFlowList.add(financeCurrentFlow);
+        }
+        logger.debug("【受让人（投资）：投资活期户减】financeCurrentFlowList=" + financeCurrentFlowList);
+        //受让人（投资）：投资活期户减
+        result =  this.dealCurrentAccount(financeCurrentFlowList);
+        logger.debug("【转让人（融资）：投资活期户加】investCurrentFlowList=" + investCurrentFlowList);
+        //转让人（融资）：投资活期户加
+        result =  this.dealCurrentAccount(investCurrentFlowList);
+        result = Result.success();
+        return result;
+    }
 
 }

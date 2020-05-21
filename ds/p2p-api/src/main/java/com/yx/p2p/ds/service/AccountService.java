@@ -5,6 +5,7 @@ import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.mq.MasterAccMQVo;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @description:
@@ -21,4 +22,7 @@ public interface AccountService {
 
     //事务操作：放款通知
     public Result loanNotice(HashMap<String, String> loanMap);
+
+    //投资债权交割
+    public Result changeInvestclaim(Map<String, Object> paramClaimMap);
 }
