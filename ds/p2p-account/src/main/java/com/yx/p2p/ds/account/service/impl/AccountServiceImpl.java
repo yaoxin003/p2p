@@ -63,8 +63,6 @@ public class AccountServiceImpl implements AccountService {
     @Reference
     private FinanceMatchReqServer financeMatchReqServer;
 
-
-
     //开户：主账户
     @Transactional
     public Result openAccount(MasterAccMQVo masterAccMQVo){
@@ -656,4 +654,10 @@ public class AccountServiceImpl implements AccountService {
         return result;
     }
 
+    public MasterAcc getMasterAccByCustomerId(Integer customerId){
+        MasterAcc param = new MasterAcc();
+        param.setCustomerId(customerId);
+        MasterAcc masterAcc = masterAccMapper.selectOne(param);
+        return masterAcc;
+    }
 }

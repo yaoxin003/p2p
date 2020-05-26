@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yx.p2p.ds.invest.mapper.TransferMapper">
+
+    <select id="selectTransferContract" resultMap="selectTransferMap"
+            parameterType="com.yx.p2p.ds.model.invest.Transfer">
+        select t.id as t_id,td.id as td_id,
+		t.*,td.*
+		from (select * from p2p_transfer where invest_id=#{investId}) t
+		inner join p2p_transfer_dtl td on t.id=td.transfer_id
+    </select>
+
+    <resultMap id="selectTransferMap" type="com.yx.p2p.ds.model.invest.Transfer" autoMapping="true">
+        <result property="id" column="id"/>
+        <collection property="transferDtlList" ofType="com.yx.p2p.ds.model.invest.TransferDtl" autoMapping="true">
+            <result property="id" column="td_id"/>
+        </collection>
+    </resultMap>
+</mapper>

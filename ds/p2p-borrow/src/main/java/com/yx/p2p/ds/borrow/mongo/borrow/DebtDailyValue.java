@@ -1,4 +1,4 @@
-package com.yx.p2p.ds.mongo.borrow;
+package com.yx.p2p.ds.borrow.mongo.borrow;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.index.Indexed;

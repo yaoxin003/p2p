@@ -20,13 +20,14 @@
             投资产品编号<input id="productId" name="investProductId" class="easyui-textbox" style="width:50px"/>
          </span>
          <form method="post" id="planPayForm">
-            <span style="display:none;" >
+            <!--<span style="display:none;" >-->
+
                      客户编号<input id="pCustomerId"  name="customerId" class="easyui-textbox" style="width:50px"/>
                      投资产品编号<input id="investProductId" name="investProductId" class="easyui-textbox" style="width:50px"/>
                      投资天数<input name="dayCount" id="dayCount" class="easyui-textbox" style="width:50px"/>
                  <!--提交表单时使用该字段，保存选中使用具体的银行卡-->
                       客户银行卡编号<input name="customerBankId" id="customerBankId" class="easyui-textbox" style="width:50px"/>
-             </span>
+             <!--</span>-->
             <table id="planPayTable" style="width:600px" cellspacing="10">
                 <tr>
                     <td colspan="2" align="right">
@@ -55,21 +56,16 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="2">
-                        选择支付银行：
-                    </td>
-                </tr>
-                <tr>
                     <td align="left">
-                        银行卡列表：
+                        <b>选择支付银行</b>
                     </td>
-                    <td align="right">
+                    <td colspan="2" align="right">
                         <a class="easyui-linkbutton" onclick="openAddBank()">添加银行卡</a>
                     </td>
                 </tr>
             </table>
             <!--银行卡列表-->
-            <table id="banksTable">
+            <table id="banksTable" title="银行卡列表">
             </table>
             <div style="text-align:center;padding:5px">
                     <a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitLend()">立即出借</a>
@@ -218,6 +214,7 @@
                                  openGateway(result.target);
                                  $("#planPayDialog").dialog("close");
                                  $("#planPayForm").form('reset');
+                                 $("#banksTable").datagrid('clearSelections');
                              }else{
                                  messger_show_center('错误信息',result.selfMsg);
                              }
@@ -289,6 +286,8 @@
              $("#planPayDialog").dialog("close");
              $("#gatewayDialog").dialog("close");
          }
+
+
      </script>
  </div>
  </body>

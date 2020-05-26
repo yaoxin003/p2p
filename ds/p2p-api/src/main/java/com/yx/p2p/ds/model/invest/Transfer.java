@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yx.p2p.ds.model.base.BaseModel;
 
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @description:转让协议
@@ -23,6 +25,7 @@ public class Transfer extends BaseModel implements Serializable{
     private BigDecimal expressFee;//加急费
     private BigDecimal discountFee;//折扣费
     private BigDecimal serviceFee;//服务费
+    private BigDecimal redeemAmt;//赎回金额：投资类型为固定期限=投资金额+收益；投资类型为非固定期限=转让金额-加急费-服务费
 
     //----------------投资产品信息----------------
     private Integer investId;//投资编号invest.id
@@ -44,7 +47,6 @@ public class Transfer extends BaseModel implements Serializable{
     private String bankAccount;//银行账户
     private String phone;//绑定手机号
 
-
     //----------------投资信息----------------
     private BigDecimal investAmt;//投资金额
     private BigDecimal profit;//收益
@@ -56,6 +58,10 @@ public class Transfer extends BaseModel implements Serializable{
      */
     @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
     private Date endDate;//投资到期日期
+
+    //----------------转让协议明细列表----------------
+    @Transient
+    private List<TransferDtl> transferDtlList;
 
     public BigDecimal getTransferAmt() {
         return transferAmt;
@@ -249,6 +255,22 @@ public class Transfer extends BaseModel implements Serializable{
         this.endDate = endDate;
     }
 
+    public BigDecimal getRedeemAmt() {
+        return redeemAmt;
+    }
+
+    public void setRedeemAmt(BigDecimal redeemAmt) {
+        this.redeemAmt = redeemAmt;
+    }
+
+    public List<TransferDtl> getTransferDtlList() {
+        return transferDtlList;
+    }
+
+    public void setTransferDtlList(List<TransferDtl> transferDtlList) {
+        this.transferDtlList = transferDtlList;
+    }
+
     @Override
     public String toString() {
         return "Transfer{" +
@@ -258,6 +280,7 @@ public class Transfer extends BaseModel implements Serializable{
                 ", expressFee=" + expressFee +
                 ", discountFee=" + discountFee +
                 ", serviceFee=" + serviceFee +
+                ", redeemAmt=" + redeemAmt +
                 ", investId=" + investId +
                 ", investProductId=" + investProductId +
                 ", investProductName='" + investProductName + '\'' +
@@ -276,6 +299,7 @@ public class Transfer extends BaseModel implements Serializable{
                 ", profit=" + profit +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
-                '}'+ super.toString();
+                ", transferDtlList=" + transferDtlList +
+                '}';
     }
 }

@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description:
@@ -72,4 +73,14 @@ public class InvestServerImpl implements InvestServer {
         return transferService.transferApply(investId);
     }
 
+    //投资提现申请
+    @Override
+    public Result withdrawApply(Integer investId) {
+        return transferService.withdrawApply(investId);
+    }
+
+    //获得转让协议文本
+    public Map<String,Object> getTransferContractText(Integer investId){
+        return transferService.getTransferContractText(investId);
+    }
 }

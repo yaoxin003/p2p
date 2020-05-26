@@ -18,4 +18,10 @@ public interface TransferService {
 
     //投资债权交割
     public Result changeInvestclaim(Map<String,Object> claimMap);
+
+    //投资提现申请
+    public Result withdrawApply(Integer investId);
+
+    //获得转让协议文本
+    public Map<String,Object> getTransferContractText(Integer investId);
 }

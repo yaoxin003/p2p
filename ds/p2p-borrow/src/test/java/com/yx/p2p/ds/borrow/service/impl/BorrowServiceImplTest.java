@@ -14,8 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * @description:
@@ -23,7 +22,7 @@ import java.util.HashMap;
  * @date: 2020/04/29/13:26
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = P2pBorrowApplication.class)
+@SpringBootTest
 public class BorrowServiceImplTest {
 
     @Autowired
@@ -89,5 +88,12 @@ public class BorrowServiceImplTest {
         loanNotify.put("customerId","15");//融资客户
         loanNotify.put("status", MQStatusEnum.OK.getStatus());
         borrowService.loanNotice(loanNotify);
+    }
+
+    @Test
+    public void testGetBorrowListByBorrowIdList(){
+        Set<Integer> idSet = new HashSet<>();
+        idSet.add(1);
+        borrowService.getBorrowListByBorrowIdList(idSet);
     }
 }

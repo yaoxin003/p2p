@@ -11,6 +11,8 @@ import com.yx.p2p.ds.vo.BorrowContractVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.List;
+import java.util.Set;
+
 import com.alibaba.dubbo.config.annotation.Service;
 /**
  * @description:
@@ -60,5 +62,10 @@ public class BorrowServerImpl implements BorrowServer {
     //申请放款
     public Result applyLoan(Integer borrowId){
         return borrowService.applyLoan(borrowId);
+    }
+
+
+    public List<Borrow> getBorrowListByBorrowIdList(Set<Integer> idSet){
+        return borrowService.getBorrowListByBorrowIdList(idSet);
     }
 }

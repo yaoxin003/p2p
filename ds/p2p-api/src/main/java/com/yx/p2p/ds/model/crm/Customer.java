@@ -58,11 +58,11 @@ public class Customer extends BaseModel implements Serializable {
 
     @Override
     public String toString() {
-        return super.toString()+"Customer{" +
-                ", name='" + name + '\'' +
+        return "Customer{" +
+                " name='" + name + '\'' +
                 ", gender=" + gender +
                 ", birthday=" + birthday +
                 ", idCard='" + idCard + '\'' +
-                '}';
+                '}' +  super.toString();
     }
 }

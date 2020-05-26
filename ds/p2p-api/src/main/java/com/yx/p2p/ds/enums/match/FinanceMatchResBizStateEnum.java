@@ -8,7 +8,8 @@ package com.yx.p2p.ds.enums.match;
 public enum FinanceMatchResBizStateEnum {
     NEW_ADD("1","新增"),
     BORROW_MATCH_CONFIRM("2","借款撮合确认"),
-    BORROW_MATCH_RE("3","借款撮合撤销");
+    BORROW_MATCH_RE("3","借款撮合撤销"),
+    TRANSFER_MATCH_CONFIRM("4","转让撮合确认");
 
     private String bizState;
     private String bizStateDesc;

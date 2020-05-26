@@ -123,8 +123,9 @@ public class FinanceMatchReqServiceImpl implements FinanceMatchReqService {
         financeMatchRes.setInvestBizId(investReq.getInvestBizId());
         financeMatchRes.setInvestMatchId(investReq.getId());
         financeMatchRes.setInvestOrderSn(investReq.getInvestOrderSn());
-        financeMatchRes.setRemark(MatchRemarkEnum.BORROW.getDesc());
+        financeMatchRes.setRemark(financeMatchReq.getRemark());
         BeanHelper.setAddDefaultField(financeMatchRes);
+        financeMatchRes.setBizState(financeMatchReq.getBizState());
         return financeMatchRes;
     }
 

@@ -7,6 +7,7 @@ import com.yx.p2p.ds.vo.BorrowContractVo;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @description:
@@ -31,4 +32,6 @@ public interface BorrowService {
 
     //放款通知
     public Result loanNotice(HashMap<String, String> loanMap);
+
+    public List<Borrow> getBorrowListByBorrowIdList(Set<Integer> idSet);
 }

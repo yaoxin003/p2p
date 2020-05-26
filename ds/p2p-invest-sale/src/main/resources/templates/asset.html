@@ -5,9 +5,17 @@
 </head>
 <body>
     <div th:fragment="investDiv">
+
         <div id="investDialog" class="easyui-dialog" title="【投资列表】"
-             draggable="false" data-options="modal:true,closed:true" style="display:none;width:920px">
+             draggable="false" data-options="modal:true,closed:true" style="display:none;width:970px">
             <table id="investTable" cellspacing="5"></table>
+        </div>
+
+        <div id="transferContractTextDialog" class="easyui-dialog" title="【转让协议合同】"
+             draggable="false" data-options="closed:true" style="display:none;width:1270px">
+            <table id="financerTable" title="转让人"></table>
+            <table id="investorTable" title="受让人列表"></table>
+            <table id="borrowTable" title="借款列表"></table>
         </div>
 
         <script type="text/javascript" th:inline="none">
@@ -16,7 +24,7 @@
                     idField : 'id',//有idField保证了翻页选中不丢失
                     fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
                     rownumbers:true,
-                    width: 900,
+                    width: 950,
                     singleSelect:true,
                     striped:true,//隔行变色
                     url:'/invest/getInvestVoListByCustomerId',
@@ -24,13 +32,18 @@
                         customerId : customerId
                     },
                     columns : [[
-                        {field:'operate',title:'操作',width:100,
+                        {field:'operate',title:'操作',width:150,
                             formatter:function(value,row,index){
                                 var str = "";
                                 if(row.bizState == '1'){
                                     str = "<a href='#' name='paymentOpr' onclick='payment(" + row.id + "," + row.customerId + "," + row.investAmt + ","+ row.customerBankId + ")'></a>";
                                 }else if(row.bizState == '5'){
-                                    str = "<a href='#' name='transferOpr' onclick='transfer(" + row.id + ")'></a>";
+                                    str = "<a href='#' name='transferOpr' onclick='transfer(" + row.id + "," + row.customerId + ")'></a>";
+                                }else if(row.bizState == '7'){
+                                    str = "<a href='#' name='transferContractOpr' onclick='transferContractText(" + row.id + ")'></a>";
+                                    str += "<a href='#' name='withdrawOpr' onclick='withdraw(" + row.id + ")'></a>";
+                                }else if(row.bizState == '8'){
+                                    str = "<a href='#' name='transferContractOpr' onclick='transferContractText(" + row.id + ")'></a>";
                                 }
                                 return str;
                             }
@@ -65,6 +78,8 @@
                     onLoadSuccess: function (data) {
                         $("a[name='paymentOpr']").linkbutton({'text':'付','plain':true,iconCls:'icon-add'});
                         $("a[name='transferOpr']").linkbutton({'text':'赎','plain':true,iconCls:'icon-add'});
+                        $("a[name='transferContractOpr']").linkbutton({'text':'合','plain':true,iconCls:'icon-add'});
+                        $("a[name='withdrawOpr']").linkbutton({'text':'提','plain':true,iconCls:'icon-add'});
                     }
                 });
             }
@@ -103,25 +118,140 @@
             }else if(value=='5'){
                 str = "满额";
             }else if(value=='6'){
-                str = "赎回";
+                str = "转让中";
             }else if(value=='7'){
                 str = "转让成功";
+            }else if(value=='8'){
+                str = "已赎回";
             }else{
                 str = "未知";
             }
             return str;
         }
 
-        //投资列表“赎”按钮
-        function transfer(investId){
+        //投资列表“赎”按钮（投资赎回）
+        function transfer(investId,customerId){
             $.ajax({
                 type:'post',
                 url : '/invest/transferApply',
                 data : { investId : investId},
                 cache: false,
                 success :function(result){
+                    $("#investDialog").dialog("close");
                     if(result.status == 'ok'){
                         messger_show_center('提示信息','投资赎回申请已发送！');
+                    }else{
+                        messger_show_center('错误信息',result.selfMsg);
+                    }
+                    $("#investDialog").dialog("open");
+                    $("#investDialog").dialog("center");//使Dialog居中显示
+                    showInvestDatagrid(customerId);
+                }
+            });
+        }
+
+        //转让合同
+        function transferContractText(investId){
+            $("#transferContractTextDialog").dialog("open");
+            $("#transferContractTextDialog").dialog("center");//使Dialog居中显示
+            var investorMapList;//受让人
+            var borrowMapList;//借款列表
+            $("#financerTable").datagrid({
+                idField : 'id',//有idField保证了翻页选中不丢失
+                fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
+                rownumbers:true,
+                singleSelect:true,
+                striped:true,//隔行变色
+                width: 1250,
+                url:'/invest/getTransferContractText',
+                queryParams:{
+                    investId : investId
+                },
+                columns : [[
+                    {field:'redeemAmt',title:'赎回金额',width:100},
+                    {field:'investAmt',title:'投资金额',width:100},
+                    {field:'startDate',title:'投资开始日期',width:150},
+                    {field:'investProductName',title:'投资产品名称',width:100},
+                    {field:'investYearIrr',title:'年华收益率',width:100},
+                    {field:'customerName',title:'客户名称',width:100},
+                    {field:'customerIdCard',title:'客户身份证',width:100},
+                    {field:'baseBankName',title:'银行总行名称',width:150},
+                    {field:'bankAccount',title:'银行账户',width:150},
+                    {field:'phone',title:'电话',width:150}
+                ]],
+                loadFilter: function(data){
+                    var datalist = data.financerMapList;
+                    var value = {
+                        total : datalist.length,
+                        rows : datalist
+                    };
+                    investorMapList = data.investorMapList;
+                    borrowMapList = data.borrowMapList;
+                    return value;
+                },
+                onLoadSuccess:function(){
+                    transferInvestorText(investorMapList);
+                    transferBorrowText(borrowMapList);
+                },
+                loadMsg : '数据正在加载，请耐心等待……'
+            });
+        }
+
+        //转让协议受让人列表
+        function transferInvestorText(investorMapList){
+
+            $("#investorTable").datagrid({
+                idField : 'id',//有idField保证了翻页选中不丢失
+                fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
+                rownumbers:true,
+                singleSelect:true,
+                striped:true,//隔行变色
+                width: 1250,
+                data : investorMapList,
+                columns : [[
+                    {field:'investCustomerName',title:'投资人姓名',width:100},
+                    {field:'buyAmt',title:'交易金额',width:100},
+                    {field:'holdShare',title:'持有比例',width:100}
+                ]],
+                loadMsg : '数据正在加载，请耐心等待……'
+            });
+        }
+        //转让协议借款人列表
+        function transferBorrowText(borrowMapList){
+            $("#borrowTable").datagrid({
+                idField : 'id',//有idField保证了翻页选中不丢失
+                fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
+                rownumbers:true,
+                singleSelect:true,
+                striped:true,//隔行变色
+                width: 1250,
+                data : borrowMapList,
+                columns : [[
+                    {field:'borrowCustomerName',title:'借款人',width:100},
+                    {field:'borrowCustomerIdCard',title:'身份证号码',width:100},
+                    {field:'borrowAmt',title:'借款金额',width:150},
+                    {field:'borrowMonthCount',title:'期限',width:100},
+                    {field:'borrowStartDate',title:'开始日期',width:150},
+                    {field:'borrowEndDate',title:'到期日期',width:150},
+                    {field:'borrowFirstReturnDate',title:'首个还款日期',width:100},
+                    {field:'borrowMonthReturnDay',title:'还款日',width:50},
+                    {field:'borrowMonthPayment',title:'月供',width:50}
+                ]],
+                loadMsg : '数据正在加载，请耐心等待……'
+            });
+        }
+
+        //投资列表“提”按钮（提现按钮）
+        function withdrawApply(investId){
+            $("#investDialog").dialog("close");
+            $.ajax({
+                type:'post',
+                url : '/invest/withdraw',
+                data : { investId : investId},
+                cache: false,
+                success :function(result){
+                    if(result.status == 'ok'){
+                        messger_show_center('提示信息','投资提现已发送！');
                     }else{
                         messger_show_center('错误信息',result.selfMsg);
                     }

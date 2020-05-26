@@ -160,6 +160,7 @@ create table p2p_transfer (
   express_fee decimal(10,2) NOT NULL COMMENT '加急费',
   discount_fee decimal(10,2) NOT NULL COMMENT '折扣费',
   service_fee decimal(10,2) NOT NULL COMMENT '服务费',
+  redeem_amt decimal(10,2) NOT NULL COMMENT '赎回金额:投资类型为固定期限=投资金额+收益;投资类型为非固定期限=转让金额-加急费-服务费',
   create_time datetime NOT NULL COMMENT '创建时间',
   update_time datetime NOT NULL COMMENT '修改时间',
   creator int(16) NOT NULL COMMENT '创建人',
@@ -188,7 +189,7 @@ create table p2p_transfer_dtl_sale_before (
   update_time datetime NOT NULL COMMENT '修改时间',
   creator int(16) NOT NULL COMMENT '创建人',
   reviser int(16) NOT NULL COMMENT '修改人',
-  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）:1-有效,0-无效',
   biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='转让售前明细表';
@@ -199,14 +200,27 @@ create table p2p_transfer_dtl (
   invest_claim_id int(16) NOT NULL COMMENT '投资债权编号',
   invest_id int(16) NOT NULL COMMENT '投资编号',
   lending_id int(16) NOT NULL COMMENT '出借单编号',
+  invest_customer_id int(16) NOT NULL COMMENT '投资客户编号',
+  invest_customer_name varchar(64) NOT NULL COMMENT '投资客户姓名',
   borrow_id int(16) NOT NULL COMMENT '借款编号',
-  customer_id int(16) NOT NULL COMMENT '客户编号',
-  customer_name varchar(64) NOT NULL COMMENT '客户姓名',
+  borrow_customer_id int(16) NOT NULL COMMENT '借款客户编号',
+  borrow_customer_name varchar(64) NOT NULL COMMENT '借款客户姓名',
   buy_amt decimal(10,2) NOT NULL COMMENT '买入金额',
   hold_share decimal(4,2) NOT NULL COMMENT '持有比例',
   borrow_product_id int(16) NOT NULL COMMENT '借款产品编号',
   borrow_product_name varchar(64) NOT NULL COMMENT '借款产品名称',
   borrow_year_rate decimal(6,4) NOT NULL COMMENT '贷款年利率',
+  borrow_customer_id_card varchar(64) NOT NULL COMMENT '借款身份证号码',
+  borrow_amt decimal(10,2) NOT NULL COMMENT '借款金额',
+  borrow_month_count int(2) NOT NULL COMMENT '借款期限',
+  borrow_total_borrow_fee decimal(10,2) NOT NULL COMMENT '总借款费用=总利息+总管理费=月供*借款月数-借款金额',
+  borrow_total_interest decimal(10,2) NOT NULL COMMENT '总利息',
+  borrow_total_manage_fee decimal(10,2) NOT NULL COMMENT '总管理费',
+  borrow_start_date date NOT NULL COMMENT '借款开始日期',
+  borrow_end_date date COMMENT '借款结束日期',
+  borrow_first_return_date date NOT NULL comment '首期还款日期',
+  borrow_month_return_day int(2) NOT NULL comment '月还款日15/28',
+  borrow_month_payment decimal(10,2) NOT NULL COMMENT '月供=月本息+月管理费=[借款金额×月利率×(1+月利率)^借款月数]÷[(1+月利率)^借款月数-1]',
   create_time datetime NOT NULL COMMENT '创建时间',
   update_time datetime NOT NULL COMMENT '修改时间',
   creator int(16) NOT NULL COMMENT '创建人',
@@ -677,6 +691,21 @@ INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, b
 INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('3', '3', '11022', '工业银行', '43514256456546', '15652423428', '2020-05-16 10:06:40', '2020-05-16 10:06:40', '12', '12', '1', '1');
 INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('4', '4', '11033', '建设银行', '453451547567567', '16222323234', '2020-05-16 10:07:36', '2020-05-16 10:07:36', '12', '12', '1', '1');
 INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('5', '21', '12021', '招商银行', '45742342367567', '15754457745', '2020-05-16 10:08:27', '2020-05-16 10:08:27', '12', '12', '1', '1');
-
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('6', '20', '11021', '农业银行', '345311432425435', '13412345341', '2020-05-25 10:58:15', '2020-05-25 10:58:15', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('7', '5', '11022', '工业银行', '6623124436561234000', '15122454543', '2020-05-25 10:59:02', '2020-05-25 10:59:02', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('8', '6', '11022', '工业银行', '82573453643536540', '15222342888', '2020-05-25 11:00:29', '2020-05-25 11:00:29', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('9', '19', '11021', '农业银行', '673412536452342400', '17723472452', '2020-05-25 11:03:24', '2020-05-25 11:03:24', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('10', '18', '12021', '招商银行', '75231267734523', '17712343372', '2020-05-25 11:12:29', '2020-05-25 11:12:29', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('11', '7', '11022', '工业银行', '61236783457657', '17234126733', '2020-05-25 11:13:23', '2020-05-25 11:13:23', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('12', '17', '11021', '农业银行', '6895481789664985', '17763232341', '2020-05-25 11:14:13', '2020-05-25 11:14:13', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('13', '16', '11022', '工业银行', '823424474671536500', '18522342341', '2020-05-25 11:15:28', '2020-05-25 11:15:28', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('14', '8', '11033', '建设银行', '82365568324242', '17723261244', '2020-05-25 11:16:33', '2020-05-25 11:16:33', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('15', '9', '11022', '工业银行', '843245475672432400', '17573457642', '2020-05-25 11:20:17', '2020-05-25 11:20:17', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('16', '15', '11021', '农业银行', '8234221231435435000', '16677231232', '2020-05-25 11:21:03', '2020-05-25 11:21:03', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('17', '10', '11033', '建设银行', '934521235464563600', '18534242267', '2020-05-25 11:22:10', '2020-05-25 11:22:10', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('18', '14', '21201', '北京银行', '5203434547242342', '14534456452', '2020-05-25 11:22:51', '2020-05-25 11:22:51', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('19', '11', '11022', '工业银行', '512312412411241200', '15512315231', '2020-05-25 11:24:36', '2020-05-25 11:24:36', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('20', '12', '11022', '工业银行', '72312436336123120', '16333523423', '2020-05-25 11:28:01', '2020-05-25 11:28:01', '12', '12', '1', '1');
+INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('21', '13', '11021', '农业银行', '6123436131123', '14662342365', '2020-05-25 11:29:08', '2020-05-25 11:29:08', '12', '12', '1', '1');
 
 #清空数据SQL

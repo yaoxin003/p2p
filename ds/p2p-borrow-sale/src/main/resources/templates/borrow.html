@@ -271,6 +271,7 @@
                                  messger_show_center('提示信息','签约成功');
                                  $("#planBorrowDialog").dialog("close");
                                  $("#planBorrowForm").form('reset');
+                                 $("#banksTable").datagrid('clearSelections');
                              }else{
                                  messger_show_center('错误信息',result.selfMsg);
                              }

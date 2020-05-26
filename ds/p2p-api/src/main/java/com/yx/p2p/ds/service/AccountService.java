@@ -1,6 +1,7 @@
 package com.yx.p2p.ds.service;
 
 import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.model.account.MasterAcc;
 import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.mq.MasterAccMQVo;
 
@@ -16,6 +17,9 @@ public interface AccountService {
 
     //开户
     public Result openAccount(MasterAccMQVo masterAccMQVo);
+
+
+    public MasterAcc getMasterAccByCustomerId(Integer customerId);
 
     //事务操作：投资充值
     public Result rechargeInvest(InvestMQVo investMQVo);

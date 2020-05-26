@@ -12,7 +12,8 @@ public enum InvestBizStateEnum {
     MATCHING("4","撮合中"),//发送撮合系统，暂时没有上
     FULL_AMT("5","满额"),//全额出借
     TRANSFERING("6","转让中"),//发起转让
-    TRANSFER_SUC("7","转让成功");//转让交割后
+    TRANSFER_SUC("7","转让成功"),//转让交割后
+    REDEEM("8","赎回");//提现成功
 
     private String state;//状态
     private String stateDesc;//状态描述

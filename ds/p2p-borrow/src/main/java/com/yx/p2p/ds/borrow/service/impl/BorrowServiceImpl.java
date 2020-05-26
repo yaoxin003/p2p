@@ -5,6 +5,7 @@ import com.yx.p2p.ds.borrow.mapper.BorrowContractVoMapper;
 import com.yx.p2p.ds.borrow.mapper.BorrowDtlMapper;
 import com.yx.p2p.ds.borrow.mapper.BorrowMapper;
 import com.yx.p2p.ds.borrow.mapper.CashflowMapper;
+import com.yx.p2p.ds.borrow.service.DebtDailyValueService;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.SystemSourceEnum;
 import com.yx.p2p.ds.enums.borrow.BorrowBizStateEnum;
@@ -30,7 +31,6 @@ import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.BorrowProductService;
 import com.yx.p2p.ds.service.BorrowService;
-import com.yx.p2p.ds.service.DebtDailyValueService;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
@@ -41,12 +41,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import tk.mybatis.mapper.entity.Example;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * @description:
@@ -678,6 +675,20 @@ public class BorrowServiceImpl implements BorrowService {
         logger.debug("【检查是否已经更新过借款状态】result.status=error说明已经执行操作；" +
                 "result.status=ok说明没有更新业务状态，继续执行。result=" + result);
         return result;
+    }
+
+    public List<Borrow> getBorrowListByBorrowIdList(Set<Integer> idSet){
+        logger.debug("【查询借款集合：使用借款编号集合】入参：idSet=" + idSet);
+        List<Borrow> borrowList = this.queryBorrowListByBorrowIdList(idSet);
+        logger.debug("【查询借款集合：使用借款编号集合】结果：borrowList=" + borrowList);
+        return borrowList;
+    }
+
+    public List<Borrow> queryBorrowListByBorrowIdList(Set<Integer> idSet){
+        Example example = new Example(Borrow.class);
+        example.createCriteria().andIn("id",idSet);
+        List<Borrow> borrowList = borrowMapper.selectByExample(example);
+        return borrowList;
     }
 
 }

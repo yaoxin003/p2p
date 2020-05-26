@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>账户页面</title>
+</head>
+<body>
+    <div th:fragment="accountDiv">
+        <div id="accountDialog" class="easyui-dialog" title="【账户列表】"
+             draggable="false" data-options="modal:true,closed:true" style="display:none;width:520px">
+            <table id="accountTable" cellspacing="5"></table>
+        </div>
+
+        <script type="text/javascript" th:inline="none">
+            function showAccountDatagrid(customerId){
+                $("#accountTable").datagrid({
+                    idField : 'id',//有idField保证了翻页选中不丢失
+                    fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
+                    rownumbers:true,
+                    width: 500,
+                    singleSelect:true,
+                    striped:true,//隔行变色
+                    url:'/account/getMasterAccByCustomerId',
+                    queryParams:{
+                        customerId : customerId
+                    },
+                    columns : [[
+                        {field:'cashAmt',title:'现金金额',width:100},
+                        {field:'currentAmt',title:'活期金额',width:100},
+                        {field:'claimAmt',title:'债权金额',width:100},
+                        {field:'debtAmt',title:'债务金额',width:100},
+                        {field:'profitAmt',title:'收益金额',width:100}
+                    ]],
+                    loadMsg : '数据正在加载，请耐心等待……'
+                });
+            }
+        </script>
+    </div>
+ </body>
+ </html>

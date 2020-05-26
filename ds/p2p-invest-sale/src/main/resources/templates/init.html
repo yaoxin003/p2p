@@ -77,6 +77,9 @@
 <!--“资”按钮页面-->
 <div th:replace="asset::investDiv"></div>
 
+<!--“账”按钮页面-->
+<div th:replace="account::accountDiv"></div>
+
 </body>
 <script type="text/javascript" th:inline="none">
 
@@ -98,7 +101,7 @@
         idField : 'id',//有idField保证了翻页选中不丢失
         fitColumns:true,
         rownumbers:true,
-        width: 1200,
+        width: 1250,
         url : "/crm/list",
         striped:true,//隔行变色
         title : '客户管理',
@@ -106,10 +109,11 @@
         columns : [[
             {field:'ck',checkbox:true,width:50},
             {field:'id',title:'编号',width:50},
-            {field:'operate',title:'操作',width:100,
+            {field:'operate',title:'操作',width:150,
                 formatter: function(value,row,index){
                     var str = "<a href='#' name='investProductBtn' onclick='investProduct(" + row.id + ")'></a>";
                     str += "<a href='#' name='assetBtn' onclick='asset(" + row.id + ")'></a>";
+                    str += "<a href='#' name='accountBtn' onclick='account(" + row.id + ")'></a>";
                     return str;
                 }
             },
@@ -129,10 +133,12 @@
         onLoadSuccess : function(data){
             $("a[name='investProductBtn']").linkbutton({'text':'投',plain:true,iconCls:'icon-add'});//产品列表
             $("a[name='assetBtn']").linkbutton({'text':'资',plain:true,iconCls:'icon-add'});//投资列表
+            $("a[name='accountBtn']").linkbutton({'text':'账',plain:true,iconCls:'icon-add'});//账户
         },
         loadMsg : '数据正在加载，请耐心等待……',
         pagination : true,
         pageList:[1,2,5,10,20,50]
+
     });
 
     var flag;//添加/修改标志位
@@ -210,5 +216,12 @@
         showInvestDatagrid(customerId);//在asset.html中编写
     }
 
+    //客户列表“账”按钮
+    function account(customerId){
+        $("#customerId").textbox("setValue",customerId);
+        $("#accountDialog").dialog("open");
+        $("#accountDialog").dialog("center");//使Dialog居中显示
+        showAccountDatagrid(customerId);//在account.html中编写
+    }
 </script>
 </html>

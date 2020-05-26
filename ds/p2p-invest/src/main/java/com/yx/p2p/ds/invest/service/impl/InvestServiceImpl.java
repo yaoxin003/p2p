@@ -14,11 +14,9 @@ import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.invest.mapper.InvestClaimHistoryMapper;
 import com.yx.p2p.ds.invest.mapper.InvestClaimMapper;
 import com.yx.p2p.ds.invest.mapper.InvestMapper;
+import com.yx.p2p.ds.invest.mapper.TransferMapper;
 import com.yx.p2p.ds.model.crm.Customer;
-import com.yx.p2p.ds.model.invest.Invest;
-import com.yx.p2p.ds.model.invest.InvestClaim;
-import com.yx.p2p.ds.model.invest.InvestClaimHistory;
-import com.yx.p2p.ds.model.invest.InvestProduct;
+import com.yx.p2p.ds.model.invest.*;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.model.match.InvestMatchReq;
 import com.yx.p2p.ds.model.payment.CustomerBank;
@@ -27,10 +25,7 @@ import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.server.CrmServer;
 import com.yx.p2p.ds.server.FinanceMatchReqServer;
 import com.yx.p2p.ds.server.PaymentServer;
-import com.yx.p2p.ds.service.InvestClaimHistoryService;
-import com.yx.p2p.ds.service.InvestProductService;
-import com.yx.p2p.ds.service.InvestService;
-import com.yx.p2p.ds.service.LendingService;
+import com.yx.p2p.ds.service.*;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
@@ -65,16 +60,22 @@ public class InvestServiceImpl implements InvestService {
     private InvestMapper investMapper;
 
     @Autowired
+    private InvestClaimMapper investClaimMapper;
+
+    @Autowired
+    private InvestClaimHistoryMapper investClaimHistoryMapper;
+
+    @Autowired
+    private TransferMapper transferMapper;
+
+    @Autowired
     private InvestProductService investProductService;
 
     @Autowired
     private LendingService lendingService;
 
     @Autowired
-    private InvestClaimMapper investClaimMapper;
-
-    @Autowired
-    private InvestClaimHistoryMapper investClaimHistoryMapper;
+    private InvestClaimHistoryService investClaimHistoryService;
 
     @Reference
     private PaymentServer paymentServer;
@@ -84,10 +85,6 @@ public class InvestServiceImpl implements InvestService {
 
     @Reference
     private FinanceMatchReqServer financeMatchReqServer;
-
-
-    @Autowired
-    private InvestClaimHistoryService investClaimHistoryService;
 
     @Autowired
     private RocketMQTemplate rocketMQTemplate;
@@ -100,7 +97,6 @@ public class InvestServiceImpl implements InvestService {
 
     @Value("${mq.match.invest.tag}")
     private String matchInvestTag;
-
 
     //投资充值
     public Result rechargeInvest(Invest invest){

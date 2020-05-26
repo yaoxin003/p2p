@@ -3,6 +3,7 @@ package com.yx.p2p.ds.match.service.impl;
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.enums.match.FinanceMatchReqBizStateEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.match.mapper.FinanceMatchReqMapper;
 import com.yx.p2p.ds.match.mapper.FinanceMatchResMapper;
@@ -106,6 +107,8 @@ public class TransferMatchReqServiceImpl implements TransferMatchReqService {
                 List<InvestMatchReq> resMatchedInvestReqList = new ArrayList<>();//已撮投资
                 Map<String,List<FinanceMatchRes>> resFinanceMatchResMap = new HashMap<>();
                 for (FinanceMatchReq financeMatchReq : financeMatchReqList) {
+                    //业务状态：转让撮合确认
+                    financeMatchReq.setBizState(FinanceMatchReqBizStateEnum.TRANSFER_MATCH_CONFIRM.getBizState());
                     List<FinanceMatchRes> resPartFinanceMatchResList = new ArrayList<>();//撮合结果
                     result = financeMatchReqService.dealFinanceMatch(financeMatchReq,
                             resNoMatchInvestReqList,resMatchedInvestReqList,resPartFinanceMatchResList);

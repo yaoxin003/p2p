@@ -83,6 +83,12 @@ public class BeanHelper {
         }
     }
 
-
+    //destMap 目标Map
+    //origMap 源Map
+    public static<K,V> void copyMap(Map<K,V> destMap,Map<K,V> origMap){
+        for (K k : origMap.keySet()) {
+            destMap.put(k,origMap.get(k));
+        }
+    }
 
 }

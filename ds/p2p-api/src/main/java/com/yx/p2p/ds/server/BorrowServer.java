@@ -7,6 +7,7 @@ import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.vo.BorrowContractVo;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @description:
@@ -32,4 +33,6 @@ public interface BorrowServer {
 
     //申请放款
     public Result applyLoan(Integer borrowId);
+
+    public List<Borrow> getBorrowListByBorrowIdList(Set<Integer> idSet);
 }

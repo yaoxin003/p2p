@@ -37,14 +37,6 @@
             <version>RELEASE</version>
         </dependency>
 
-        <!--MongoDB-->
-        <!--@Document-->
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-mongodb</artifactId>
-            <version>RELEASE</version>
-        </dependency>
-
     </dependencies>
 
 </project>

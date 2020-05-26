@@ -6,6 +6,7 @@ import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description:
@@ -33,5 +34,9 @@ public interface InvestServer {
     //转让赎回申请
     public Result transferApply(Integer investId);
 
+    //投资提现申请
+    public Result withdrawApply(Integer investId);
 
+    //获得转让协议文本
+    public Map<String,Object> getTransferContractText(Integer investId);
 }

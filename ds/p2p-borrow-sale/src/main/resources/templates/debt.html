@@ -11,13 +11,13 @@
         </div>
 
         <div id="contractDialog" class="easyui-dialog" title="【借款合同】"
-             draggable="false" data-options="modal:true,closed:true" style="display:none;width:900px">
+             draggable="false" data-options="modal:true,closed:true" style="display:none;width:920px">
             <div>
                 <form id="contractForm">
                      <span  style="display:none;" >
                             <input id="cBorrowId" name="id" class="easyui-textbox" style="width:50px"/>
                     </span>
-                  <table>
+                  <table >
                       <tr>
                           <td colspan="2"><input type="text" name="customerName" class="easyui-textbox" label="借款人" data-options="readonly:true" style="width:250px"></td>
                           <td colspan="2"><input type="text" name="customerIdCard" class="easyui-textbox" label="身份证" data-options="readonly:true" style="width:250px"></td>
@@ -62,7 +62,7 @@
               </form>
           </div>
           <div>&nbsp;</div>
-          <div id="contractTable"  style="width:850px"></div>
+          <div id="contractTable" title="借款撮合结果"></div>
           <div>&nbsp;</div>
           <div style="text-align:center;padding:5px">
               <a href="javascript:void(0)" class="easyui-linkbutton" onclick="applyLoan()">申请放款</a>
@@ -151,37 +151,45 @@
                   data: {"borrowId": borrowId},
                   dataType: 'json',
                   cache: false,
+                  beforeSend: function () {
+                      $.messager.progress({
+                          title: '提示',
+                          msg: '信息加载中，请稍候……',
+                          text: ''
+                      });
+                  },
+                  complete: function () {
+                      $.messager.progress('close');
+                  },
                   success: function (result) {
                       //显示信息
                       $("#contractForm").form('load', result.borrow);
                      //借款合同
-                      contractDatagrid(borrowId);
+                      contractDatagrid(borrowId,result.borrowDtlList);
                       //打开窗口
                       $("#contractDialog").dialog("open");
                   }
               });
           }
 
-          function contractDatagrid(borrowId){
+          function contractDatagrid(borrowId,borrowDtlList){
               $("#contractDialog").dialog("open");
               $("#contractTable").datagrid({
                   idField : 'id',
                   cache: false,
+                  width : 890,
                   rownumbers:true,
-                  url: '/borrow/getBorrowContractByBorrowId?borrowId='+borrowId,
                   columns:[[
-                      {field:'investBizId',title:'投资业务编号',width:50},
-                      {field:'customerName',title:'投资人姓名',width:100},
-                      {field:'customerIdCard',title:'投资人身份证号码',width:150},
-                      {field:'tradeAmt',title:'出借金额',width:100},
+                      {field:'investBizId',title:'投资编号',width:100},
+                      {field:'customerName',title:'投资人',width:100},
+                      {field:'customerIdCard',title:'身份证号码',width:150},
+                      {field:'tradeAmt',title:'出借金额',width:50},
                       {field:'matchShare',title:'占比',width:50},
-                      {field:'baseBankName',title:'银行总行名称',width:100},
+                      {field:'baseBankName',title:'银行名称',width:100},
                       {field:'bankAccount',title:'银行账户',width:150},
                       {field:'phone',title:'电话',width:150}
                   ]],
-                  loadFilter : function(data){
-                      return data.borrowDtlList;
-                  }
+                  data : borrowDtlList
               });
           }
 
@@ -220,6 +228,26 @@
           }
           return str;
       }
+
+
+          //弹出加载层
+          function load() {
+              $("<div class=\"datagrid-mask\"></div>").css({
+                  display: "block",
+                  width: "100%",
+                  height: $(window).height()
+              }).appendTo("body");
+              $("<div class=\"datagrid-mask-msg\"></div>").html("加载中，请稍候。。。").appendTo("body").css({
+                  display: "block",
+                  left: ($(document.body).outerWidth(true) - 190) / 2,
+                  top: ($(window).height() - 45) / 2
+              });
+          }
+          //取消加载层
+          function disLoad() {
+              $(".datagrid-mask").remove();
+              $(".datagrid-mask-msg").remove();
+          }
       </script>
   </div>
 </body>
