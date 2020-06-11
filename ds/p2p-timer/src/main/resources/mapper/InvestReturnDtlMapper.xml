@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yx.p2p.ds.timer.biz.invest.mapper.InvestReturnDtlMapper">
+
+    <select id="queryInvestReturnGroupListCount" resultType="int" >
+       select count(invest_id) from (
+            select ird.invest_id
+            from p2p_invest_return_dtl ird
+            where ird.arrive_date=#{arriveDate}
+            group by ird.invest_id
+        ) t
+    </select>
+
+    <select id="queryInvestReturnGroupList" resultType="InvestReturn">
+        select ird.invest_id,sum(ird.hold_return_amt) return_total_amt,
+            max(ird.invest_customer_id) invest_customer_id,max(ird.invest_customer_name) invest_customer_name
+        from p2p_invest_return_dtl ird
+        where ird.arrive_date=#{arriveDate}
+        group by ird.invest_id
+        limit #{offset},#{pageSize}
+    </select>
+
+</mapper>

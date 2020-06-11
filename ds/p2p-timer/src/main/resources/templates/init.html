@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="common/head">
+    <title>定时任务列表页面</title>
+</head>
+<body>
+
+<!--数据库定时任务列表功能-->
+<table id="dg"></table>
+
+<!--定时任务列表的工具栏-->
+<div id="tb" style="display:none;">
+    <table>
+        <tr>
+            <td>操作按钮
+                <a href="#" class="easyui-linkbutton" iconCls="icon-edit" onclick="updateTask()">修改</a>
+                <a href="#" class="easyui-linkbutton" iconCls="icon-edit" onclick="deleteTask()">删除</a>
+                <a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="addTask()">添加</a>
+            </td>
+            <td width="100"></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                    <input class="easyui-datebox" id="bizDate" style="width:200px;" label="业务日期">
+                    <a href="#" class="easyui-linkbutton" iconCls="icon-add" onclick="runTask()">执行</a>
+            </td>
+            <td></td>
+            <td>
+                <form id="searchForm" action="" method="post">
+                    <input class="easyui-textbox" name="description" id="searchDesc" style="width:200px;" label="任务描述"/>
+                    <a href="#" class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询定时任务</a>
+                </form>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!--定时任务添加/修改对话框-->
+<div id="mydialog" class="easyui-dialog" title="添加/修改定时任务" style="width:300px;display:none;" draggable="false"
+     data-options="modal:true,closed:true">
+    <form id="myForm" action="" method="post">
+        <span  style="display:none;" >
+            <input name="id" class="easyui-textbox"/>
+        </span>
+        <table>
+            <tr>
+                <td>任务分组</td>
+                <td><input type="text" name="jobGroup" id="jobGroup" class="easyui-textbox" data-options="required:true" style="width:200px"/></td>
+            </tr>
+            <tr>
+                <td>任务名称</td>
+                <td><input type="text" name="jobName" class="easyui-textbox" data-options="required:true" style="width:200px"/></td>
+            </tr>
+            <tr>
+                <td>任务描述</td>
+                <td><input type="text" name="description" class="easyui-textbox" data-options="required:true" style="width:200px"/></td>
+            </tr>
+            <tr>
+                <td>cron表达式</td>
+                <td><input id="cronExpression" type="text" name="cronExpression"  class="easyui-textbox" data-options="required:true" style="width:200px"/></td>
+            </tr>
+            <tr>
+                <td>类全名</td>
+                <td><input type="text" name="classFullName" id="classFullName" class="easyui-textbox" data-options="required:true" style="width:200px"/></td>
+            </tr>
+
+            <tr align="center">
+                <td colspan="2">
+                    <a id="btn1" class="easyui-linkbutton">保存</a>
+                    <a id="btn2" class="easyui-linkbutton">关闭</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+</body>
+<script type="text/javascript" th:inline="none">
+
+    //--------------------定时任务列表功能--------------------
+    $("#dg").datagrid({
+        idField : 'id',//有idField保证了翻页选中不丢失
+        fitColumns:true,
+        rownumbers:true,
+        width: 1450,
+        url : "/task/list",
+        striped:true,//隔行变色
+        singleSelect:true,//只允许选中一行
+        title : '数据库定时任务列表页面',
+        toolbar : '#tb',
+        columns : [[
+            {field:'ck',checkbox:true,width:50},
+            {field:'id',title:'编号',width:50},
+            {field:'bizState',title:'业务状态',width:100,
+                formatter: function(value,row,index){
+                    if(value=='0'||null == value){
+                        var str = "<input id=" + row.id + " name='bizStateBtn' class='my easyui-switchbutton' data-options=\"onText:'运行',offText:'停止'\">";
+                    }else{
+                        var str = "<input id=" + row.id + " name='bizStateBtn' class='my easyui-switchbutton' checked data-options=\"onText:'运行',offText:'停止'\">";
+                    }
+                    return str;
+                }
+            },
+            {field:'jobGroup',title:'任务分组',width:100},
+            {field:'jobName',title:'任务名称',width:350},
+            {field:'description',title:'任务描述',width:300},
+            {field:'cronExpression',title:'cron表达式',width:200},
+            {field:'classFullName',title:'类全名',width:450}
+        ]],
+        onLoadSuccess : function(data){
+            $.parser.parse();
+            $(".my").switchbutton({
+                onChange: function(checked){
+                    var bizState = 1;
+                    if(checked){
+                        bizState = 1;
+                    }else{
+                        bizState = 0;
+                    }
+                    var mapObj = {
+                        'id': $(this).attr("id"),
+                        'bizState' : bizState
+                    };
+
+                    $.ajax({
+                        type : 'post',
+                        url : '/task/updateBizState',
+                        data : mapObj,
+                        success : function(data){
+                            $("#dg").datagrid('reload');
+                        }
+                    });
+                }
+           });
+        },
+        loadMsg : '数据正在加载，请耐心等待……',
+        pagination : true,
+        pageList:[1,2,5,10,20,50]
+    });
+
+    var flag;//添加/修改标志位
+    //添加定时任务
+    function addTask(){
+       flag = "add";//添加/修改标志位
+        $("#myForm").form('reset');
+        $("#mydialog").dialog({
+            id:'mydialog',
+            title : '添加定时任务'
+        });
+        $("#mydialog").dialog("open");
+    }
+
+    //修改定时任务
+    function updateTask(){
+        flag = "update";//添加/修改标志位
+        var arr = $("#dg").datagrid('getSelections');
+        if(arr.length != 1){
+            messger_show_center('提示信息','请选择一行记录修改');
+        }else{
+            $("#mydialog").dialog({
+                id:'mydialog',
+                title : '修改定时任务'
+            });
+            $("#mydialog").dialog("open");
+            var dataParams =  {"id":arr[0].id};
+            ajaxModifyOpen(dataParams,'myForm','mydialog','post','/task/getById');
+        }
+    }
+
+    //删除定时任务
+    function deleteTask(){
+        var arr = $("#dg").datagrid('getSelections');
+        if(arr.length != 1){
+            messger_show_center('提示信息','请选择一行记录删除');
+        }else{
+            if(arr[0].bizState == 0){
+                var dataParams =  {"taskId":arr[0].id};
+                $.ajax({
+                    type : 'post',
+                    url : '/task/delete',
+                    data : dataParams,
+                    success : function(result){
+                        //1.刷新datagrid
+                        $("#dg").datagrid('reload');
+                        //2.提示信息
+                        var msg = "";
+                        if(result.selfMsg != ""){
+                            msg = result.selfMsg;
+                        }else{
+                            msg = result.defaultMsg;
+                        }
+                        messger_show_center(result.status,msg);
+                    }
+                });
+            }else{
+                messger_show_center('提示信息','请先停止定时任务');
+            }
+        }
+    }
+
+    //执行定时任务
+    function runTask() {
+        var arr = $("#dg").datagrid('getSelections');
+        if (arr.length != 1) {
+            messger_show_center('提示信息', '请选择一行记录执行');
+        } else {
+            if(arr[0].bizState == 1){
+                var bizDate = $("#bizDate").textbox("getValue");
+                if(bizDate != ""){
+                    var dataParams =  {"taskId":arr[0].id, "bizDate":bizDate};
+                    $.ajax({
+                        type : 'post',
+                        url : '/task/run',
+                        data : dataParams,
+                        success : function(result){
+                            var msg = "";
+                            if(result.selfMsg != ""){
+                                msg = result.selfMsg;
+                            }else{
+                                msg = result.defaultMsg;
+                            }
+                            messger_show_center(result.status,msg);
+                        }
+                    });
+                }else{
+                    messger_show_center('提示信息', '请填写业务日期');
+                }
+            }else{
+                messger_show_center('提示信息','请先启动定时任务');
+            }
+        }
+    }
+
+    function doSearch(){
+        $("#dg").datagrid('load',datagridForm($("#searchForm")));
+        $("#dg").datagrid('clearSelections');
+    }
+
+    function datagridForm(form){
+        var obj = {};
+        $.each(form.serializeArray(),function(index){
+            obj[this['name']] = this['value'];
+        });
+        return obj;
+    }
+
+    //--------------------添加/修改提交表单--------------------
+    $("#btn1").click(function(){
+        var formObj = $("#myForm");
+        if(formObj.form("validate")){
+            var url = flag == "add" ? "/task/add" : "/task/update";
+            ajaxAddUpdate('myForm','mydialog','dg','post',url);
+            doSearch();
+        }else{
+            messger_show_center('提示信息','数据验证不通过，不能保存');
+        }
+    });
+
+    //关闭窗口
+    $("#btn2").click(function(){
+        $("#mydialog").dialog("close");
+    });
+
+</script>
+</html>
