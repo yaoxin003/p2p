@@ -11,7 +11,6 @@ import tk.mybatis.spring.annotation.MapperScan;
 @ComponentScan("com.yx.p2p.ds")
 @MapperScan(basePackages = "com.yx.p2p.ds.invest.mapper")//tkmybatis的注解
 @EnableDubboConfiguration
-@EnableTransactionManagement//开启事务管理
 public class P2pInvestApplication {
 
 	public static void main(String[] args) {

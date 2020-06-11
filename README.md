@@ -12,11 +12,11 @@ Java版本：JDK1.8.0_131
 服务器：Tomcat8.5.15
 数据库：MySQL5.1.42
 系统技术：
-SpringBoot2.1.0.RELEASE+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4，
+SpringBoot2.1.0.RELEASE+Mybatis3.5.3+thymeleaf1.4.7+EasyUI1.7.0+JQuery1.12.4
 Dubbo2.6.0+Zookeeper3.4.8
-MySQL+MongoDB3.4
-Redis4.0.14+Elastic Search
-Nginx+RocketMQ4.5.1
+MySQL5.6+Mycat1.6.7
+Redis4.0.14+RocketMQ4.5.1
+#ElasticSearch6.3.1+Nginx3.6.3+MongoDB3.4
 
 SHA加签验签，RSA非对称加密解密
 
@@ -38,12 +38,15 @@ RocketMQ4.5.1（NameSrv和Broker）
     启动NameSrv方式：nohup sh mqnamesrv > nohup_namesrv.out &
     启动Broker方式：nohup sh mqbroker -n 192.168.1.121:9876 > nohup_broker.out &
     控制台路径：cd /usr/local/rocketmq-externals-master/rocketmq-console/target
-    #启动方式：java -jar ./rocketmq-console-ng-1.0.1.jar
     后台启动方式：nohup java -jar rocketmq-console-ng-1.0.1.jar > nohup_rocketmq.out &
     控制台地址：http://192.168.1.121:7082
-启动mongodb
-     路径：cd /usr/local/mongodb-linux-x86_64-3.4.18/bin/
-     启动: ./mongod -f mdb.conf
+启动Mycat
+    路径：cd /usr/local/mycat/bin
+    启动：./mycat start
+#启动mongodb
+#     路径：cd /usr/local/mongodb-linux-x86_64-3.4.18/bin/
+#     启动: ./mongod -f mdb.conf
+
      
     
 
@@ -66,7 +69,7 @@ p2p-borrow-sale：借款销售管理，端口：9086
 p2p-borrow：借款管理，端口：9087
 p2p-payment：支付管理，端口：9088
 p2p-account：账户管理，端口：9089
-
+p2p-invest-timer：投资管理，端口：9090
 
 ms:微服务代码文件夹
 ：新投资服务
@@ -76,6 +79,9 @@ ms:微服务代码文件夹
 ：统计分析服务
 invest-bill：账单服务
 invest-timer：定时任务服务
+债权增值
+发起转让
+
 
 #--------------------缓存key规则--------------------
 key=crm_info_idcard_*** value=json(crm对象)

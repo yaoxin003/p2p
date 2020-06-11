@@ -1,20 +1,14 @@
 package com.yx.p2p.ds.borrow.mongo.borrow;
 
-import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-import javax.persistence.Id;
-import java.util.Date;
-
 /**
  * @description:债务每日价值
+ * MongoDB实体类
  * @author: yx
  * @date: 2020/05/19/13:51
  */
-@Document(collection="p2p_debt_daily_value")
+//@Document(collection="p2p_debt_daily_value")
 public class DebtDailyValue {
-    @Id
+    /*@Id
     private ObjectId id;
     @Indexed
     @Field("borrow_id")
@@ -74,5 +68,5 @@ public class DebtDailyValue {
                 ", value=" + value +
                 ", createTime=" + createTime +
                 '}';
-    }
+    }*/
 }

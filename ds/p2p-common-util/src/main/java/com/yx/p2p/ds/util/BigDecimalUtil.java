@@ -16,6 +16,11 @@ public class BigDecimalUtil {
         return param.setScale(SysConstant.BIGDECIMAL_DIVIDE_ROUNDMODE_2, BigDecimal.ROUND_HALF_UP);
     }
 
+    //保留4位四舍五入
+    public static BigDecimal round4In45(BigDecimal param){
+        return param.setScale(SysConstant.BIGDECIMAL_DIVIDE_ROUNDMODE_4, BigDecimal.ROUND_HALF_UP);
+    }
+
     //保留13位四舍五入
     public static BigDecimal round13In45(BigDecimal param){
         return param.setScale(SysConstant.BIGDECIMAL_DIVIDE_ROUNDMODE_13, BigDecimal.ROUND_HALF_UP);

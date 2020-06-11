@@ -265,6 +265,16 @@
                          data: $("#planBorrowForm").serialize(),
                          dataType : 'json',
                          cache : false,
+                        beforeSend: function () {
+                            $.messager.progress({
+                                title: '提示',
+                                msg: '信息加载中，请稍候……',
+                                text: ''
+                            });
+                        },
+                        complete: function () {
+                            $.messager.progress('close');
+                        },
                          success:function(result){
                              if(result.status == 'ok'){
                                  //借款撮合结果

@@ -4,8 +4,6 @@ import com.yx.p2p.ds.model.invest.TransferDtl;
 import tk.mybatis.mapper.additional.insert.InsertListMapper;
 import tk.mybatis.mapper.common.Mapper;
 
-import java.util.List;
-
 /**
  * @description:
  * @author: yx

@@ -15,19 +15,20 @@ import java.math.BigDecimal;
 @Table(name="p2p_invest_claim")
 public class InvestClaim extends BaseModel implements Serializable{
 
-
     //----------------撮合信息----------------
     private BigDecimal buyAmt;//买入金额
     private BigDecimal claimAmt;//债权金额：会增值变化
     private BigDecimal holdShare;//持有比例
     private Integer parentId;//父投资债权编号：新借款为0/转让为父编号
+    private Integer investCustomerId;//投资客户编号
+    private String investCustomerName;//投资客户姓名
     //----------------投资信息信息----------------
     private Integer investId;//投资编号
     private Integer lendingId;//出借单编号
     //----------------借款信息----------------
     private Integer borrowId;//借款编号
-    private Integer customerId;//借款客户编号
-    private String customerName;//借款客户姓名
+    private Integer borrowCustomerId;//借款客户编号
+    private String borrowCustomerName;//借款客户姓名
     private Integer borrowProductId;//借款产品编号
     private String borrowProductName;//借款产品名称
     private BigDecimal borrowYearRate;//贷款年利率
@@ -66,22 +67,6 @@ public class InvestClaim extends BaseModel implements Serializable{
 
     public void setBorrowId(Integer borrowId) {
         this.borrowId = borrowId;
-    }
-
-    public Integer getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(Integer customerId) {
-        this.customerId = customerId;
-    }
-
-    public String getCustomerName() {
-        return customerName;
-    }
-
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
     }
 
     public BigDecimal getBuyAmt() {
@@ -140,21 +125,55 @@ public class InvestClaim extends BaseModel implements Serializable{
         this.parentId = parentId;
     }
 
+    public Integer getInvestCustomerId() {
+        return investCustomerId;
+    }
+
+    public void setInvestCustomerId(Integer investCustomerId) {
+        this.investCustomerId = investCustomerId;
+    }
+
+    public String getInvestCustomerName() {
+        return investCustomerName;
+    }
+
+    public void setInvestCustomerName(String investCustomerName) {
+        this.investCustomerName = investCustomerName;
+    }
+
+    public Integer getBorrowCustomerId() {
+        return borrowCustomerId;
+    }
+
+    public void setBorrowCustomerId(Integer borrowCustomerId) {
+        this.borrowCustomerId = borrowCustomerId;
+    }
+
+    public String getBorrowCustomerName() {
+        return borrowCustomerName;
+    }
+
+    public void setBorrowCustomerName(String borrowCustomerName) {
+        this.borrowCustomerName = borrowCustomerName;
+    }
+
     @Override
     public String toString() {
         return "InvestClaim{" +
-                "investId=" + investId +
-                ", lendingId=" + lendingId +
-                ", borrowId=" + borrowId +
-                ", customerId=" + customerId +
-                ", customerName='" + customerName + '\'' +
-                ", buyAmt=" + buyAmt +
+                "buyAmt=" + buyAmt +
                 ", claimAmt=" + claimAmt +
                 ", holdShare=" + holdShare +
+                ", parentId=" + parentId +
+                ", investCustomerId=" + investCustomerId +
+                ", investCustomerName='" + investCustomerName + '\'' +
+                ", investId=" + investId +
+                ", lendingId=" + lendingId +
+                ", borrowId=" + borrowId +
+                ", borrowCustomerId=" + borrowCustomerId +
+                ", borrowCustomerName='" + borrowCustomerName + '\'' +
                 ", borrowProductId=" + borrowProductId +
                 ", borrowProductName='" + borrowProductName + '\'' +
                 ", borrowYearRate=" + borrowYearRate +
-                ", parentId=" + parentId +
                 '}' + super.toString();
     }
 }

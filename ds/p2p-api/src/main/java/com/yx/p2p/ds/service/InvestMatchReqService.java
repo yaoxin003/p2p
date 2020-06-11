@@ -12,8 +12,7 @@ import java.util.List;
  */
 public interface InvestMatchReqService {
 
-    public Result addInvestMatchReq(InvestMatchReq investMatchReq);
-
+    public Result addInvestMatchReq(List<InvestMatchReq> investMatchReqList);
 
     //获得待撮合的投资撮合请求集合
     public List<InvestMatchReq> getWaitMatchAmtInvestReqList();

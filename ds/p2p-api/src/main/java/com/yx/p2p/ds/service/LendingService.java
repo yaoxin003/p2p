@@ -2,6 +2,7 @@ package com.yx.p2p.ds.service;
 
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.invest.InvestClaim;
+import com.yx.p2p.ds.model.invest.Lending;
 import com.yx.p2p.ds.mq.InvestMQVo;
 
 import java.util.List;
@@ -20,5 +21,7 @@ public interface LendingService {
 
     //检查并处理出借单满额
     public Result checkAndDealFullAmt(List<InvestClaim> matchInvestClaimList);
+
+    public List<Lending> addLendingList(List<Lending> lendingList);
 
 }

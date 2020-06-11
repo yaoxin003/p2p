@@ -133,6 +133,8 @@ public class TransferMatchReqServiceImpl implements TransferMatchReqService {
                 //6.债权交割MQ
                 logger.debug("【changeClaimMap=】" + changeClaimMap);
                 this.sendChangeClaimMQ(transferIdStr,changeClaimMap);
+            }else{
+
             }
         }
         return result;

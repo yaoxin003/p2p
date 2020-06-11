@@ -137,7 +137,7 @@ public class FinanceMatchReqServiceImpl implements FinanceMatchReqService {
         if(borrowMatchReq.getWaitAmt().compareTo(BigDecimal.ZERO) == 0){
             share = remainShare;
         }else{
-            share = BigDecimalUtil.divide2(financeMatchRes.getTradeAmt(),borrowMatchReq.getFinanceAmt());
+            share = BigDecimalUtil.divide4(financeMatchRes.getTradeAmt(),borrowMatchReq.getFinanceAmt());
             remainShare = remainShare.subtract(share);
         }
         financeMatchRes.setMatchShare(share);

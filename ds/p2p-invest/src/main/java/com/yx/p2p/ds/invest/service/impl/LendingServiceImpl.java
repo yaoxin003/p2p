@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,7 @@ public class LendingServiceImpl implements LendingService {
         lending.setAmount(investMQVo.getAmount());
         lending.setCustomerId(investMQVo.getCustomerId());
         lending.setLendingType(LendingTypeEnum.NEW_LEND.getCode());
+        lending.setArriveDate(new Date());
         lending.setOrderSn(investMQVo.getOrderSn());
         BeanHelper.setAddDefaultField(lending);
         return lending;
@@ -154,5 +156,11 @@ public class LendingServiceImpl implements LendingService {
         BeanHelper.setUpdateDefaultField(param);
         int i = lendingMapper.updateByPrimaryKeySelective(param);
         return Result.success();
+    }
+
+    public List<Lending> addLendingList(List<Lending> lendingList) {
+        int count = lendingMapper.insertList(lendingList);
+        logger.debug("【数据库插入lendingList=】" + lendingList);
+        return lendingList;
     }
 }

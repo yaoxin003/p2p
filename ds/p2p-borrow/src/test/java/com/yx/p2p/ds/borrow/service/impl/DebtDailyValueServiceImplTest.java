@@ -131,10 +131,10 @@ public class DebtDailyValueServiceImplTest {
    private DebtDailyValue buildMongoDebtDailyValue(Date occurDate, BigDecimal npv) {
         DebtDailyValue debtDailyValue = new DebtDailyValue();
         //debtDailyValue.setId(ObjectId.get());
-        debtDailyValue.setCreateTime(new Date());
+    /*    debtDailyValue.setCreateTime(new Date());
         debtDailyValue.setDaily(occurDate);
         debtDailyValue.setBorrowId(100);
-        debtDailyValue.setValue(npv.doubleValue());
+        debtDailyValue.setValue(npv.doubleValue());*/
 
         return debtDailyValue;
     }

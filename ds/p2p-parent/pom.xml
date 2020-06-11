@@ -132,6 +132,7 @@
                 <version>${springboot.apache.rocketmq.version}</version>
             </dependency>
 
+
         </dependencies>
     </dependencyManagement>
 </project>

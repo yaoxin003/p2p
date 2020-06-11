@@ -12,6 +12,7 @@ import com.yx.p2p.ds.service.util.RedisUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.service.CrmService;
 import com.yx.p2p.ds.util.LoggerUtil;
+import com.yx.p2p.ds.util.PageUtil;
 import com.yx.p2p.ds.vo.CustomerVo;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +57,7 @@ public class CrmServiceImpl implements CrmService {
 
     public List<Customer> getCustomerListByPagination(CustomerVo customerVo, Integer currentPage, Integer pageSize){
         logger.debug("【currentPage=】" + currentPage + ",pageSize=" + pageSize);
-        Integer offset = (currentPage-1) * pageSize;
+        Integer offset =  PageUtil.getOffset(currentPage,pageSize);
         logger.debug("offset=" + offset + ",limit=" + pageSize);
         return customerMapper.queryCustomerListByPagination(customerVo,offset,pageSize);
     }

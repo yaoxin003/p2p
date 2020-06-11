@@ -12,10 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description:投资撮合请求
@@ -31,40 +32,41 @@ public class InvestMatchReqServiceImpl implements InvestMatchReqService {
     private InvestMatchReqMapper investMatchReqMapper;
 
     @Override
-    public Result addInvestMatchReq(InvestMatchReq investMatchReq) {
-        logger.debug("【插入投资撮合请求入参】investMatchReq=" + investMatchReq);
-        Result result  = this.checkNoInvestMatchReq(investMatchReq);
+    public Result addInvestMatchReq(List<InvestMatchReq> mqReqList) {
+        logger.debug("【插入投资撮合请求入参】mqReqList=" + mqReqList);
+        Result result = Result.error();
+        List<InvestMatchReq> noInsertReqList  = this.filterNoInsertInvestMatchReqList(mqReqList);
         int count = 0;
-        if(Result.checkStatus(result)){
-            BeanHelper.setAddDefaultField(investMatchReq);
-            count = investMatchReqMapper.insert(investMatchReq);
-            if( count == 1){
-                result = Result.success();
+        if(!noInsertReqList.isEmpty()){
+            for (InvestMatchReq req : noInsertReqList) {
+                BeanHelper.setAddDefaultField(req);
             }
+            count = investMatchReqMapper.insertList(noInsertReqList);
+            result = Result.success();
         }
         logger.debug("【插入投资撮合请求结果】count=" + count + "，result=" + result);
         return result;
     }
 
-    private Result checkNoInvestMatchReq(InvestMatchReq req) {
-        logger.debug("【验证不存在投资撮合请求数据入参】req=" + req);
-        Result result = Result.error();
-        String orderSn = req.getInvestOrderSn();
-        InvestMatchReq investMatchReq = this.queryDBInvestMatchReq(orderSn);
-        if(investMatchReq == null){
-            result = Result.success();
-        }
-        logger.debug("【验证不存在投资撮合请求数据结果】result=" + result);
-        return result;
+    private List<InvestMatchReq> filterNoInsertInvestMatchReqList(List<InvestMatchReq> mqReqList) {
+        logger.debug("【过滤没有插入的投资撮合请求集合】mqReqList=" + mqReqList);
+        List<InvestMatchReq> dbReqList = this.queryInvestMatchReqList(mqReqList);
+        mqReqList.removeAll(dbReqList);
+        logger.debug("【过滤没有插入的投资撮合请求集合】结果mqReqList=" + mqReqList);
+        return mqReqList;
     }
 
-    private InvestMatchReq queryDBInvestMatchReq(String orderSn) {
-        logger.debug("【查询投资撮合请求入参】orderSn=" + orderSn);
-        InvestMatchReq req = new InvestMatchReq();
-        req.setInvestOrderSn(orderSn);
-        InvestMatchReq investMatchReq = investMatchReqMapper.selectOne(req);
-        logger.debug("【查询投资撮合请求结果】investMatchReq=" + investMatchReq);
-        return investMatchReq;
+    private List<InvestMatchReq> queryInvestMatchReqList(List<InvestMatchReq> paramReqList) {
+        logger.debug("【查询投资撮合请求集合入参】paramReqList=" + paramReqList);
+        List<String> orderSnList = new ArrayList<>();
+        for (InvestMatchReq investMatchReq : paramReqList) {
+            orderSnList.add(investMatchReq.getInvestOrderSn());
+        }
+        Example example = new Example(InvestMatchReq.class);
+        example.createCriteria().andIn("investOrderSn",orderSnList);
+        List<InvestMatchReq> investMatchReqList = investMatchReqMapper.selectByExample(example);
+        logger.debug("【查询投资撮合请求集合结果】investMatchReqList=" + investMatchReqList);
+        return investMatchReqList;
     }
 
 

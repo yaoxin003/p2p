@@ -21,4 +21,10 @@ public class PageUtil {
         return pageCount;
     }
 
+    //@param: currentPage 当前页编号
+    //@param: pageSize 每页数量
+    //@return: 起始数量编号
+    public static Integer getOffset(Integer currentPage, Integer pageSize) {
+        return (currentPage-1) * pageSize;
+    }
 }

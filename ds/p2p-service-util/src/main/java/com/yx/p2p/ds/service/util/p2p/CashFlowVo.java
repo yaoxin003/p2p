@@ -24,4 +24,12 @@ public class CashFlowVo {
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
+
+    @Override
+    public String toString() {
+        return "CashFlowVo{" +
+                "occurDate=" + occurDate +
+                ", amount=" + amount +
+                '}';
+    }
 }

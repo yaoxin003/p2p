@@ -11,10 +11,7 @@ import com.yx.p2p.ds.enums.match.MatchRemarkEnum;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.enums.payment.PaymentTypeEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
-import com.yx.p2p.ds.invest.mapper.InvestClaimHistoryMapper;
-import com.yx.p2p.ds.invest.mapper.InvestClaimMapper;
-import com.yx.p2p.ds.invest.mapper.InvestMapper;
-import com.yx.p2p.ds.invest.mapper.TransferMapper;
+import com.yx.p2p.ds.invest.mapper.*;
 import com.yx.p2p.ds.model.crm.Customer;
 import com.yx.p2p.ds.model.invest.*;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
@@ -42,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tk.mybatis.mapper.entity.Example;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -172,8 +170,11 @@ public class InvestServiceImpl implements InvestService {
     }
 
 
+    //批量发送投资撮合MQ
     private void sendInvestMatchReqMQ(InvestMatchReq investMatchReq) {
-        String mqVoStr = JSON.toJSONString(investMatchReq);
+        List<InvestMatchReq> investMatchReqList = new ArrayList<>();
+        investMatchReqList.add(investMatchReq);
+        String mqVoStr = JSON.toJSONString(investMatchReqList);
         DefaultMQProducer producer = null;
         try {
             Message message = new Message(matchInvestTopic,matchInvestTag,
@@ -445,6 +446,14 @@ public class InvestServiceImpl implements InvestService {
         return result;
     }
 
+    public List<Invest> getInvestListByInvestIdList(List<Integer> investIdList){
+        Example example = new Example(Invest.class);
+        example.createCriteria().andIn("id",investIdList);
+        List<Invest> investList = investMapper.selectByExample(example);
+        return investList;
+    }
+
+
     private Result dealLoanNoticeData(Integer financeCustomerId, Integer borrowId, List<FinanceMatchRes> borrowMatchResList) {
         logger.debug("【批量插入投资债权明细】入参：financeCustomerId="+ financeCustomerId
                 + ",borrowId=" + borrowId+ ",borrowMatchResList=" + borrowMatchResList);
@@ -469,8 +478,10 @@ public class InvestServiceImpl implements InvestService {
             InvestClaim investClaim = new InvestClaim();
             investClaim.setParentId(0);//父投资债权编号：新借款为0/转让为父编号
             investClaim.setBorrowId(borrowId);
-            investClaim.setCustomerId(financeMatchRes.getFinanceCustomerId());
-            investClaim.setCustomerName(financeMatchRes.getFinanceCustomerName());
+            investClaim.setBorrowCustomerId(financeMatchRes.getFinanceCustomerId());
+            investClaim.setBorrowCustomerName(financeMatchRes.getFinanceCustomerName());
+            investClaim.setInvestCustomerId(financeMatchRes.getInvestCustomerId());
+            investClaim.setInvestCustomerName(financeMatchRes.getInvestCustomerName());
             investClaim.setBorrowProductId(financeMatchRes.getBorrowProductId());
             investClaim.setBorrowProductName(financeMatchRes.getBorrowProductName());
             investClaim.setBorrowYearRate(financeMatchRes.getBorrowYearRate());
@@ -511,5 +522,12 @@ public class InvestServiceImpl implements InvestService {
         return investClaimList;
     }
 
-
+    public List<InvestClaim> getInvestClaimList(List<Integer> borrowIdList){
+        logger.debug("【查询投资持有债权集合】入参：borrowIdList=" + borrowIdList);
+        Example example = new Example(InvestClaim.class);
+        example.createCriteria().andIn("borrowId",borrowIdList);
+        List<InvestClaim> investClaimList = investClaimMapper.selectByExample(example);
+        logger.debug("【查询投资持有债权集合】结果：investClaimList=" + investClaimList);
+        return investClaimList;
+    }
 }

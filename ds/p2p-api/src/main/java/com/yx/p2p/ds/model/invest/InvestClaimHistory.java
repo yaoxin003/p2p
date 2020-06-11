@@ -17,8 +17,10 @@ public class InvestClaimHistory extends BaseModel implements Serializable{
     private Integer investId;//投资编号
     private Integer lendingId;//出借单编号
     private Integer borrowId;//借款编号
-    private Integer customerId;//客户编号
-    private String customerName;//客户姓名
+    private Integer borrowCustomerId;//借款客户编号
+    private String borrowCustomerName;//借款客户姓名
+    private Integer investCustomerId;//投资客户编号
+    private String investCustomerName;//投资客户姓名
     private BigDecimal buyAmt;//买入金额
     private BigDecimal claimAmt;//债权金额：会增值变化
     private BigDecimal holdShare;//持有比例
@@ -51,20 +53,36 @@ public class InvestClaimHistory extends BaseModel implements Serializable{
         this.borrowId = borrowId;
     }
 
-    public Integer getCustomerId() {
-        return customerId;
+    public Integer getBorrowCustomerId() {
+        return borrowCustomerId;
     }
 
-    public void setCustomerId(Integer customerId) {
-        this.customerId = customerId;
+    public void setBorrowCustomerId(Integer borrowCustomerId) {
+        this.borrowCustomerId = borrowCustomerId;
     }
 
-    public String getCustomerName() {
-        return customerName;
+    public String getBorrowCustomerName() {
+        return borrowCustomerName;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
+    public void setBorrowCustomerName(String borrowCustomerName) {
+        this.borrowCustomerName = borrowCustomerName;
+    }
+
+    public Integer getInvestCustomerId() {
+        return investCustomerId;
+    }
+
+    public void setInvestCustomerId(Integer investCustomerId) {
+        this.investCustomerId = investCustomerId;
+    }
+
+    public String getInvestCustomerName() {
+        return investCustomerName;
+    }
+
+    public void setInvestCustomerName(String investCustomerName) {
+        this.investCustomerName = investCustomerName;
     }
 
     public BigDecimal getBuyAmt() {
@@ -125,12 +143,14 @@ public class InvestClaimHistory extends BaseModel implements Serializable{
 
     @Override
     public String toString() {
-        return "InvestClaim{" +
+        return "InvestClaimHistory{" +
                 "investId=" + investId +
                 ", lendingId=" + lendingId +
                 ", borrowId=" + borrowId +
-                ", customerId=" + customerId +
-                ", customerName='" + customerName + '\'' +
+                ", borrowCustomerId=" + borrowCustomerId +
+                ", borrowCustomerName='" + borrowCustomerName + '\'' +
+                ", investCustomerId=" + investCustomerId +
+                ", investCustomerName='" + investCustomerName + '\'' +
                 ", buyAmt=" + buyAmt +
                 ", claimAmt=" + claimAmt +
                 ", holdShare=" + holdShare +

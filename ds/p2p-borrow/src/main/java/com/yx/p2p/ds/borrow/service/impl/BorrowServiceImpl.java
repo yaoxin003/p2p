@@ -15,10 +15,7 @@ import com.yx.p2p.ds.enums.match.MatchRemarkEnum;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.enums.payment.PaymentTypeEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
-import com.yx.p2p.ds.model.borrow.Borrow;
-import com.yx.p2p.ds.model.borrow.BorrowDtl;
-import com.yx.p2p.ds.model.borrow.BorrowProduct;
-import com.yx.p2p.ds.model.borrow.Cashflow;
+import com.yx.p2p.ds.model.borrow.*;
 import com.yx.p2p.ds.model.crm.Customer;
 import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
@@ -31,6 +28,7 @@ import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.BorrowProductService;
 import com.yx.p2p.ds.service.BorrowService;
+import com.yx.p2p.ds.service.DebtDateValueService;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
@@ -42,6 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
+
+import javax.persistence.RollbackException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -70,8 +70,11 @@ public class BorrowServiceImpl implements BorrowService {
     @Autowired
     private BorrowContractVoMapper borrowContractVoMapper;
 
+    /*@Autowired
+    private DebtDailyValueService debtDailyValueService;*/
+
     @Autowired
-    private DebtDailyValueService debtDailyValueService;
+    private DebtDateValueService debtDateValueService;
 
     @Reference
     private FinanceMatchReqServer financeMatchReqServer;
@@ -97,6 +100,7 @@ public class BorrowServiceImpl implements BorrowService {
         * @return: java.util.List<com.yx.p2p.ds.model.match.FinanceMatchRes> 融资撮合结果
         */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result sign(Borrow borrow) {
         logger.debug("【借款签约】borrow=" + borrow);
         //事务操作：添加借款数据,借款和现金流
@@ -104,19 +108,20 @@ public class BorrowServiceImpl implements BorrowService {
         Result result = this.addBorrowAndCashflow(borrow,cashflows);
         if(Result.checkStatus(result)){
             //添加债务每日价值(开启新线程插入MongoDB)
-            this.addBatchDebtDailyValueByNewThread(borrow, cashflows);
+            //this.addBatchDebtDailyValueByNewThread(borrow, cashflows);
             //发送借款撮合并签约
             result = this.sendBorrowMatchAndSign(borrow);
         }
         return result;
     }
 
+    //开启新线程：向MongoDB插入数据，暂不使用，而是使用Mycat保存债务每日增值
     private void addBatchDebtDailyValueByNewThread(Borrow borrow, List<Cashflow> cashflows) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 logger.debug("【开启一个新线程：批量添加债务每日价值】");
-                debtDailyValueService.addBatchDebtDailyValue(borrow, cashflows);
+               // debtDailyValueService.addBatchDebtDailyValue(borrow, cashflows);
             }
         }).start();
     }
@@ -212,12 +217,13 @@ public class BorrowServiceImpl implements BorrowService {
     }
 
     //事务操作：添加借款数据,借款和现金流
-    @Transactional
     private Result addBorrowAndCashflow(Borrow borrow,List<Cashflow> cashflows) {
         //添加借款数据
         Result result = this.addNewBorrow(borrow);
         //添加现金流
         result = this.addCashflow(borrow,cashflows);
+        //添加债务每日价值
+        debtDateValueService.addBatchDebtDateValue(borrow,cashflows);
         return result;
     }
 
@@ -267,7 +273,7 @@ public class BorrowServiceImpl implements BorrowService {
     private Result insertCashFlowList2DB(List<Cashflow> cashflows) {
         logger.debug("【现金流插入数据库开始】cashflows=" + cashflows);
         Result result = Result.error();
-        cashflowMapper.insertBatchCashflowList(cashflows);
+        cashflowMapper.insertList(cashflows);
         result = Result.success();
         return result;
     }
@@ -285,6 +291,7 @@ public class BorrowServiceImpl implements BorrowService {
         borrowFlow.setBorrowId(borrow.getId());
         borrowFlow.setReturnDateNo(0);//还款日期编号(借款为0，还款从1开始)
         borrowFlow.setTradeDate(borrow.getStartDate());//交易日期：借款开始日期/还款日期
+        borrowFlow.setArriveDate(DateUtil.addDay(borrowFlow.getTradeDate(),1));
         borrowFlow.setMonthPayment(borrow.getBorrowAmt());//月供：借款金额/月供
         borrowFlow.setPrincipal(zero);//本金
         borrowFlow.setInterest(zero);//利息
@@ -308,6 +315,7 @@ public class BorrowServiceImpl implements BorrowService {
                 tradeDate = DateUtil.addMonth(tradeDate,1);
                 returnFlow.setTradeDate(tradeDate);//交易日期：还款日期
             }
+            returnFlow.setArriveDate(DateUtil.addDay(returnFlow.getTradeDate(),1));
             returnFlow.setManageFee(borrow.getMonthManageFee());//月管理费
             returnFlow.setMonthPayment(borrow.getMonthPayment());//月供：借款金额/月供
             //月利息=总剩余本金*月利率

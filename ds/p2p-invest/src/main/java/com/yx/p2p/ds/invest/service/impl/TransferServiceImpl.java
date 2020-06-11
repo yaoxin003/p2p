@@ -18,10 +18,8 @@ import com.yx.p2p.ds.model.match.FinanceMatchReq;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.model.payment.Payment;
 import com.yx.p2p.ds.server.BorrowServer;
-import com.yx.p2p.ds.service.InvestClaimHistoryService;
-import com.yx.p2p.ds.service.InvestService;
-import com.yx.p2p.ds.service.LendingService;
-import com.yx.p2p.ds.service.TransferService;
+import com.yx.p2p.ds.server.DebtDateValueServer;
+import com.yx.p2p.ds.service.*;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
@@ -59,6 +57,9 @@ public class TransferServiceImpl implements TransferService {
 
     @Reference
     private BorrowServer borrowServer;
+
+    @Reference
+    private DebtDateValueServer debtDateValueServer;
 
     @Autowired
     private InvestService investService;
@@ -109,8 +110,7 @@ public class TransferServiceImpl implements TransferService {
             param.setInvestId(investId);
             List<InvestClaim> investClaimList = investService.getInvestClaimList(param);
             if(!investClaimList.isEmpty()){
-                //2.查询债权转让当日债权(Borrow系统.Redis)
-                //3.事务操作：生成转让协议（转让和转让明细数据），更新投资状态为转让中，并保持数据库
+                //2.事务操作：生成转让协议（转让和转让明细数据），更新投资状态为转让中，并保持数据库
                 resTransferContractVo = new TransferContractVo();
                 result = this.genTransferContractVo(investId,investClaimList,resTransferContractVo);
             }
@@ -121,6 +121,14 @@ public class TransferServiceImpl implements TransferService {
         result = this.dealTransferMatch(resTransferContractVo);
         logger.debug("【转让赎回申请】结果：result=" + result);
         return result;
+    }
+
+    private List<Integer> buildBorrowIdList(List<InvestClaim> investClaimList) {
+        List<Integer> borrowIdList = new ArrayList<>();
+        for (InvestClaim investClaim : investClaimList) {
+            borrowIdList.add(investClaim.getBorrowId());
+        }
+        return borrowIdList;
     }
 
     private Result checkNoTransfer(Integer investId) {
@@ -249,7 +257,7 @@ public class TransferServiceImpl implements TransferService {
     //构建转让合同
     private TransferContractVo buildTransferContractVo(Integer investId,
                     List<InvestClaim> investClaimList,TransferContractVo resTransferContractVo) {
-        Transfer transfer = this.buildTransfer(investId);
+        Transfer transfer = this.buildTransfer(investId,investClaimList);
         List<TransferDtlSaleBefore> transferDtlSBList = this.buildTransferDtlSaleBeforeList(investClaimList);
         resTransferContractVo.setTransfer(transfer);
         resTransferContractVo.setTransferDtlSaleBeforeList(transferDtlSBList);
@@ -257,20 +265,23 @@ public class TransferServiceImpl implements TransferService {
     }
 
     //构建转让协议
-    private Transfer buildTransfer(Integer investId) {
+    private Transfer buildTransfer(Integer investId, List<InvestClaim> investClaimList) {
         Transfer transfer = new Transfer();
-        Invest invest = investService.getInvestByInvestId(investId);
         try {
+            Invest invest = investService.getInvestByInvestId(investId);
+            //2.查询债权转让当日债权Borrow系统(.Redis)
+            Map<String, BigDecimal> sumDebtAndReturnByBorrowIdList = debtDateValueServer
+                    .getSumDebtAndReturnByBorrowIdList(new Date(),this.buildBorrowIdList(investClaimList));
             BeanUtils.copyProperties(transfer,invest);
-            transfer.setId(null);
+            transfer.setId(null);//copyProperties会复制id，所以要设置为null
             transfer.setInvestId(investId);
-            transfer.setRedeemAmt(BigDecimal.ZERO);
-            transfer.setTransferAmt(invest.getInvestAmt());//需要修改
-            transfer.setCashAmt(BigDecimal.ZERO);//需要修改
-            transfer.setClaimAmt(invest.getInvestAmt());//需要修改
-            transfer.setDiscountFee(BigDecimal.ZERO);//需要修改
-            transfer.setExpressFee(BigDecimal.ZERO);//需要修改
-            transfer.setServiceFee(BigDecimal.ZERO);//需要修改
+            transfer.setRedeemAmt(BigDecimal.ZERO);//赎回金额
+            transfer.setTransferAmt(invest.getInvestAmt());//转让金额（现金+债权）
+            transfer.setCashAmt(sumDebtAndReturnByBorrowIdList.get("sumReturnAmt"));//现金
+            transfer.setClaimAmt(sumDebtAndReturnByBorrowIdList.get("sumValue"));//债权金额
+            transfer.setDiscountFee(BigDecimal.ZERO);//折扣费
+            transfer.setExpressFee(BigDecimal.ZERO);//加急费
+            transfer.setServiceFee(BigDecimal.ZERO);//服务费
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -421,8 +432,10 @@ public class TransferServiceImpl implements TransferService {
             newClaim.setBorrowProductName((String)paramTransferDtlMap.get("borrowProductName"));
             newClaim.setBorrowYearRate(new BigDecimal((String)paramTransferDtlMap.get("borrowYearRate")));
             newClaim.setBorrowId(dbClaim.getBorrowId());
-            newClaim.setCustomerId(dbClaim.getCustomerId());
-            newClaim.setCustomerName(dbClaim.getCustomerName());
+            newClaim.setBorrowCustomerId(dbClaim.getBorrowCustomerId());
+            newClaim.setBorrowCustomerName(dbClaim.getBorrowCustomerName());
+            newClaim.setInvestCustomerId(Integer.valueOf((String)paramTransferDtlMap.get("investCustomerId")));
+            newClaim.setInvestCustomerName((String)paramTransferDtlMap.get("investCustomerName"));
             BeanHelper.setAddDefaultField(newClaim);
             resNewClaimList.add(newClaim);
             //转让协议明细
@@ -614,7 +627,7 @@ public class TransferServiceImpl implements TransferService {
             logger.debug("【新持有比例=原比例*撮合比例】");
             //新持有比例=原比例*撮合比例
             BigDecimal newHoldShare = oldHoldShare.multiply(matchShare);
-            newMatchShare = BigDecimalUtil.round2In45(newHoldShare);
+            newMatchShare = BigDecimalUtil.round4In45(newHoldShare);
         }
         return newMatchShare;
     }

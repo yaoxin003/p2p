@@ -16,6 +16,11 @@ public class DateUtil {
 
     private static final String datetimeMSPattern = "yyyyMMddHHmmssSSS";
 
+    public static Date date2DateYMD(Date date){
+        String dateStr = dateYMD2Str(date);
+        return str2Date(dateStr);
+    }
+
     public static Date str2Date(String dateStr){
         SimpleDateFormat sdf = new SimpleDateFormat(ymdPattern);
         Date date = null;

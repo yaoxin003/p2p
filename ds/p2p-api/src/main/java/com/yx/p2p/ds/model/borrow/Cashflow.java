@@ -1,6 +1,7 @@
 package com.yx.p2p.ds.model.borrow;
 
 import com.yx.p2p.ds.model.base.BaseModel;
+import com.yx.p2p.ds.model.base.BaseModel2;
 
 import javax.persistence.Table;
 import java.io.Serializable;
@@ -13,13 +14,15 @@ import java.util.Date;
  * @date: 2020/04/30/10:15
  */
 @Table(name="p2p_cash_flow")
-public class Cashflow extends BaseModel implements Serializable{
+public class Cashflow extends BaseModel2 implements Serializable{
 
     private Integer borrowId;//借款编号
 
     private Integer returnDateNo;//还款日期编号(借款为0，还款从1开始)
 
     private Date tradeDate;//交易日期：借款日期/还款日期
+
+    private Date arriveDate;//还款到账日期
 
     private BigDecimal monthPayment;//月供：借款金额/月供
 
@@ -55,6 +58,14 @@ public class Cashflow extends BaseModel implements Serializable{
 
     public void setTradeDate(Date tradeDate) {
         this.tradeDate = tradeDate;
+    }
+
+    public Date getArriveDate() {
+        return arriveDate;
+    }
+
+    public void setArriveDate(Date arriveDate) {
+        this.arriveDate = arriveDate;
     }
 
     public BigDecimal getMonthPayment() {
@@ -111,6 +122,7 @@ public class Cashflow extends BaseModel implements Serializable{
                 "borrowId=" + borrowId +
                 "returnDateNo=" + returnDateNo +
                 ", tradeDate=" + tradeDate +
+                ", arriveDate=" + arriveDate +
                 ", monthPayment=" + monthPayment +
                 ", principal=" + principal +
                 ", interest=" + interest +

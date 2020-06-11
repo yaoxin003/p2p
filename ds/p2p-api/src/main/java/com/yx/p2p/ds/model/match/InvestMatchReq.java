@@ -35,7 +35,7 @@ public class InvestMatchReq extends BaseModel implements Serializable{
     public boolean equals(Object obj) {
         if(obj instanceof InvestMatchReq ){
             InvestMatchReq investMatchReq = (InvestMatchReq) obj;
-            if(investMatchReq.getId() == this.getId()){
+            if(investMatchReq.getInvestOrderSn().equals(this.getInvestOrderSn())){
                 return true;
             }
         }

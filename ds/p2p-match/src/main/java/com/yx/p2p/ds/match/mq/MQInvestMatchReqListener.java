@@ -1,6 +1,7 @@
 package com.yx.p2p.ds.match.mq;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.yx.p2p.ds.model.match.InvestMatchReq;
 import com.yx.p2p.ds.service.InvestMatchReqService;
 import org.apache.rocketmq.common.message.MessageExt;
@@ -12,9 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import java.util.List;
 
 /**
- * @description:投资撮合请求
+ * @description:投资批量撮合请求
  * @author: yx
  * @date: 2020/04/24/17:13
  */
@@ -38,8 +40,8 @@ public class MQInvestMatchReqListener implements RocketMQListener<MessageExt> {
       logger.debug("接收投资撮合请求【MQListener】messageExt=" + messageExt);
         try {
             String body = new String(messageExt.getBody(),"UTF-8");
-            InvestMatchReq investMatchReq = JSON.parseObject(body, InvestMatchReq.class);
-            investMatchReqService.addInvestMatchReq(investMatchReq);
+            List<InvestMatchReq> investMatchReqList = JSONArray.parseArray(body, InvestMatchReq.class);
+            investMatchReqService.addInvestMatchReq(investMatchReqList);
         } catch (Exception e) {
             logger.debug("接收投资撮合请求【MQListener】",e);
         }

@@ -39,6 +39,8 @@
                                     str = "<a href='#' name='paymentOpr' onclick='payment(" + row.id + "," + row.customerId + "," + row.investAmt + ","+ row.customerBankId + ")'></a>";
                                 }else if(row.bizState == '5'){
                                     str = "<a href='#' name='transferOpr' onclick='transfer(" + row.id + "," + row.customerId + ")'></a>";
+                                }else if(row.bizState == '6'){
+                                    str = "<a href='#' name='transferOpr' onclick='transfer(" + row.id + "," + row.customerId + ")'></a>";
                                 }else if(row.bizState == '7'){
                                     str = "<a href='#' name='transferContractOpr' onclick='transferContractText(" + row.id + ")'></a>";
                                     str += "<a href='#' name='withdrawOpr' onclick='withdraw(" + row.id + ")'></a>";
@@ -143,9 +145,6 @@
                     }else{
                         messger_show_center('错误信息',result.selfMsg);
                     }
-                    $("#investDialog").dialog("open");
-                    $("#investDialog").dialog("center");//使Dialog居中显示
-                    showInvestDatagrid(customerId);
                 }
             });
         }

@@ -36,9 +36,9 @@ public class Transfer extends BaseModel implements Serializable{
     private Short investDayCount;//投资天数(投资类型:1-固定期限)/封闭期(投资类型:2-非固定期限)
 
     //----------------客户信息----------------
-    private Integer customerId;//客户编号
-    private String customerName;//客户姓名
-    private String customerIdCard;//客户身份证号
+    private Integer customerId;//融资客户编号
+    private String customerName;//融资客户姓名
+    private String customerIdCard;//融资客户身份证号
 
     //----------------客户银行卡信息----------------
     private Integer customerBankId;//客户银行编号(p2p_payement_customer_bank表主键)
