@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yx.p2p.ds.invest.mapper.InvestDebtValDtlMapper">
+
+    <select id="queryInvestDebtValGroupListCount" resultType="int" >
+       select count(invest_id) from (
+            select idvd.invest_id
+            from p2p_invest_debt_val_dtl idvd
+            where idvd.arrive_date=#{arriveDate}
+            group by idvd.invest_id
+        ) t
+    </select>
+
+    <select id="queryInvestDebtValGroupList" resultType="InvestDebtVal">
+        select idvd.invest_id,sum(idvd.hold_add_amt) total_hold_add_amt,
+            max(idvd.invest_customer_id) invest_customer_id,max(idvd.invest_customer_name) invest_customer_name
+        from p2p_invest_debt_val_dtl idvd
+        where idvd.arrive_date=#{arriveDate}
+        group by idvd.invest_id
+        limit #{offset},#{pageSize}
+    </select>
+
+</mapper>

@@ -13,7 +13,7 @@ import com.yx.p2p.ds.mq.InvestMQVo;
 import com.yx.p2p.ds.payment.mapper.BaseBankMapper;
 import com.yx.p2p.ds.payment.mapper.CustomerBankMapper;
 import com.yx.p2p.ds.payment.mapper.PaymentMapper;
-import com.yx.p2p.ds.service.PaymentService;
+import com.yx.p2p.ds.service.payment.PaymentService;
 import com.yx.p2p.ds.util.LoggerUtil;
 import com.yx.p2p.ds.util.RASUtil;
 import com.yx.p2p.ds.util.SHAUtil;

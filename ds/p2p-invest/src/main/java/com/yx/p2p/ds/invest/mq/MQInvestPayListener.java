@@ -3,7 +3,7 @@ package com.yx.p2p.ds.invest.mq;
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.mq.InvestMQVo;
-import com.yx.p2p.ds.service.InvestService;
+import com.yx.p2p.ds.service.invest.InvestService;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;

@@ -3,7 +3,7 @@ package com.yx.p2p.ds.invest.com.yx.p2p.ds.invest.service.impl;
 import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.invest.P2pInvestApplication;
-import com.yx.p2p.ds.service.InvestService;
+import com.yx.p2p.ds.service.invest.InvestService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

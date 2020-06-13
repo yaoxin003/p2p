@@ -30,6 +30,9 @@ Dubbo控制台：
     控制台地址：http://192.168.1.121:7081/dubbo-admin/
     控制台账户：root root
     tomcat位置：/usr/local/apache-tomcat-9.0.27
+Zookeeper：
+ 启动方式：cd /usr/local/zookeeper-3.4.11/bin
+                ./zkServer.sh start
 Redis-4.0.14
     路径：cd /etc/redis/
     启动方式：redis-server ./redis6379.conf
@@ -69,7 +72,7 @@ p2p-borrow-sale：借款销售管理，端口：9086
 p2p-borrow：借款管理，端口：9087
 p2p-payment：支付管理，端口：9088
 p2p-account：账户管理，端口：9089
-p2p-invest-timer：投资管理，端口：9090
+p2p-timer：定时任务：端口：9090
 
 ms:微服务代码文件夹
 ：新投资服务
@@ -78,9 +81,11 @@ ms:微服务代码文件夹
 ：债权转让服务
 ：统计分析服务
 invest-bill：账单服务
-invest-timer：定时任务服务
-债权增值
-发起转让
+p2p-timer：定时任务
+债务价值变更：操作系统：Borrow。业务：记账（债务增，减）。数据源：债务每日价值
+投资价值变更：操作系统：Invest。业务：按投资持有债权比例拆分，再按投资汇总，最后记账、发送撮合。
+    数据源：债务每日价值，投资持有债权
+发起到期转让：操作系统：Invest。
 
 
 #--------------------缓存key规则--------------------

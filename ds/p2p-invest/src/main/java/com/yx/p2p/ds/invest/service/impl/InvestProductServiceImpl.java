@@ -3,7 +3,7 @@ package com.yx.p2p.ds.invest.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.invest.mapper.InvestProductMapper;
 import com.yx.p2p.ds.model.invest.InvestProduct;
-import com.yx.p2p.ds.service.InvestProductService;
+import com.yx.p2p.ds.service.invest.InvestProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

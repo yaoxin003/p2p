@@ -6,7 +6,7 @@ import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.model.borrow.Borrow;
 import com.yx.p2p.ds.model.borrow.Cashflow;
 import com.yx.p2p.ds.model.borrow.DebtDateValue;
-import com.yx.p2p.ds.service.DebtDateValueService;
+import com.yx.p2p.ds.service.borrow.DebtDateValueService;
 import com.yx.p2p.ds.service.util.p2p.CashFlowVo;
 import com.yx.p2p.ds.service.util.p2p.NpvUtil;
 import com.yx.p2p.ds.service.util.p2p.P2PDateUtil;
@@ -59,6 +59,7 @@ public class DebtDateValueServiceImpl implements DebtDateValueService {
             logger.debug("【批量插入Vo债务每日价值】入参：cashFlowVoList=" + cashFlowVoList);
             Map<Date,BigDecimal> cashflowMap = this.buildCashFlowMap(cashflows);
             BigDecimal npv = BigDecimal.ZERO;
+            BigDecimal yesterdayAmt = borrow.getBorrowAmt();//昨日价值
             for(int j=0;j <= count+1; j++){
                 if(beginOccurDate.compareTo(occurDate) == 0){
                     npv = borrow.getBorrowAmt();
@@ -67,7 +68,8 @@ public class DebtDateValueServiceImpl implements DebtDateValueService {
                 }
                 DebtDateValue debtDateValue =
                         this.buildDebtDateValue(cashflowMap,borrow,occurDate,
-                        BigDecimalUtil.round2In45(npv));
+                        BigDecimalUtil.round2In45(npv),yesterdayAmt);
+                yesterdayAmt = debtDateValue.getValue();
                 occurDate = P2PDateUtil.addDays(occurDate,1);
                 debtDateValueList.add(debtDateValue);
             }
@@ -111,7 +113,7 @@ public class DebtDateValueServiceImpl implements DebtDateValueService {
     }
 
     private DebtDateValue buildDebtDateValue(Map<Date,BigDecimal> cashflowMap,
-           Borrow borrow,Date occurDate, BigDecimal npv) {
+           Borrow borrow,Date occurDate, BigDecimal npv,BigDecimal yesterdayAmt) {
         DebtDateValue debtDateValue = new DebtDateValue();
         debtDateValue.setIdStr("next value for MYCATSEQ_P2P_DEBT_DAILY_VALUE");
         debtDateValue.setDaily(occurDate);
@@ -122,6 +124,8 @@ public class DebtDateValueServiceImpl implements DebtDateValueService {
         }else{
             debtDateValue.setReturnAmt(BigDecimal.ZERO);
         }
+        debtDateValue.setAddAmt(
+                debtDateValue.getReturnAmt().add(debtDateValue.getValue()).subtract(yesterdayAmt));
         BeanHelper.setAddDefaultField(debtDateValue);
         return debtDateValue;
     }

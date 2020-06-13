@@ -2,8 +2,8 @@ package com.yx.p2p.ds.invest;
 
 import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestProduct;
-import com.yx.p2p.ds.service.InvestProductService;
-import com.yx.p2p.ds.service.InvestService;
+import com.yx.p2p.ds.service.invest.InvestProductService;
+import com.yx.p2p.ds.service.invest.InvestService;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.TestUtil;
 import org.junit.Test;
@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import java.lang.reflect.InvocationTargetException;
+
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.Date;

@@ -21,6 +21,7 @@ public class DebtDateValue extends BaseModel2 implements Serializable {
     private Date daily;//日期
     private BigDecimal value;//债务每日价值
     private BigDecimal returnAmt;//还款到账金额
+    private BigDecimal addAmt;//增值
 
     public Integer getBorrowId() {
         return borrowId;
@@ -54,6 +55,14 @@ public class DebtDateValue extends BaseModel2 implements Serializable {
         this.returnAmt = returnAmt;
     }
 
+    public BigDecimal getAddAmt() {
+        return addAmt;
+    }
+
+    public void setAddAmt(BigDecimal addAmt) {
+        this.addAmt = addAmt;
+    }
+
     @Override
     public String toString() {
         return "DebtDateValue{" +
@@ -61,6 +70,7 @@ public class DebtDateValue extends BaseModel2 implements Serializable {
                 ", daily=" + daily +
                 ", value=" + value +
                 ", returnAmt=" + returnAmt +
+                ", addAmt=" + addAmt +
                 '}' + super.toString();
     }
 }

@@ -5,8 +5,8 @@ import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.server.FinanceMatchReqServer;
-import com.yx.p2p.ds.service.BorrowMatchReqService;
-import com.yx.p2p.ds.service.TransferMatchReqService;
+import com.yx.p2p.ds.service.match.BorrowMatchReqService;
+import com.yx.p2p.ds.service.match.TransferMatchReqService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

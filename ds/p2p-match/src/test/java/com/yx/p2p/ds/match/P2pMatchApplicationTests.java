@@ -1,7 +1,7 @@
 package com.yx.p2p.ds.match;
 
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
-import com.yx.p2p.ds.service.BorrowMatchReqService;
+import com.yx.p2p.ds.service.match.BorrowMatchReqService;
 import com.yx.p2p.ds.util.TestUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,6 +1,6 @@
 package com.yx.p2p.ds.investsale.service.impl.service.impl;
 
-import com.yx.p2p.ds.service.InvestSaleService;
+import com.yx.p2p.ds.service.investsale.InvestSaleService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

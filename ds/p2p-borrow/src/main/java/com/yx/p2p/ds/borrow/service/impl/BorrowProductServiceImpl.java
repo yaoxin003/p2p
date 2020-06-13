@@ -1,20 +1,14 @@
 package com.yx.p2p.ds.borrow.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.borrow.mapper.BorrowProductMapper;
 import com.yx.p2p.ds.model.borrow.BorrowProduct;
-import com.yx.p2p.ds.model.invest.InvestProduct;
-import com.yx.p2p.ds.service.BorrowProductService;
+import com.yx.p2p.ds.service.borrow.BorrowProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * @description:

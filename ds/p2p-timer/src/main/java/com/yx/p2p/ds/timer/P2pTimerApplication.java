@@ -8,9 +8,7 @@ import tk.mybatis.spring.annotation.MapperScan;
 
 @SpringBootApplication
 @ComponentScan("com.yx.p2p.ds")
-@MapperScan(basePackages = {
-		"com.yx.p2p.ds.timer.biz.invest.mapper",
-		"com.yx.p2p.ds.timer.quartz.mapper"})//tkmybatis的注解
+@MapperScan(basePackages = {"com.yx.p2p.ds.timer.quartz.mapper"})//tkmybatis的注解
 @EnableDubboConfiguration
 public class P2pTimerApplication {
 

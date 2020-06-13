@@ -4,7 +4,7 @@ import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.mock.thirdpay.service.ThirdPayServiceImpl;
 import com.yx.p2p.ds.mock.thirdpay.vo.MockPayment;
 import com.yx.p2p.ds.model.payment.Payment;
-import com.yx.p2p.ds.service.PaymentService;
+import com.yx.p2p.ds.service.payment.PaymentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

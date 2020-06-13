@@ -2,8 +2,7 @@ package com.yx.p2p.ds.borrow.mq;
 
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.service.AccountService;
-import com.yx.p2p.ds.service.BorrowService;
+import com.yx.p2p.ds.service.borrow.BorrowService;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;

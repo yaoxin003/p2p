@@ -1,9 +1,8 @@
 package com.yx.p2p.ds.match.mq;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.yx.p2p.ds.model.match.InvestMatchReq;
-import com.yx.p2p.ds.service.InvestMatchReqService;
+import com.yx.p2p.ds.service.match.InvestMatchReqService;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;

@@ -1,5 +1,7 @@
 package com.yx.p2p.ds.server;
 
+import com.yx.p2p.ds.model.borrow.DebtDateValue;
+
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -11,6 +13,10 @@ import java.util.Map;
  * @date: 2020/05/31/17:12
  */
 public interface DebtDateValueServer {
+
+    public List<DebtDateValue> queryDebtDateValuePageList(Date daily, Integer page, Integer rows);
+
+    public Integer queryDebtDateValuePageCount(Date daily);
 
     //获得债权和还款价值总和
     public Map<String,BigDecimal> getSumDebtAndReturnByBorrowIdList(Date daily, List<Integer> borrowIdList);

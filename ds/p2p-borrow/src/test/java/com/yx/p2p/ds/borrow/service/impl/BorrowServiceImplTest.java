@@ -1,10 +1,9 @@
 package com.yx.p2p.ds.borrow.service.impl;
 
-import com.yx.p2p.ds.borrow.P2pBorrowApplication;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
 import com.yx.p2p.ds.model.borrow.Borrow;
-import com.yx.p2p.ds.service.BorrowProductService;
-import com.yx.p2p.ds.service.BorrowService;
+import com.yx.p2p.ds.service.borrow.BorrowProductService;
+import com.yx.p2p.ds.service.borrow.BorrowService;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.TestUtil;
 import org.junit.Test;

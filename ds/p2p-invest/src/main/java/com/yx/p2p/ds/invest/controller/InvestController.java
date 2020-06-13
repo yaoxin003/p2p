@@ -1,6 +1,5 @@
 package com.yx.p2p.ds.invest.controller;
 
-import com.yx.p2p.ds.service.InvestProductService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 

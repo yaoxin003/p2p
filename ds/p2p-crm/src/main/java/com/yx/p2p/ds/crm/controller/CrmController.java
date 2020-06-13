@@ -3,7 +3,7 @@ package com.yx.p2p.ds.crm.controller;
 import com.yx.p2p.ds.easyui.Pagination;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.crm.Customer;
-import com.yx.p2p.ds.service.CrmService;
+import com.yx.p2p.ds.service.crm.CrmService;
 import com.yx.p2p.ds.vo.CustomerVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

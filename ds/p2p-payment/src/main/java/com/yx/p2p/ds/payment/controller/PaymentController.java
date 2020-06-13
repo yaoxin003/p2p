@@ -1,7 +1,7 @@
 package com.yx.p2p.ds.payment.controller;
 
 import com.yx.p2p.ds.model.payment.BaseBank;
-import com.yx.p2p.ds.service.PaymentService;
+import com.yx.p2p.ds.service.payment.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

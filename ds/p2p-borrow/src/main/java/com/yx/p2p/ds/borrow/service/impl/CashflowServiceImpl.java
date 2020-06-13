@@ -2,7 +2,7 @@ package com.yx.p2p.ds.borrow.service.impl;
 
 import com.yx.p2p.ds.borrow.mapper.CashflowMapper;
 import com.yx.p2p.ds.model.borrow.Cashflow;
-import com.yx.p2p.ds.service.CashflowService;
+import com.yx.p2p.ds.service.borrow.CashflowService;
 import org.apache.ibatis.session.RowBounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

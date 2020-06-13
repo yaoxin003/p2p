@@ -1,7 +1,7 @@
 package com.yx.p2p.ds.crm;
 
 import com.yx.p2p.ds.model.crm.Customer;
-import com.yx.p2p.ds.service.CrmService;
+import com.yx.p2p.ds.service.crm.CrmService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

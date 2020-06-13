@@ -18,7 +18,7 @@ public class InvestReturn extends BaseModel implements Serializable {
     private String investCustomerName;//投资人客户姓名
     private Integer investId;//投资编号
     private Date arriveDate;//还款到账时间
-    private BigDecimal returnTotalAmt;//还款到账总金额
+    private BigDecimal totalReturnAmt;//总还款到账金额
 
     public Integer getInvestCustomerId() {
         return investCustomerId;
@@ -52,12 +52,12 @@ public class InvestReturn extends BaseModel implements Serializable {
         this.arriveDate = arriveDate;
     }
 
-    public BigDecimal getReturnTotalAmt() {
-        return returnTotalAmt;
+    public BigDecimal getTotalReturnAmt() {
+        return totalReturnAmt;
     }
 
-    public void setReturnTotalAmt(BigDecimal returnTotalAmt) {
-        this.returnTotalAmt = returnTotalAmt;
+    public void setTotalReturnAmt(BigDecimal totalReturnAmt) {
+        this.totalReturnAmt = totalReturnAmt;
     }
 
     @Override
@@ -67,7 +67,7 @@ public class InvestReturn extends BaseModel implements Serializable {
                 ", investCustomerName='" + investCustomerName + '\'' +
                 ", investId=" + investId +
                 ", arriveDate=" + arriveDate +
-                ", returnTotalAmt=" + returnTotalAmt +
+                ", totalReturnAmt=" + totalReturnAmt +
                 '}' + super.toString();
     }
 }

@@ -6,11 +6,10 @@ import com.yx.p2p.ds.model.payment.BaseBank;
 import com.yx.p2p.ds.model.payment.CustomerBank;
 import com.yx.p2p.ds.model.payment.Payment;
 import com.yx.p2p.ds.server.PaymentServer;
-import com.yx.p2p.ds.service.PaymentService;
+import com.yx.p2p.ds.service.payment.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @description:

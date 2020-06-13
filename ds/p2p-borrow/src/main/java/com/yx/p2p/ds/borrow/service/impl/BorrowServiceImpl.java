@@ -5,7 +5,6 @@ import com.yx.p2p.ds.borrow.mapper.BorrowContractVoMapper;
 import com.yx.p2p.ds.borrow.mapper.BorrowDtlMapper;
 import com.yx.p2p.ds.borrow.mapper.BorrowMapper;
 import com.yx.p2p.ds.borrow.mapper.CashflowMapper;
-import com.yx.p2p.ds.borrow.service.DebtDailyValueService;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.SystemSourceEnum;
 import com.yx.p2p.ds.enums.borrow.BorrowBizStateEnum;
@@ -26,9 +25,9 @@ import com.yx.p2p.ds.server.CrmServer;
 import com.yx.p2p.ds.server.FinanceMatchReqServer;
 import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
-import com.yx.p2p.ds.service.BorrowProductService;
-import com.yx.p2p.ds.service.BorrowService;
-import com.yx.p2p.ds.service.DebtDateValueService;
+import com.yx.p2p.ds.service.borrow.BorrowProductService;
+import com.yx.p2p.ds.service.borrow.BorrowService;
+import com.yx.p2p.ds.service.borrow.DebtDateValueService;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.LoggerUtil;
@@ -41,7 +40,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
-import javax.persistence.RollbackException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -70,6 +68,7 @@ public class BorrowServiceImpl implements BorrowService {
     @Autowired
     private BorrowContractVoMapper borrowContractVoMapper;
 
+    //MongoDB数据实现Service
     /*@Autowired
     private DebtDailyValueService debtDailyValueService;*/
 
@@ -288,6 +287,7 @@ public class BorrowServiceImpl implements BorrowService {
         BigDecimal zero = BigDecimal.ZERO;
         //第0期：借款
         Cashflow borrowFlow = new Cashflow();
+        borrowFlow.setIdStr("next value for MYCATSEQ_P2P_CASH_FLOW");
         borrowFlow.setBorrowId(borrow.getId());
         borrowFlow.setReturnDateNo(0);//还款日期编号(借款为0，还款从1开始)
         borrowFlow.setTradeDate(borrow.getStartDate());//交易日期：借款开始日期/还款日期
@@ -306,6 +306,7 @@ public class BorrowServiceImpl implements BorrowService {
         Date tradeDate =  borrow.getFirstReturnDate();
         for(int i=1; i <= borrowMonthCount; i++){
             Cashflow returnFlow = new Cashflow();
+            returnFlow.setIdStr("next value for MYCATSEQ_P2P_CASH_FLOW");
             returnFlow.setBorrowId(borrow.getId());
             returnFlow.setReturnDateNo(i);//还款日期编号(借款为0，还款从1开始)
             //交易日期：借款开始日期/还款日期

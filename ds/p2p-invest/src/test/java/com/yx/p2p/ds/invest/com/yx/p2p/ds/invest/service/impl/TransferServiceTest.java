@@ -2,18 +2,14 @@ package com.yx.p2p.ds.invest.com.yx.p2p.ds.invest.service.impl;
 
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.model.invest.InvestClaim;
-import com.yx.p2p.ds.service.TransferService;
-import org.apache.commons.beanutils.BeanUtils;
+import com.yx.p2p.ds.service.invest.TransferService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

@@ -6,13 +6,11 @@ import com.yx.p2p.ds.enums.lending.LendingBizStateEnum;
 import com.yx.p2p.ds.enums.lending.LendingTypeEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.invest.mapper.LendingMapper;
-import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestClaim;
 import com.yx.p2p.ds.model.invest.Lending;
 import com.yx.p2p.ds.mq.InvestMQVo;
-import com.yx.p2p.ds.service.InvestService;
-import com.yx.p2p.ds.service.LendingService;
-import com.yx.p2p.ds.util.LoggerUtil;
+import com.yx.p2p.ds.service.invest.InvestService;
+import com.yx.p2p.ds.service.invest.LendingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,5 +160,15 @@ public class LendingServiceImpl implements LendingService {
         int count = lendingMapper.insertList(lendingList);
         logger.debug("【数据库插入lendingList=】" + lendingList);
         return lendingList;
+    }
+
+    //获得回款出借单集合
+    public List<Lending> getReinvestLendingList(List<Integer> investIdList,Date arriveDate){
+        Example example = new Example(Lending.class);
+        example.createCriteria()
+                .andIn("investId",investIdList)
+                .andEqualTo("arriveDate",arriveDate);
+        List<Lending> lendings = lendingMapper.selectByExample(example);
+        return lendings;
     }
 }

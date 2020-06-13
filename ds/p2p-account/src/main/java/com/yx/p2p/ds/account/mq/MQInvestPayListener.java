@@ -2,7 +2,7 @@ package com.yx.p2p.ds.account.mq;
 
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.mq.InvestMQVo;
-import com.yx.p2p.ds.service.AccountService;
+import com.yx.p2p.ds.service.account.AccountService;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;

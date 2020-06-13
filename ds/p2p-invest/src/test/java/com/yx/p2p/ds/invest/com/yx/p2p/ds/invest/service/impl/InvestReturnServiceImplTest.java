@@ -1,6 +1,6 @@
 package com.yx.p2p.ds.invest.com.yx.p2p.ds.invest.service.impl;
 
-import com.yx.p2p.ds.service.InvestReturnService;
+import com.yx.p2p.ds.service.invest.InvestReturnService;
 import com.yx.p2p.ds.util.DateUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;

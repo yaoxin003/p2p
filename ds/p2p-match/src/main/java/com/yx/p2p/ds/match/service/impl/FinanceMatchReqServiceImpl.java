@@ -1,12 +1,11 @@
 package com.yx.p2p.ds.match.service.impl;
 
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.enums.match.MatchRemarkEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.model.match.FinanceMatchReq;
 import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.model.match.InvestMatchReq;
-import com.yx.p2p.ds.service.FinanceMatchReqService;
+import com.yx.p2p.ds.service.match.FinanceMatchReqService;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

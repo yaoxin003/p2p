@@ -1,7 +1,7 @@
 package com.yx.p2p.ds.payment.controller;
 
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.service.PaymentService;
+import com.yx.p2p.ds.service.payment.PaymentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -2,7 +2,7 @@ package com.yx.p2p.ds.account.service.impl;
 
 import com.yx.p2p.ds.account.P2pAccountApplication;
 import com.yx.p2p.ds.enums.mq.MQStatusEnum;
-import com.yx.p2p.ds.service.AccountService;
+import com.yx.p2p.ds.service.account.AccountService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

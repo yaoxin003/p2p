@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * @description:计算债务每日价值
+ * @description:暂不使用MogoDB，计算债务每日价值
  * @author: yx
  * @date: 2020/05/19/15:05
  */

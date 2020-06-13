@@ -3,18 +3,14 @@ package com.yx.p2p.ds.invest.server.impl;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.invest.*;
-import com.yx.p2p.ds.model.match.FinanceMatchRes;
 import com.yx.p2p.ds.server.InvestServer;
-import com.yx.p2p.ds.service.InvestProductService;
-import com.yx.p2p.ds.service.InvestService;
-import com.yx.p2p.ds.service.LendingService;
-import com.yx.p2p.ds.service.TransferService;
+import com.yx.p2p.ds.service.invest.InvestProductService;
+import com.yx.p2p.ds.service.invest.InvestService;
+import com.yx.p2p.ds.service.invest.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -38,9 +34,6 @@ public class InvestServerImpl implements InvestServer {
     @Autowired
     private TransferService transferService;
 
-    @Autowired
-    private LendingService lendingService;
-
     public List<InvestProduct> getAllInvestProductList(){
         return investProductService.getAllInvestProductList();
     }
@@ -60,10 +53,6 @@ public class InvestServerImpl implements InvestServer {
 
     public List<Invest> getInvestVoList(Invest invest){
         return investService.getInvestVoList(invest);
-    }
-
-    public List<Invest> getInvestListByInvestIdList(List<Integer> investIdList){
-        return investService.getInvestListByInvestIdList(investIdList);
     }
 
     //补偿网关支付
@@ -93,12 +82,5 @@ public class InvestServerImpl implements InvestServer {
         return transferService.getTransferContractText(investId);
     }
 
-    public List<InvestClaim> getInvestClaimList(List<Integer> borrowIdList){
-        return investService.getInvestClaimList(borrowIdList);
-    }
 
-    public List<Lending> addLendingList(List<Lending> lendingList){
-        lendingService.addLendingList(lendingList);
-        return lendingList;
-    }
 }

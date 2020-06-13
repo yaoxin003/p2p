@@ -3,7 +3,7 @@ package com.yx.p2p.ds.borrow.server.impl;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.yx.p2p.ds.model.borrow.Cashflow;
 import com.yx.p2p.ds.server.CashflowServer;
-import com.yx.p2p.ds.service.CashflowService;
+import com.yx.p2p.ds.service.borrow.CashflowService;
 import com.yx.p2p.ds.util.PageUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

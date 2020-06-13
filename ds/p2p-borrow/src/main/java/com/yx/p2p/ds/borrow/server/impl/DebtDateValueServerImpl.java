@@ -1,8 +1,9 @@
 package com.yx.p2p.ds.borrow.server.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.yx.p2p.ds.model.borrow.DebtDateValue;
 import com.yx.p2p.ds.server.DebtDateValueServer;
-import com.yx.p2p.ds.service.DebtDateValueService;
+import com.yx.p2p.ds.service.borrow.DebtDateValueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,5 +37,13 @@ public class DebtDateValueServerImpl implements DebtDateValueServer {
                 getSumDebtAndReturnByBorrowIdList(daily,borrowIdList);
         logger.debug("【获得债权和还款价值总和】结果sumMap=" + sumMap);
         return sumMap;
+    }
+
+    public List<DebtDateValue> queryDebtDateValuePageList(Date daily, Integer page, Integer rows){
+        return debtDateValueService.queryDebtDateValuePageList(daily, page, rows);
+    }
+
+    public Integer queryDebtDateValuePageCount(Date daily){
+        return debtDateValueService.queryDebtDateValuePageCount(daily);
     }
 }

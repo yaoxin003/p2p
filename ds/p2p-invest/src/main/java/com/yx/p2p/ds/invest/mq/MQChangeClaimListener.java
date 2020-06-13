@@ -1,11 +1,8 @@
 package com.yx.p2p.ds.invest.mq;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.yx.p2p.ds.easyui.Result;
-import com.yx.p2p.ds.mq.InvestMQVo;
-import com.yx.p2p.ds.service.InvestService;
-import com.yx.p2p.ds.service.TransferService;
+import com.yx.p2p.ds.service.invest.TransferService;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.MessageModel;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
@@ -17,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.Map;
 
 /**

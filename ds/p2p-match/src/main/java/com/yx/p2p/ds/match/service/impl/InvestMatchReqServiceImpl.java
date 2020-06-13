@@ -5,8 +5,7 @@ import com.yx.p2p.ds.enums.match.InvestMatchReqBizStateEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
 import com.yx.p2p.ds.match.mapper.InvestMatchReqMapper;
 import com.yx.p2p.ds.model.match.InvestMatchReq;
-import com.yx.p2p.ds.service.InvestMatchReqService;
-import org.apache.commons.beanutils.BeanUtils;
+import com.yx.p2p.ds.service.match.InvestMatchReqService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +13,7 @@ import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @description:投资撮合请求

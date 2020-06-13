@@ -268,7 +268,7 @@ create table p2p_invest_return (
   invest_customer_id int(16) NOT NULL COMMENT '投资客户编号',
   invest_customer_name varchar(64) NOT NULL COMMENT '投资客户姓名',
   arrive_date date NOT NULL COMMENT '还款到账日期',
-  return_total_amt decimal(10,2) NOT NULL COMMENT '回款总额',
+  total_return_amt decimal(10,2) NOT NULL COMMENT '回款总额',
   create_time datetime NOT NULL COMMENT '创建时间',
   update_time datetime NOT NULL COMMENT '修改时间',
   creator int(16) NOT NULL COMMENT '创建人',
@@ -279,6 +279,84 @@ create table p2p_invest_return (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投资回款明细表';
 create index idx_arrive_date on p2p_invest_return(arrive_date);
 create index idx_invest_id on p2p_invest_return(invest_id);
+
+create table p2p_invest_debt_val (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  invest_id int(16) NOT NULL COMMENT '投资编号',
+  invest_customer_id int(16) NOT NULL COMMENT '投资客户编号',
+  invest_customer_name varchar(64) NOT NULL COMMENT '投资客户姓名',
+  arrive_date date NOT NULL COMMENT '还款到账日期',
+  total_hold_add_amt decimal(10,2) NOT NULL COMMENT '总持有增值',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投资债权价值表';
+create index idx_invest_arrive on p2p_invest_debt_val(invest_id,arrive_date);
+
+create table p2p_invest_debt_val_dtl (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  invest_id int(16) NOT NULL COMMENT '投资编号',
+  borrow_id int(16) NOT NULL COMMENT '借款编号',
+  invest_customer_id int(16) NOT NULL COMMENT '投资客户编号',
+  invest_customer_name varchar(64) NOT NULL COMMENT '投资客户姓名',
+  arrive_date date NOT NULL COMMENT '还款到账日期',
+  hold_share decimal(6,4) NOT NULL COMMENT '持有比例',
+  add_amt decimal(10,2) NOT NULL COMMENT '增值',
+  hold_add_amt decimal(10,2) NOT NULL COMMENT '持有增值',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投资债权价值明细表';
+create index idx_borrow_arrive on p2p_invest_debt_val_dtl(borrow_id,arrive_date);
+
+CREATE TABLE MYCAT_SEQUENCE (NAME VARCHAR(50) NOT NULL,current_value INT NOT
+NULL,increment INT NOT NULL DEFAULT 100, PRIMARY KEY(NAME)) ENGINE=INNODB;
+
+DELIMITER $$
+CREATE FUNCTION mycat_seq_currval(seq_name VARCHAR(50)) RETURNS VARCHAR(64)
+DETERMINISTIC
+BEGIN
+DECLARE retval VARCHAR(64);
+SET retval="-999999999,null";
+SELECT CONCAT(CAST(current_value AS CHAR),",",CAST(increment AS CHAR)) INTO retval FROM
+MYCAT_SEQUENCE WHERE NAME = seq_name;
+RETURN retval;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE FUNCTION mycat_seq_setval(seq_name VARCHAR(50),VALUE INTEGER) RETURNS
+VARCHAR(64)
+DETERMINISTIC
+BEGIN
+UPDATE MYCAT_SEQUENCE
+SET current_value = VALUE
+WHERE NAME = seq_name;
+RETURN mycat_seq_currval(seq_name);
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE FUNCTION mycat_seq_nextval(seq_name VARCHAR(50)) RETURNS VARCHAR(64)
+DETERMINISTIC
+BEGIN
+UPDATE MYCAT_SEQUENCE
+SET current_value = current_value + increment WHERE NAME = seq_name;
+RETURN mycat_seq_currval(seq_name);
+END $$
+DELIMITER ;
+
+INSERT INTO MYCAT_SEQUENCE(NAME,current_value,increment) VALUES ('P2P_INVEST_DEBT_VAL', 100,100);
+INSERT INTO MYCAT_SEQUENCE(NAME,current_value,increment) VALUES ('P2P_INVEST_DEBT_VAL_DTL', 100,100);
+
 
 #--------------------p2p_payment--------------------
 create database p2p_payment default character set utf8 collate utf8_general_ci;
@@ -570,6 +648,47 @@ create table p2p_finance_match_res (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='融资撮合结果:借款/转让';
 
+CREATE TABLE MYCAT_SEQUENCE (NAME VARCHAR(50) NOT NULL,current_value INT NOT
+NULL,increment INT NOT NULL DEFAULT 100, PRIMARY KEY(NAME)) ENGINE=INNODB;
+
+DELIMITER $$
+CREATE FUNCTION mycat_seq_currval(seq_name VARCHAR(50)) RETURNS VARCHAR(64)
+DETERMINISTIC
+BEGIN
+DECLARE retval VARCHAR(64);
+SET retval="-999999999,null";
+SELECT CONCAT(CAST(current_value AS CHAR),",",CAST(increment AS CHAR)) INTO retval FROM
+MYCAT_SEQUENCE WHERE NAME = seq_name;
+RETURN retval;
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE FUNCTION mycat_seq_setval(seq_name VARCHAR(50),VALUE INTEGER) RETURNS
+VARCHAR(64)
+DETERMINISTIC
+BEGIN
+UPDATE MYCAT_SEQUENCE
+SET current_value = VALUE
+WHERE NAME = seq_name;
+RETURN mycat_seq_currval(seq_name);
+END $$
+DELIMITER ;
+
+DELIMITER $$
+CREATE FUNCTION mycat_seq_nextval(seq_name VARCHAR(50)) RETURNS VARCHAR(64)
+DETERMINISTIC
+BEGIN
+UPDATE MYCAT_SEQUENCE
+SET current_value = current_value + increment WHERE NAME = seq_name;
+RETURN mycat_seq_currval(seq_name);
+END $$
+DELIMITER ;
+
+INSERT INTO MYCAT_SEQUENCE(NAME,current_value,increment) VALUES ('P2P_INVEST_DEBT_VAL', 100,100);
+INSERT INTO MYCAT_SEQUENCE(NAME,current_value,increment) VALUES ('P2P_INVEST_DEBT_VAL_DTL', 100,100);
+
+
 
 #--------------------p2p_borrow--------------------
 create database p2p_borrow default character set utf8 collate utf8_general_ci;
@@ -683,6 +802,7 @@ create table p2p_debt_date_value (
   daily date NOT NULL COMMENT '日期',
   value decimal(10,2) NOT NULL COMMENT '价值',
   return_amt decimal(10,2) NOT NULL COMMENT '还款金额',
+  add_amt decimal(10,2) NOT NULL COMMENT '增值金额',
   create_time datetime NOT NULL COMMENT '创建时间',
   update_time datetime NOT NULL COMMENT '修改时间',
   creator int(16) NOT NULL COMMENT '创建人',
@@ -732,8 +852,8 @@ RETURN mycat_seq_currval(seq_name);
 END $$
 DELIMITER ;
 
-INSERT INTO MYCAT_SEQUENCE(NAME,current_value,increment) VALUES ('P2P_DEBT_DAILY_VALUE', 400000,100);
-
+INSERT INTO MYCAT_SEQUENCE(NAME,current_value,increment) VALUES ('P2P_DEBT_DAILY_VALUE', 100,100);
+INSERT INTO MYCAT_SEQUENCE(NAME,current_value,increment) VALUES ('P2P_CASH_FLOW', 100,100);
 
 #--------------------初始化数据SQL--------------------
 INSERT INTO p2p_invest.p2p_invest_product VALUES (1, '季度投', 5000.00, 0.05, '1', 90, '2020-4-6 17:21:20', '2020-4-6 17:21:22', 11, 11,'1','1');
@@ -819,10 +939,10 @@ INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, b
 INSERT INTO p2p_payment.p2p_payment_customer_bank (id, customer_id, bank_code, base_bank_name, bank_account, phone, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('21', '13', '11021', '农业银行', '6123436131123', '14662342365', '2020-05-25 11:29:08', '2020-05-25 11:29:08', '12', '12', '1', '1');
 
 
-drop database if exists sys_quartz;
+drop database if exists p2p_timer;
 #--------------------quartz_task--------------------
-create database sys_quartz default character set utf8 collate utf8_general_ci;
-use sys_quartz;
+create database p2p_timer default character set utf8 collate utf8_general_ci;
+use p2p_timer;
 
 drop table if exists quartz_task;
 create table quartz_task (
@@ -841,7 +961,7 @@ create table quartz_task (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='借款产品表';
 
-INSERT INTO sys_quartz.quartz_task (id, job_name, description, cron_expression, class_full_name, job_group, create_time, update_time, creator, reviser, logic_state, biz_state)
+INSERT INTO p2p_timer.quartz_task (id, job_name, description, cron_expression, class_full_name, job_group, create_time, update_time, creator, reviser, logic_state, biz_state)
 VALUES ('1', 'InvestReturnAndSendMatchJob', '投资回款并发送撮合定时任务', '0 11 11 * * ? 2020', 'com.yx.p2p.ds.timer.biz.invest.job.InvestReturnAndSendMatchJob', 'invest', '2020-06-09 11:59:44', '2020-06-10 11:10:33', '12', '12', '1', '1');
 
 -- 192.168.1.122
@@ -958,6 +1078,7 @@ create table p2p_debt_date_value (
   daily date NOT NULL COMMENT '日期',
   value decimal(10,2) NOT NULL COMMENT '价值',
   return_amt decimal(10,2) NOT NULL COMMENT '还款金额',
+  add_amt decimal(10,2) NOT NULL COMMENT '增值金额',
   create_time datetime NOT NULL COMMENT '创建时间',
   update_time datetime NOT NULL COMMENT '修改时间',
   creator int(16) NOT NULL COMMENT '创建人',
@@ -975,3 +1096,44 @@ INSERT INTO p2p_borrow.p2p_borrow_product VALUES (2, '惠农贷', 1.20, 0.60, 0.
 INSERT INTO p2p_borrow.p2p_borrow_product VALUES (3, '工薪贷', 1.34, 0.69, 0.65, 7, 1,'6个月工资流水，工作证明材料', '2020-3-16 17:37:00', '2020-3-16 17:37:00', 12, 12, '1', '1');
 INSERT INTO p2p_borrow.p2p_borrow_product VALUES (4, '社保贷', 1.46, 0.75, 0.71, 10, 1,'连续1年社保流水', '2020-3-16 17:37:00', '2020-3-16 17:37:00', 12, 12, '1', '1');
 
+
+drop database if exists p2p_invest;
+#--------------------p2p_invest--------------------
+create database p2p_invest default character set utf8 collate utf8_general_ci;
+use p2p_invest;
+create table p2p_invest_debt_val (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  invest_id int(16) NOT NULL COMMENT '投资编号',
+  invest_customer_id int(16) NOT NULL COMMENT '投资客户编号',
+  invest_customer_name varchar(64) NOT NULL COMMENT '投资客户姓名',
+  arrive_date date NOT NULL COMMENT '还款到账日期',
+  total_hold_add_amt decimal(10,2) NOT NULL COMMENT '总持有增值',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投资债权价值表';
+create index idx_invest_arrive on p2p_invest_debt_val(invest_id,arrive_date);
+
+create table p2p_invest_debt_val_dtl (
+  id int(16) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
+  invest_id int(16) NOT NULL COMMENT '投资编号',
+  borrow_id int(16) NOT NULL COMMENT '借款编号',
+  invest_customer_id int(16) NOT NULL COMMENT '投资客户编号',
+  invest_customer_name varchar(64) NOT NULL COMMENT '投资客户姓名',
+  arrive_date date NOT NULL COMMENT '还款到账日期',
+  hold_share decimal(6,4) NOT NULL COMMENT '持有比例',
+  add_amt decimal(10,2) NOT NULL COMMENT '增值',
+  hold_add_amt decimal(10,2) NOT NULL COMMENT '持有增值',
+  create_time datetime NOT NULL COMMENT '创建时间',
+  update_time datetime NOT NULL COMMENT '修改时间',
+  creator int(16) NOT NULL COMMENT '创建人',
+  reviser int(16) NOT NULL COMMENT '修改人',
+  logic_state varchar(1) NOT NULL DEFAULT '1' comment '逻辑状态（暂未使用）： 1-有效，0-无效',
+  biz_state  varchar(4) NOT NULL DEFAULT '1' comment '业务状态：1-新增',
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='投资债权价值明细表';
+create index idx_borrow_arrive on p2p_invest_debt_val_dtl(borrow_id,arrive_date);

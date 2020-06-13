@@ -1,11 +1,10 @@
 package com.yx.p2p.ds.borrow.service.impl;
 
 import com.yx.p2p.ds.borrow.mongo.borrow.DebtDailyValue;
-import com.yx.p2p.ds.borrow.service.DebtDailyValueService;
 import com.yx.p2p.ds.constant.SysConstant;
 import com.yx.p2p.ds.model.borrow.Borrow;
 import com.yx.p2p.ds.model.borrow.Cashflow;
-import com.yx.p2p.ds.service.DebtDateValueService;
+import com.yx.p2p.ds.service.borrow.DebtDateValueService;
 import com.yx.p2p.ds.service.util.p2p.P2PDateUtil;
 import com.yx.p2p.ds.util.DateUtil;
 import com.yx.p2p.ds.util.PageUtil;
