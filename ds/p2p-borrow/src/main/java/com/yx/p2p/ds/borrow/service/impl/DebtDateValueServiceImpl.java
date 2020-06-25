@@ -41,10 +41,10 @@ public class DebtDateValueServiceImpl implements DebtDateValueService {
         try{
             List<DebtDateValue> debtDailyValueList = this.buildDebtDateValueList(borrow,cashflows);
             debtDateValueMapper.insertList(debtDailyValueList);
+            result = Result.success();
         }catch(Exception e){
             result = LoggerUtil.addExceptionLog(e,logger);
         }
-        result = Result.success();
         return result;
     }
 
@@ -119,6 +119,7 @@ public class DebtDateValueServiceImpl implements DebtDateValueService {
         debtDateValue.setDaily(occurDate);
         debtDateValue.setBorrowId(borrow.getId());
         debtDateValue.setValue(npv);
+        debtDateValue.setCustomerId(borrow.getCustomerId());
         if(cashflowMap.containsKey(occurDate)){
             debtDateValue.setReturnAmt(cashflowMap.get(occurDate));
         }else{
@@ -135,7 +136,7 @@ public class DebtDateValueServiceImpl implements DebtDateValueService {
      * @author:  YX
      * @date:    2020/05/20 10:27
      * @param: daily 日期(年月日)
-     * @param: page 第几页，首页编号1
+     * @param: page 第几页，首页编号从1开始
      * @param: rows 每页记录数
      * @return: java.util.List<com.yx.p2p.ds.mongo.borrow.DebtDailyValue>
      */
@@ -151,7 +152,7 @@ public class DebtDateValueServiceImpl implements DebtDateValueService {
     }
 
     //查询债务某日价值数量
-    public Integer queryDebtDateValuePageCount(Date daily){
+    public Integer queryDebtDateValueCount(Date daily){
         logger.debug("【查询债务某日价值数量】入参daily=" + daily);
         DebtDateValue param = new DebtDateValue();
         param.setDaily(daily);
@@ -160,11 +161,6 @@ public class DebtDateValueServiceImpl implements DebtDateValueService {
         return (int)count;
     }
 
-    //获得债权和还款价值总和
-    @Override
-    public Map<String,BigDecimal> getSumDebtAndReturnByBorrowIdList(Date daily,List<Integer> borrowIdList) {
-        Map<String, BigDecimal> debtAndReturnMap =
-                debtDateValueMapper.querySumDebtAndReturnByBorrowIdList(daily,borrowIdList);
-        return debtAndReturnMap;
-    }
+
+
 }

@@ -6,12 +6,6 @@
 <body>
 
 
-<!--首先显示投资产品列表功能-->
-<div id="viewProductDialog" class="easyui-dialog" title="投资产品介绍" style="width:490px;height:250px" draggable="false"
-     data-options="modal:true">
-    <table id="viewProductDataGrid" style="width:470px" cellspacing="5">
-    </table>
-</div>
 
 <!--客户列表功能-->
 <table id="dg"></table>
@@ -55,7 +49,7 @@
             </tr>
             <tr>
                 <td>生日</td>
-                <td><input id="birthdayAdd" type="text" name="birthdayStr"  class="easyui-datebox" data-options="required:true" style="width:200px"/></td>
+                <td><input id="birthdayAdd" type="text" name="birthday"  class="easyui-datebox" data-options="required:true" style="width:200px"/></td>
             </tr>
             <tr>
                 <td>身份证号码</td>
@@ -83,17 +77,7 @@
 </body>
 <script type="text/javascript" th:inline="none">
 
-    //--------------------首先显示投资产品功能--------------------
-    $("#viewProductDataGrid").datagrid({
-        url : "/invest/getAllInvestProductList",
-        columns:[[
-            {field:'id',title:'编号',width:50},
-            {field:'name',title:'产品名称',width:100},
-            {field:'beginAmt',title:'起投金额',width:100},
-            {field:'yearIrr',title:'年化收益率',width:100},
-            {field:'dayCount',title:'固定期限/封闭期',width:100},
-        ]]
-    });
+
 
 
     //--------------------客户列表功能--------------------

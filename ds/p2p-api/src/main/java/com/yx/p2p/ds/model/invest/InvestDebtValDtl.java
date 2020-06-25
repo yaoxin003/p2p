@@ -1,7 +1,6 @@
 package com.yx.p2p.ds.model.invest;
 
 import com.yx.p2p.ds.model.base.BaseModel2;
-
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -22,6 +21,10 @@ public class InvestDebtValDtl extends BaseModel2 implements Serializable{
     private BigDecimal holdShare;//持有比例
     private BigDecimal addAmt;//增值
     private BigDecimal holdAddAmt;//持有增值
+    private BigDecimal returnAmt;//还款到账金额
+    private BigDecimal holdReturnAmt;//持有还款到账金额
+    private BigDecimal debtValue;//债权价值
+    private BigDecimal holdDebtValue;//持有债权价值
 
     public Date getArriveDate() {
         return arriveDate;
@@ -88,6 +91,38 @@ public class InvestDebtValDtl extends BaseModel2 implements Serializable{
         this.holdAddAmt = holdAddAmt;
     }
 
+    public BigDecimal getReturnAmt() {
+        return returnAmt;
+    }
+
+    public void setReturnAmt(BigDecimal returnAmt) {
+        this.returnAmt = returnAmt;
+    }
+
+    public BigDecimal getHoldReturnAmt() {
+        return holdReturnAmt;
+    }
+
+    public void setHoldReturnAmt(BigDecimal holdReturnAmt) {
+        this.holdReturnAmt = holdReturnAmt;
+    }
+
+    public BigDecimal getDebtValue() {
+        return debtValue;
+    }
+
+    public void setDebtValue(BigDecimal debtValue) {
+        this.debtValue = debtValue;
+    }
+
+    public BigDecimal getHoldDebtValue() {
+        return holdDebtValue;
+    }
+
+    public void setHoldDebtValue(BigDecimal holdDebtValue) {
+        this.holdDebtValue = holdDebtValue;
+    }
+
     @Override
     public String toString() {
         return "InvestDebtValDtl{" +
@@ -99,6 +134,10 @@ public class InvestDebtValDtl extends BaseModel2 implements Serializable{
                 ", holdShare=" + holdShare +
                 ", addAmt=" + addAmt +
                 ", holdAddAmt=" + holdAddAmt +
+                ", returnAmt=" + returnAmt +
+                ", holdReturnAmt=" + holdReturnAmt +
+                ", debtValue=" + debtValue +
+                ", holdDebtValue=" + holdDebtValue +
                 '}' + super.toString();
     }
 }

@@ -2,11 +2,9 @@ package com.yx.p2p.ds.invest.mapper;
 
 import com.yx.p2p.ds.model.invest.InvestDebtVal;
 import com.yx.p2p.ds.model.invest.InvestDebtValDtl;
-import com.yx.p2p.ds.model.invest.InvestReturn;
 import com.yx.p2p.ds.service.mapper.MyInsertListMapper;
 import org.apache.ibatis.annotations.Param;
 import tk.mybatis.mapper.common.Mapper;
-
 import java.util.Date;
 import java.util.List;
 

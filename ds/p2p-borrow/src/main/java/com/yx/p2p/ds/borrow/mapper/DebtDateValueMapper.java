@@ -19,8 +19,5 @@ import java.util.Map;
  */
 public interface DebtDateValueMapper extends Mapper<DebtDateValue> ,InsertListMapper<DebtDateValue>{
 
-    //获得债权和还款价值总和
-    public Map<String,BigDecimal> querySumDebtAndReturnByBorrowIdList(
-            @Param(value="daily")Date daily, @Param(value="borrowIdList")List<Integer> borrowIdList);
 }
 

@@ -2,6 +2,8 @@ package com.yx.p2p.ds.server;
 
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.invest.*;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +31,7 @@ public interface InvestServer {
     public Invest getInvestByInvestId(Integer investId);
 
     //转让赎回申请
-    public Result transferApply(Integer investId);
+    public Result transferApply(Integer investId,Date arriveDate);
 
     //投资提现申请
     public Result withdrawApply(Integer investId);

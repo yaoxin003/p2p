@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * @description:投资债权明细
+ * @description:投资债权明细:导入债权或债权交割时插入
  * @author: yx
  * @date: 2020/05/07/17:46
  */
@@ -22,7 +22,6 @@ public class InvestClaimHistory extends BaseModel implements Serializable{
     private Integer investCustomerId;//投资客户编号
     private String investCustomerName;//投资客户姓名
     private BigDecimal buyAmt;//买入金额
-    private BigDecimal claimAmt;//债权金额：会增值变化
     private BigDecimal holdShare;//持有比例
     private Integer borrowProductId;//借款产品编号
     private String borrowProductName;//借款产品名称
@@ -93,14 +92,6 @@ public class InvestClaimHistory extends BaseModel implements Serializable{
         this.buyAmt = buyAmt;
     }
 
-    public BigDecimal getClaimAmt() {
-        return claimAmt;
-    }
-
-    public void setClaimAmt(BigDecimal claimAmt) {
-        this.claimAmt = claimAmt;
-    }
-
     public BigDecimal getHoldShare() {
         return holdShare;
     }
@@ -152,7 +143,6 @@ public class InvestClaimHistory extends BaseModel implements Serializable{
                 ", investCustomerId=" + investCustomerId +
                 ", investCustomerName='" + investCustomerName + '\'' +
                 ", buyAmt=" + buyAmt +
-                ", claimAmt=" + claimAmt +
                 ", holdShare=" + holdShare +
                 ", borrowProductId=" + borrowProductId +
                 ", borrowProductName='" + borrowProductName + '\'' +

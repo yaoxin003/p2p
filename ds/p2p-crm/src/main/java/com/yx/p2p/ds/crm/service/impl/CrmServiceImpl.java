@@ -137,9 +137,6 @@ public class CrmServiceImpl implements CrmService {
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
-        //3.2特殊值设置
-        String birthdayStr = DateUtil.dateYMD2Str(customer.getBirthday());
-        customerVo.setBirthdayStr(birthdayStr);
         return customerVo;
     }
 
@@ -469,8 +466,6 @@ public class CrmServiceImpl implements CrmService {
             BeanUtils.copyProperties(customer,customerVo);
             //2/.设置时间，操作人，状态
             BeanHelper.setAddDefaultField(customer);
-            //3.特殊值设置
-            customer.setBirthday(DateUtil.str2Date(customerVo.getBirthdayStr()));
         } catch (Exception e) {
             LoggerUtil.addExceptionLog(e,logger);
         }
@@ -490,8 +485,6 @@ public class CrmServiceImpl implements CrmService {
             e.printStackTrace();
             LoggerUtil.addExceptionLog(e,logger);
         }
-        //特殊值设置
-        customer.setBirthday(DateUtil.str2Date(customerVo.getBirthdayStr()));
         return customer;
     }
 }

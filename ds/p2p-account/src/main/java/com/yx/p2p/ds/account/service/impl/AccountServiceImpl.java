@@ -249,44 +249,6 @@ public class AccountServiceImpl implements AccountService {
         return currentSubAcc;
     }
 
-   /* private ProfitSubAcc buildProfitSubAcc(Integer masterAccId, Integer customerId) {
-        ProfitSubAcc profitSubAcc = new ProfitSubAcc();
-        profitSubAcc.setMasterAccId(masterAccId);
-        profitSubAcc.setCustomerId(customerId);
-        profitSubAcc.setAmount(BigDecimal.ZERO);
-        BeanHelper.setAddDefaultField(profitSubAcc);
-        return profitSubAcc;
-    }
-
-    private DebtSubAcc buildDebtSubAcc(Integer masterAccId, Integer customerId) {
-        DebtSubAcc debtSubAcc = new DebtSubAcc();
-        debtSubAcc.setMasterAccId(masterAccId);
-        debtSubAcc.setCustomerId(customerId);
-        debtSubAcc.setAmount(BigDecimal.ZERO);
-        BeanHelper.setAddDefaultField(debtSubAcc);
-        return debtSubAcc;
-    }
-
-    private ClaimSubAcc buildClaimSubAcc(Integer masterAccId, Integer customerId) {
-        ClaimSubAcc claimSubAcc = new ClaimSubAcc();
-        claimSubAcc.setMasterAccId(masterAccId);
-        claimSubAcc.setCustomerId(customerId);
-        claimSubAcc.setAmount(BigDecimal.ZERO);
-        BeanHelper.setAddDefaultField(claimSubAcc);
-        return claimSubAcc;
-    }
-
-
-
-    private CashSubAcc buildCashSubAcc(Integer masterAccId, Integer customerId) {
-        CashSubAcc cashSubAcc = new CashSubAcc();
-        cashSubAcc.setMasterAccId(masterAccId);
-        cashSubAcc.setCustomerId(customerId);
-        cashSubAcc.setAmount(BigDecimal.ZERO);
-        BeanHelper.setAddDefaultField(cashSubAcc);
-        return cashSubAcc;
-    }*/
-
     private MasterAcc buildAddMasterAcc(MasterAccMQVo masterAccMQVo)throws Exception {
         MasterAcc masterAcc = new MasterAcc();
         BeanUtils.copyProperties(masterAcc,masterAccMQVo);
@@ -584,7 +546,7 @@ public class AccountServiceImpl implements AccountService {
 
     //借款人现金户增
     private Result dealLoanNoticeBorrowCash(Integer customerId, String borrowId, List<FinanceMatchRes> borrowMatchResList) {
-        logger.debug("【账户处理：借款放款，债务户增】");
+        logger.debug("【账户处理：借款放款，现金户增】");
         Result result = Result.error();
         result = Result.success();
         List<CashSubAccFlow> cashSubAccFlowList = new ArrayList<>();
@@ -645,16 +607,44 @@ public class AccountServiceImpl implements AccountService {
     //投资债权交割
     //受让人：投资债权户减，投资活期户加
     //转让人：投资债权户加，投资活期户减
+    @Transactional
     public Result changeInvestclaim(Map<String, Object> paramClaimMap){
         logger.debug("【投资债权交割】入参：paramClaimMap={}" , paramClaimMap);
         Result result = Result.error();
         Integer transferId = Integer.valueOf((String)paramClaimMap.get("transferId"));//转让协议编号
         Integer financeInvestId = Integer.valueOf((String)paramClaimMap.get("financeExtBizId"));//转让人投资编号
         List<Map<String, String>> tradeMapList = (List<Map<String, String>>)paramClaimMap.get("transferList");
-        //受让人（投资）：投资活期户减，转让人（融资）：投资活期户加
+        //受让人（投资）：投资活期户减
         result = this.dealChangeClaimInvestCurrent(transferId,financeInvestId,tradeMapList);
+        //转让人（融资）：现金户加
+        result = this.dealChangeClaimInvestCash(transferId,financeInvestId,tradeMapList);
         //受让人（投资）：投资债权户加，转让人（融资）：投资债权户减
         result = this.dealChangeClaimInvestClaim(transferId,financeInvestId,tradeMapList);
+        result = Result.success();
+        return result;
+    }
+
+    //转让人（融资）：现金户加
+    private Result dealChangeClaimInvestCash(Integer transferId, Integer financeInvestId, List<Map<String, String>> tradeMapList) {
+        Result result = Result.error();
+        List<CashSubAccFlow> flowList = new ArrayList<>();
+        BigDecimal zero = BigDecimal.ZERO;
+        for (Map<String, String> tradeMap : tradeMapList) {
+            //转让人（融资）：现金户加
+            CashSubAccFlow flow = new CashSubAccFlow();//现金子账户流水
+            flow.setAmount(new BigDecimal(tradeMap.get("tradeAmt")));
+            flow.setCustomerId(Integer.valueOf(tradeMap.get("financeCustomerId")));
+            flow.setBizId(financeInvestId.toString());
+            flow.setOrderSn(financeInvestId.toString());
+            flow.setRemark("债权转让：受让客户" + tradeMap.get("investCustomerName") +
+                    ",客户编号" + tradeMap.get("investCustomerId") + ",转让编号" + transferId);
+            BeanHelper.setAddDefaultField(flow);
+            flowList.add(flow);
+
+        }
+        logger.debug("【转让人（融资）：现金户加】investCashFlowList=" + flowList);
+        //转让人（融资）：现金户加
+        result =  accountCoreService.dealCashAccount(flowList);
         result = Result.success();
         return result;
     }
@@ -702,10 +692,9 @@ public class AccountServiceImpl implements AccountService {
         return result;
     }
 
-    //受让人（投资）：投资活期户减，转让人（融资）：投资活期户加
+    //受让人（投资）：投资活期户减
     private Result dealChangeClaimInvestCurrent(Integer transferId, Integer financeInvestId,List<Map<String, String>> tradeMapList) {
         Result result = Result.error();
-        List<CurrentSubAccFlow> financeCurrentFlowList = new ArrayList<>();
         List<CurrentSubAccFlow> investCurrentFlowList = new ArrayList<>();
         BigDecimal zero = BigDecimal.ZERO;
         for (Map<String, String> tradeMap : tradeMapList) {
@@ -723,25 +712,10 @@ public class AccountServiceImpl implements AccountService {
             BeanHelper.setAddDefaultField(investCurrentFlow);
             investCurrentFlowList.add(investCurrentFlow);
 
-            //转让人（融资）：投资活期户加
-            CurrentSubAccFlow financeCurrentFlow = new CurrentSubAccFlow();//活期子账户流水
-            //交易金额
-            financeCurrentFlow.setAmount(new BigDecimal(tradeMap.get("tradeAmt")));
-            financeCurrentFlow.setCustomerId(Integer.valueOf(tradeMap.get("financeCustomerId")));
-            financeCurrentFlow.setBizId(String.valueOf(financeInvestId));
-            financeCurrentFlow.setOrderSn(String.valueOf(financeInvestId));
-            financeCurrentFlow.setRemark("债权转让：受让客户" + tradeMap.get("investCustomerName") +
-                    ",客户编号" + tradeMap.get("investCustomerId") + ",转让编号" + transferId);
-            BeanHelper.setAddDefaultField(financeCurrentFlow);
-            financeCurrentFlowList.add(financeCurrentFlow);
         }
-        logger.debug("【受让人（投资）：投资活期户减】financeCurrentFlowList=" + financeCurrentFlowList);
+        logger.debug("【受让人（投资）：投资活期户减】investCurrentFlowList=" + investCurrentFlowList);
         //受让人（投资）：投资活期户减
-        result =  accountCoreService.dealCurrentAccount(financeCurrentFlowList);
-        logger.debug("【转让人（融资）：投资活期户加】investCurrentFlowList=" + investCurrentFlowList);
-        //转让人（融资）：投资活期户加
         result =  accountCoreService.dealCurrentAccount(investCurrentFlowList);
-
         result = Result.success();
         return result;
     }

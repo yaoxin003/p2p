@@ -182,7 +182,7 @@ public class TransferMatchReqServiceImpl implements TransferMatchReqService {
         return outMap;
     }
 
-    private List<FinanceMatchReq> buildFinanceMatchReqList( String financeExtBizId,List<Map<String, String>> transferMatchReqList) {
+    private List<FinanceMatchReq> buildFinanceMatchReqList(String financeExtBizId,List<Map<String, String>> transferMatchReqList) {
         List<FinanceMatchReq> financeMatchReqList = new ArrayList<>();
         for (Map<String, String> map : transferMatchReqList) {
             FinanceMatchReq financeMatchReq = new FinanceMatchReq();

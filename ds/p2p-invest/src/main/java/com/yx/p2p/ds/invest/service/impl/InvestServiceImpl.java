@@ -170,7 +170,6 @@ public class InvestServiceImpl implements InvestService {
         return result;
     }
 
-
     //批量发送投资撮合MQ
     private void sendInvestMatchReqMQ(InvestMatchReq investMatchReq) {
         List<InvestMatchReq> investMatchReqList = new ArrayList<>();
@@ -209,7 +208,7 @@ public class InvestServiceImpl implements InvestService {
         //投资信息
         investMatchReq.setInvestBizId(investId);
         investMatchReq.setInvestAmt(investMQVo.getAmount());
-        investMatchReq.setInvestOrderSn(String.valueOf(lendingId));//lending.id
+        investMatchReq.setInvestOrderSn(OrderUtil.ORDERSN_PREFIX_LENDING + String.valueOf(lendingId));//lending.id
         investMatchReq.setLevel(InvestMatchReqLevelEnum.NEW_INVEST.getLevel());
         investMatchReq.setRemark(MatchRemarkEnum.NEW_INVEST.getDesc());
         investMatchReq.setWaitAmt(investMatchReq.getInvestAmt());
@@ -259,8 +258,8 @@ public class InvestServiceImpl implements InvestService {
             if(count == 1){
                 result = Result.success();
             }
-            logger.debug("更新数据库：投资状态【investId=】" + investId + ",【investState=】"
-                    + investBizStateEnum.getState() + "count=" + count);
+            logger.debug("【更新数据库：投资状态】investId={},investState={},count={}",
+                    investId, investBizStateEnum.getState() , count);
         return result;
     }
 
@@ -487,15 +486,15 @@ public class InvestServiceImpl implements InvestService {
             investClaim.setBorrowProductName(financeMatchRes.getBorrowProductName());
             investClaim.setBorrowYearRate(financeMatchRes.getBorrowYearRate());
             investClaim.setBuyAmt(financeMatchRes.getTradeAmt());//买入金额：不会变化
-            investClaim.setClaimAmt(investClaim.getBuyAmt());//债权金额：会增值变化
             investClaim.setHoldShare(financeMatchRes.getMatchShare());
             investClaim.setInvestId(investId);
-            investClaim.setLendingId(Integer.valueOf(financeMatchRes.getInvestOrderSn()));
+            investClaim.setLendingId(OrderUtil.getLendingId(financeMatchRes.getInvestOrderSn()));
             BeanHelper.setAddDefaultField(investClaim);
             investClaimList.add(investClaim);
         }
         return investClaimList;
     }
+
 
     //验证是否已经插入过放款数据(投资债权明细)
     private Result checkNoLoanNotice(Integer borrowId) {
@@ -531,4 +530,13 @@ public class InvestServiceImpl implements InvestService {
         logger.debug("【查询投资持有债权集合】结果：investClaimList=" + investClaimList);
         return investClaimList;
     }
+
+    public List<Invest> queryInvestList(List<String> bizStateList){
+        Example example = new Example(Invest.class);
+        example.createCriteria().andIn("bizState",bizStateList);
+        List<Invest> invests = investMapper.selectByExample(example);
+        return invests;
+    }
+
+
 }

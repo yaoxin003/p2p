@@ -14,11 +14,8 @@ import java.util.Map;
  */
 public interface DebtDateValueServer {
 
-    public List<DebtDateValue> queryDebtDateValuePageList(Date daily, Integer page, Integer rows);
+    public List<DebtDateValue> getDebtDateValuePageList(Date daily, Integer page, Integer rows);
 
-    public Integer queryDebtDateValuePageCount(Date daily);
-
-    //获得债权和还款价值总和
-    public Map<String,BigDecimal> getSumDebtAndReturnByBorrowIdList(Date daily, List<Integer> borrowIdList);
+    public Integer getDebtDateValueCount(Date daily);
 
 }

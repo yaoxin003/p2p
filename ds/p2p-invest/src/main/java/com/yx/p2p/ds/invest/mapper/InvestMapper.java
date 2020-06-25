@@ -4,6 +4,7 @@ import com.yx.p2p.ds.model.invest.Invest;
 import org.apache.ibatis.annotations.Param;
 import tk.mybatis.mapper.common.Mapper;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -17,5 +18,7 @@ public interface InvestMapper extends Mapper<Invest> {
             @Param("invest") Invest invest ,@Param("offset") int offset, @Param("limit") int limit);
 
     public Integer queryInvestCount(@Param("invest") Invest invest);
+
+    public BigDecimal querySumInvestAmt(Integer customerId);
 
 }

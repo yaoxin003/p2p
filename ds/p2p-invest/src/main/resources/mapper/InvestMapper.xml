@@ -38,4 +38,8 @@
       <include refid="investCondition"/>
     </select>
 
+    <select id="querySumInvestAmt" resultType="java.math.BigDecimal">
+       select sum(i.invest_amt) sum_invest_amt from p2p_invest i where i.customer_id=#{customerId}
+    </select>
+
 </mapper>

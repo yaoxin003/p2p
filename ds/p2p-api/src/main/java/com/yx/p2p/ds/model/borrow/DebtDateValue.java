@@ -18,6 +18,7 @@ import java.util.Date;
 public class DebtDateValue extends BaseModel2 implements Serializable {
 
     private Integer borrowId;//借款编号Borrow.id
+    private Integer customerId;
     private Date daily;//日期
     private BigDecimal value;//债务每日价值
     private BigDecimal returnAmt;//还款到账金额
@@ -29,6 +30,14 @@ public class DebtDateValue extends BaseModel2 implements Serializable {
 
     public void setBorrowId(Integer borrowId) {
         this.borrowId = borrowId;
+    }
+
+    public Integer getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Integer customerId) {
+        this.customerId = customerId;
     }
 
     public Date getDaily() {
@@ -67,6 +76,7 @@ public class DebtDateValue extends BaseModel2 implements Serializable {
     public String toString() {
         return "DebtDateValue{" +
                 "borrowId=" + borrowId +
+                ", customerId=" + customerId +
                 ", daily=" + daily +
                 ", value=" + value +
                 ", returnAmt=" + returnAmt +

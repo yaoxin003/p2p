@@ -28,22 +28,11 @@ public class DebtDateValueServerImpl implements DebtDateValueServer {
     private DebtDateValueService debtDateValueService;
 
 
-    //获得债权和还款价值总和
-    @Override
-    public Map<String,BigDecimal> getSumDebtAndReturnByBorrowIdList(Date daily, List<Integer> borrowIdList) {
-        logger.debug("【获得债权和还款价值总和】入参:daily=" + daily
-                + ",borrowIdList=" + borrowIdList);
-        Map<String,BigDecimal> sumMap = debtDateValueService.
-                getSumDebtAndReturnByBorrowIdList(daily,borrowIdList);
-        logger.debug("【获得债权和还款价值总和】结果sumMap=" + sumMap);
-        return sumMap;
-    }
-
-    public List<DebtDateValue> queryDebtDateValuePageList(Date daily, Integer page, Integer rows){
+    public List<DebtDateValue> getDebtDateValuePageList(Date daily, Integer page, Integer rows){
         return debtDateValueService.queryDebtDateValuePageList(daily, page, rows);
     }
 
-    public Integer queryDebtDateValuePageCount(Date daily){
-        return debtDateValueService.queryDebtDateValuePageCount(daily);
+    public Integer getDebtDateValueCount(Date daily){
+        return debtDateValueService.queryDebtDateValueCount(daily);
     }
 }

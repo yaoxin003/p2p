@@ -2,6 +2,7 @@ package com.yx.p2p.ds.model.crm;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yx.p2p.ds.model.base.BaseModel;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -20,7 +21,9 @@ public class Customer extends BaseModel implements Serializable {
 
     private String name;//姓名
     private Short gender;//性别
-    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd")//主要是前后到后台的时间格式的转换
+    @JsonFormat(pattern="yyyy-MM-dd",timezone="GMT+8")//后台到前台的时间格式的转换
     private Date birthday;//生日
     private String idCard;//身份证号码
 

@@ -6,12 +6,12 @@ import com.yx.p2p.ds.model.invest.InvestDebtVal;
 import com.yx.p2p.ds.model.invest.InvestDebtValDtl;
 import com.yx.p2p.ds.service.invest.InvestDebtValService;
 import com.yx.p2p.ds.util.PageUtil;
+import org.apache.ibatis.session.RowBounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tk.mybatis.mapper.entity.Example;
-
 import java.util.Date;
 import java.util.List;
 
@@ -34,7 +34,7 @@ public class InvestDebtValServiceImpl implements InvestDebtValService {
     public List<InvestDebtValDtl> getInvestDebtValDtlList(Date arriveDate, List<Integer> borrowIdList){
         Example example = new Example(InvestDebtValDtl.class);
         example.createCriteria().andIn("borrowId",borrowIdList)
-        .andEqualTo("arriveDate",arriveDate);
+                .andEqualTo("arriveDate",arriveDate);
         List<InvestDebtValDtl> investDebtValDtls = investDebtValDtlMapper.selectByExample(example);
         return investDebtValDtls;
     }
@@ -73,6 +73,55 @@ public class InvestDebtValServiceImpl implements InvestDebtValService {
         }
         logger.debug("【插入投资回款数据】count=" + count);
         return count;
+    }
+
+    @Override
+    public List<InvestDebtVal> getInvestDebtValList(Date arriveDate, List<Integer> investIdList) {
+        Example example = new Example(InvestDebtVal.class);
+        example.createCriteria().andIn("investId",investIdList)
+                .andEqualTo("arriveDate",arriveDate);
+        List<InvestDebtVal> investDebtVals = investDebtValMapper.selectByExample(example);
+        return investDebtVals;
+    }
+
+    public Integer getInvestDebtValCount(Date arriveDate){
+        InvestDebtVal investDebtVal = new InvestDebtVal();
+        investDebtVal.setArriveDate(arriveDate);
+        int count = investDebtValMapper.selectCount(investDebtVal);
+        return count;
+    }
+
+    public List<InvestDebtVal> getInvestDebtValPageList(Date arriveDate,int page,int rows) {
+        InvestDebtVal param = new InvestDebtVal();
+        param.setArriveDate(arriveDate);
+        int offset = (page - 1) * rows;
+        List<InvestDebtVal> investDebtValList = investDebtValMapper.selectByRowBounds(
+                param, new RowBounds(offset,rows));
+        return investDebtValList;
+    }
+
+    public Integer getInvestDebtValReturnAmtCount(Date arriveDate){
+        Example example = new Example(InvestDebtVal.class);
+        example.createCriteria().andGreaterThan("totalHoldReturnAmt",0)
+                .andEqualTo("arriveDate",arriveDate);
+        int count = investDebtValMapper.selectCountByExample(example);
+        return count;
+    }
+
+    public List<InvestDebtVal> getInvestDebtValReturnAmtPageList(Date arriveDate,int page,int rows) {
+        Example example = new Example(InvestDebtVal.class);
+        example.createCriteria().andGreaterThan("totalHoldReturnAmt",0)
+                .andEqualTo("arriveDate",arriveDate);
+        int offset = (page - 1) * rows;
+        return investDebtValMapper.selectByExampleAndRowBounds(example,new RowBounds(offset,rows));
+    }
+
+    public List<InvestDebtValDtl> getInvestDebtValDtlList(Integer investId,Date arriveDate){
+        InvestDebtValDtl param = new InvestDebtValDtl();
+        param.setInvestId(investId);
+        param.setArriveDate(arriveDate);
+        return investDebtValDtlMapper.select(param);
+
     }
 
 }

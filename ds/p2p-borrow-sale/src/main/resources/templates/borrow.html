@@ -26,12 +26,15 @@
                  <!--提交表单时使用该字段，保存选中使用具体的银行卡-->
                       客户银行卡编号<input name="customerBankId" id="customerBankId" class="easyui-textbox" style="width:50px"/>
             </span>
-            <table id="planBorrowTable" style="width:600px" cellspacing="10">
+            <table id="planBorrowTable" style="width:700px" cellspacing="10">
                 <tr>
                     <td>
-                        <input class="easyui-textbox" label="借款产品" id="name" name="name" style="width:180px" data-options="readonly:true" />
+                        <input class="easyui-textbox" label="借款产品" id="name" name="name" style="width:200px" data-options="readonly:true" />
                     </td>
-                    <td width="300" colspan="2" align="right">
+                    <td>
+                        <input class="easyui-datebox" label="借款开始日期" id="startDate" name="startDate"  data-options="required:true,value:'Today'" style="width:200px" />
+                    </td>
+                    <td width="250" align="right">
                         <a href="javascript:(0)" class="easyui-linkbutton" onclick="backProductDialog()">返回【借款产品列表】</a>
                     </td>
                 </tr>
@@ -223,7 +226,7 @@
                  idField : 'id',//有idField保证了翻页选中不丢失
                  fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
                  rownumbers:true,
-                 width: 600,
+                 width: 700,
                  singleSelect:true,
                  striped:true,//隔行变色
                  url:'/payment/getCustomerBankListByCustomerId',

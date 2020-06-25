@@ -12,7 +12,7 @@
     </select>
 
     <select id="queryInvestDebtValGroupList" resultType="InvestDebtVal">
-        select idvd.invest_id,sum(idvd.hold_add_amt) total_hold_add_amt,
+        select idvd.invest_id,sum(idvd.hold_add_amt) total_hold_add_amt,sum(idvd.hold_return_amt) total_hold_return_amt,
             max(idvd.invest_customer_id) invest_customer_id,max(idvd.invest_customer_name) invest_customer_name
         from p2p_invest_debt_val_dtl idvd
         where idvd.arrive_date=#{arriveDate}

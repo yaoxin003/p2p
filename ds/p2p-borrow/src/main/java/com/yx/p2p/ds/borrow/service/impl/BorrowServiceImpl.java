@@ -145,7 +145,6 @@ public class BorrowServiceImpl implements BorrowService {
 
     //事务操作：根据撮合结果，添加借款明细，更新借款状态已签约
     //用catch捕获异常，不向上抛出异常，保证调用者不受该异常影响
-    @Transactional
     private Result adddBorrowDtlAndUpdateBorrowSigned(Borrow borrow, List<FinanceMatchRes> matchResList) {
         Result result = Result.error();
         try{
@@ -170,7 +169,7 @@ public class BorrowServiceImpl implements BorrowService {
         }
         if(!borrowDtlList.isEmpty()){
             logger.debug("【批量插入借款明细】");
-            borrowDtlMapper.insertBatchBorrowDtlList(borrowDtlList);
+            borrowDtlMapper.insertList(borrowDtlList);
         }
         result = Result.success();
         return result;
@@ -228,7 +227,7 @@ public class BorrowServiceImpl implements BorrowService {
 
     //调用发送借款撮合
     //Result.target=借款撮合结果
-    public Result dealBorrowMatchReq(Borrow borrow) {
+    private Result dealBorrowMatchReq(Borrow borrow) {
         logger.debug("【调用发送借款撮合】borrow=" + borrow);
         FinanceMatchReq borrowMatchReq = new FinanceMatchReq();
         Result result = this.buildBorrowMatchReq(borrow,borrowMatchReq);
@@ -426,8 +425,7 @@ public class BorrowServiceImpl implements BorrowService {
         BigDecimal monthManageFee2 = monthPay.subtract(monthPrincipalInterest);
        logger.debug("【月管理费2】" + monthManageFee2);
         //借款开始时间
-        Date startDate = new Date();
-        borrow.setStartDate(startDate);
+        Date startDate = borrow.getStartDate();
         //借款结束时间
         Date endDate = DateUtil.addMonth(startDate,borrow.getBorrowMonthCount());
         borrow.setEndDate(endDate);

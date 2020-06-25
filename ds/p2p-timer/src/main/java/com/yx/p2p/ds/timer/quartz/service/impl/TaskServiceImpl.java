@@ -38,7 +38,6 @@ public class TaskServiceImpl implements TaskService {
     private JobService jobService;
 
     public List<TaskDO> getTaskDOListByPagination(TaskDO taskDO, Integer currentPage, Integer pageSize){
-        logger.debug("【分页查询定时任务】入参：currentPage=" + currentPage + ",pageSize=" + pageSize);
         Integer offset =  PageUtil.getOffset(currentPage,pageSize);
         RowBounds rowBounds = new RowBounds(offset,pageSize);
         List<TaskDO> taskDOList = taskMapper.selectByRowBounds(taskDO, rowBounds);
@@ -66,14 +65,14 @@ public class TaskServiceImpl implements TaskService {
         }    
     }
 
-    //新增的“定时任务”：业务状态为“停止”
+    //新增的“定时任务”
     @Override
     public Result add(TaskDO taskDO) {
         Result result = Result.error();
+        BeanHelper.setAddDefaultField(taskDO);
         try{
-            BeanHelper.setAddDefaultField(taskDO);
-            taskDO.setBizState(JobBizStateEnum.STOP.getState());//停止
             taskMapper.insert(taskDO);
+            jobService.addJob(taskDO);
             result = Result.success();
         }catch(Exception e){
             result = LoggerUtil.addExceptionLog(e,logger);

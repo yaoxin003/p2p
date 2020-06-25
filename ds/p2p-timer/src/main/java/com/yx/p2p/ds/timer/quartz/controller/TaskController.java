@@ -31,14 +31,12 @@ public class TaskController {
 
     @RequestMapping("init")
     public String init(){
-        logger.debug("【定时任务页面】");
         return "init";
     }
 
     @RequestMapping("list")
     @ResponseBody
     public Map<String,Object> list(String description,Integer page, Integer rows){
-        logger.debug("【定时任务列表页面】入参：page=" + page + ",rows=" + rows + ",description=" + description);
         TaskDO param= new TaskDO();
         if(description != null && !"".equals(description)){
             param.setDescription(description);
@@ -46,7 +44,6 @@ public class TaskController {
         int totalCount = taskService.getTaskDOListCount(param);
         List<TaskDO> taskDOList = taskService.getTaskDOListByPagination(param,page,rows);
         Map<String, Object> pageMap = Pagination.buildMap(totalCount, taskDOList);
-        logger.debug("【定时任务列表页面】结果：taskDOList=" + taskDOList);
         return pageMap;
     }
 

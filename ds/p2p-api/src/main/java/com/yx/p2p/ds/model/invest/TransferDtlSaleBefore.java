@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * @description:转让协议明细
+ * @description:转让协议售前数据
  * @author: yx
  * @date: 2020/05/09/13:39
  */
@@ -23,7 +23,8 @@ public class TransferDtlSaleBefore extends BaseModel implements Serializable{
     private Integer customerId;//客户编号
     private String customerName;//客户姓名
     private BigDecimal buyAmt;//买入金额
-    private BigDecimal claimAmt;//债权金额
+    private BigDecimal claimAmt;//债权金额（交易日债权金额）
+    private BigDecimal returnAmt;//还款金额（交易日还款金额）
     private BigDecimal holdShare;//持有比例
     private Integer borrowProductId;//借款产品编号
     private String borrowProductName;//借款产品名称
@@ -133,6 +134,14 @@ public class TransferDtlSaleBefore extends BaseModel implements Serializable{
         this.borrowYearRate = borrowYearRate;
     }
 
+    public BigDecimal getReturnAmt() {
+        return returnAmt;
+    }
+
+    public void setReturnAmt(BigDecimal returnAmt) {
+        this.returnAmt = returnAmt;
+    }
+
     @Override
     public String toString() {
         return "TransferDtl{" +
@@ -145,6 +154,7 @@ public class TransferDtlSaleBefore extends BaseModel implements Serializable{
                 ", customerName='" + customerName + '\'' +
                 ", buyAmt=" + buyAmt +
                 ", claimAmt=" + claimAmt +
+                ", returnAmt=" + returnAmt +
                 ", holdShare=" + holdShare +
                 ", borrowProductId=" + borrowProductId +
                 ", borrowProductName='" + borrowProductName + '\'' +

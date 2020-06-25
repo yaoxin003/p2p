@@ -109,8 +109,6 @@ public class CrmController {
             e.printStackTrace();
         }
         //3.2特殊值设置
-        String birthdayStr = DateUtil.dateYMD2Str(resCrm.getBirthday());
-        resCrmVo.setBirthdayStr(birthdayStr);
         resCrmVo.setIdCardOld(resCrm.getIdCard());
         //临时方案---end
         return resCrmVo;

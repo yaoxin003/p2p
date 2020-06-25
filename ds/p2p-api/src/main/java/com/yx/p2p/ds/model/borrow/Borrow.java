@@ -2,7 +2,7 @@ package com.yx.p2p.ds.model.borrow;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yx.p2p.ds.model.base.BaseModel;
-
+import org.springframework.format.annotation.DateTimeFormat;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -48,7 +48,8 @@ public class Borrow extends BaseModel implements Serializable {
 
     private BigDecimal totalManageFee;//总管理费=总借款费用-总利息
 
-    @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")//主要是前后到后台的时间格式的转换
+    @JsonFormat(pattern="yyyy-MM-dd",timezone="GMT+8")//后台到前台的时间格式的转换
     private Date startDate;//借款开始日期
 
     @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")

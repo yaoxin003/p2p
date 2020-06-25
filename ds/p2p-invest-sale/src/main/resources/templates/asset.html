@@ -7,7 +7,7 @@
     <div th:fragment="investDiv">
 
         <div id="investDialog" class="easyui-dialog" title="【投资列表】"
-             draggable="false" data-options="modal:true,closed:true" style="display:none;width:970px">
+             draggable="false" data-options="modal:true,closed:true" style="display:none;width:1170px">
             <table id="investTable" cellspacing="5"></table>
         </div>
 
@@ -24,7 +24,6 @@
                     idField : 'id',//有idField保证了翻页选中不丢失
                     fitColumns:true,//使列自动展开/折叠以适应数据网格（datagrid）的宽度
                     rownumbers:true,
-                    width: 950,
                     singleSelect:true,
                     striped:true,//隔行变色
                     url:'/invest/getInvestVoListByCustomerId',
@@ -36,16 +35,18 @@
                             formatter:function(value,row,index){
                                 var str = "";
                                 if(row.bizState == '1'){
-                                    str = "<a href='#' name='paymentOpr' onclick='payment(" + row.id + "," + row.customerId + "," + row.investAmt + ","+ row.customerBankId + ")'></a>";
+                                    str = "<a href='#' name='paymentOpr' class='easyui-linkbutton' onclick='payment(" + row.id + "," + row.customerId + "," + row.investAmt + ","+ row.customerBankId + ")'></a>";
                                 }else if(row.bizState == '5'){
-                                    str = "<a href='#' name='transferOpr' onclick='transfer(" + row.id + "," + row.customerId + ")'></a>";
+                                    str = "<input class='easyui-textbox' id='transferDate" + row.id + "' style='width:100px'>"
+                                        + "<a href='#' name='transferOpr' class='easyui-linkbutton' onclick='transfer(" + row.id + "," + row.customerId + ")'>赎</a>";
                                 }else if(row.bizState == '6'){
-                                    str = "<a href='#' name='transferOpr' onclick='transfer(" + row.id + "," + row.customerId + ")'></a>";
+                                    str = "<input class='easyui-textbox' id='transferDate" + row.id + "' style='width:100px'>"
+                                        + "<a href='#' name='transferOpr' class='easyui-linkbutton' onclick='transfer(" + row.id + "," + row.customerId + ")'>赎</a>";
                                 }else if(row.bizState == '7'){
-                                    str = "<a href='#' name='transferContractOpr' onclick='transferContractText(" + row.id + ")'></a>";
-                                    str += "<a href='#' name='withdrawOpr' onclick='withdraw(" + row.id + ")'></a>";
+                                    str = "<a href='#' name='transferContractOpr' class='easyui-linkbutton' onclick='transferContractText(" + row.id + ")'>合</a>";
+                                    str += "<a href='#' name='withdrawOpr' class='easyui-linkbutton' onclick='withdraw(" + row.id + ")'>提</a>";
                                 }else if(row.bizState == '8'){
-                                    str = "<a href='#' name='transferContractOpr' onclick='transferContractText(" + row.id + ")'></a>";
+                                    str = "<a href='#' name='transferContractOpr' class='easyui-linkbutton' onclick='transferContractText(" + row.id + ")'>合</a>";
                                 }
                                 return str;
                             }
@@ -78,12 +79,15 @@
                     ]],
                     loadMsg : '数据正在加载，请耐心等待……',
                     onLoadSuccess: function (data) {
-                        $("a[name='paymentOpr']").linkbutton({'text':'付','plain':true,iconCls:'icon-add'});
-                        $("a[name='transferOpr']").linkbutton({'text':'赎','plain':true,iconCls:'icon-add'});
-                        $("a[name='transferContractOpr']").linkbutton({'text':'合','plain':true,iconCls:'icon-add'});
-                        $("a[name='withdrawOpr']").linkbutton({'text':'提','plain':true,iconCls:'icon-add'});
+                        $.parser.parse("#investDialog");
+                        // $("a[name='paymentOpr']").linkbutton({'text':'付','plain':true,iconCls:'icon-add'});
+                        // $("a[name='transferOpr']").linkbutton({'text':'赎','plain':true,iconCls:'icon-add'});
+                        // $("a[name='transferContractOpr']").linkbutton({'text':'合','plain':true,iconCls:'icon-add'});
+                        // $("a[name='withdrawOpr']").linkbutton({'text':'提','plain':true,iconCls:'icon-add'});
                     }
                 });
+
+
             }
 
             //投资列表“付”按钮
@@ -136,7 +140,7 @@
             $.ajax({
                 type:'post',
                 url : '/invest/transferApply',
-                data : { investId : investId},
+                data : { investId : investId,transferDate:$("#transferDate"+investId).textbox('getValue')},
                 cache: false,
                 success :function(result){
                     $("#investDialog").dialog("close");

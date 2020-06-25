@@ -77,6 +77,6 @@ public class ClaimSubAccFlow extends BaseModel implements Serializable{
                 ", orderSn='" + orderSn + '\'' +
                 ", amount=" + amount +
                 ", remark='" + remark + '\'' +
-                '}';
+                '}' + super.toString();
     }
 }

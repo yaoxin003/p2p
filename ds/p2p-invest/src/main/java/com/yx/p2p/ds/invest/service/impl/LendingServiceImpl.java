@@ -99,7 +99,8 @@ public class LendingServiceImpl implements LendingService {
     public Result checkAndDealFullAmt(List<InvestClaim> matchInvestClaimList){
         logger.debug("【检查并处理出借单满额】入参：matchInvestClaimList=" + matchInvestClaimList);
         Result result = Result.error();
-        Map<Integer,BigDecimal> lendingMap = new HashMap<Integer,BigDecimal>();
+        //map<lendingId,BigDecimal>
+        Map<Integer,BigDecimal> lendingMap = new HashMap<>();
         //根据出借单Id，汇总撮合金额
         for (InvestClaim matchInvestClaim : matchInvestClaimList) {
             Integer lendingId = matchInvestClaim.getLendingId();
@@ -108,6 +109,7 @@ public class LendingServiceImpl implements LendingService {
             }else{
                 BigDecimal buyAmt = lendingMap.get(lendingId);
                 buyAmt = buyAmt.add(matchInvestClaim.getBuyAmt());
+                lendingMap.put(lendingId,buyAmt);
             }
         }
         //根据验证出借单是否满额,新出借单更新投资状态为满额

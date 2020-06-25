@@ -2,7 +2,6 @@ package com.yx.p2p.ds.service.invest;
 
 import com.yx.p2p.ds.model.invest.InvestDebtVal;
 import com.yx.p2p.ds.model.invest.InvestDebtValDtl;
-import com.yx.p2p.ds.model.invest.InvestReturn;
 
 import java.util.Date;
 import java.util.List;
@@ -16,6 +15,8 @@ public interface InvestDebtValService {
 
     public List<InvestDebtValDtl> getInvestDebtValDtlList(Date arriveDate, List<Integer> borrowIdList);
 
+    public List<InvestDebtValDtl> getInvestDebtValDtlList(Integer investId,Date arriveDate);
+
     public Integer insertInvestDebtValDtlList(List<InvestDebtValDtl> allInvestDebtValDtlList);
 
     public Integer getInvestDebtValGroupListCount(Date arriveDate);
@@ -26,4 +27,15 @@ public interface InvestDebtValService {
     public List<InvestDebtVal> getInvestDebtValGroupList(Date arriveDate, Integer currentPage, Integer pageSize);
 
     public Integer insertInvestDebtValList(List<InvestDebtVal> investDebtValList);
+
+    public List<InvestDebtVal> getInvestDebtValList(Date arriveDate, List<Integer> investIdList);
+
+    public Integer getInvestDebtValCount(Date arriveDate);
+
+    public List<InvestDebtVal> getInvestDebtValPageList(Date arriveDate,int page,int rows);
+
+    public Integer getInvestDebtValReturnAmtCount(Date arriveDate);
+
+    public List<InvestDebtVal> getInvestDebtValReturnAmtPageList(Date arriveDate,int page,int rows);
+
 }

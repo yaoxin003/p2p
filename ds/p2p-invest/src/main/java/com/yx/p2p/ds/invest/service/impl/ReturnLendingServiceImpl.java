@@ -3,18 +3,17 @@ package com.yx.p2p.ds.invest.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.SystemSourceEnum;
+import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
 import com.yx.p2p.ds.enums.lending.LendingTypeEnum;
 import com.yx.p2p.ds.enums.match.InvestMatchReqLevelEnum;
 import com.yx.p2p.ds.enums.match.MatchRemarkEnum;
 import com.yx.p2p.ds.helper.BeanHelper;
+import com.yx.p2p.ds.invest.mapper.InvestMapper;
 import com.yx.p2p.ds.model.invest.Invest;
-import com.yx.p2p.ds.model.invest.InvestReturn;
+import com.yx.p2p.ds.model.invest.InvestDebtVal;
 import com.yx.p2p.ds.model.invest.Lending;
 import com.yx.p2p.ds.model.match.InvestMatchReq;
-import com.yx.p2p.ds.service.invest.InvestReturnService;
-import com.yx.p2p.ds.service.invest.InvestService;
-import com.yx.p2p.ds.service.invest.LendingService;
-import com.yx.p2p.ds.service.invest.ReturnLendingService;
+import com.yx.p2p.ds.service.invest.*;
 import com.yx.p2p.ds.util.LoggerUtil;
 import com.yx.p2p.ds.util.OrderUtil;
 import com.yx.p2p.ds.util.PageUtil;
@@ -42,7 +41,7 @@ public class ReturnLendingServiceImpl implements ReturnLendingService {
     static final int PAGESIZE = 500;
 
     @Autowired
-    private InvestReturnService investReturnService;
+    private InvestDebtValService investDebtValService;
 
     @Autowired
     private InvestService investService;
@@ -76,8 +75,9 @@ public class ReturnLendingServiceImpl implements ReturnLendingService {
     }
 
     /**
-     * @description: 生成回款出借单并批量发送投资撮合
-     * 1.查询投资回款集合
+     * @description: 生成回款出借单并批量发送投资撮合（转让中的投资生成出借单）
+     * 1.查询投资债权价值集合
+     * 2.过滤转让投资
      * 2.构建出借单对象集合
      * 3.批量插入出借单
      * 4.批量发送投资撮合
@@ -86,60 +86,101 @@ public class ReturnLendingServiceImpl implements ReturnLendingService {
     private Result genAndSendReturnLending(Date arriveDate){
         Result result = Result.error();
        //1.查询投资回款集合
-        Integer totalCount = investReturnService.getInvestReturnListCount(arriveDate);
-        int pageCount = PageUtil.getPageCount(totalCount, PAGESIZE);
-        for(int i=1; i<=pageCount; i++){
-            List<InvestReturn> investReturnList = investReturnService.getInvestReturnList(arriveDate, i, PAGESIZE);
-            //使用回款出借单过滤投资回款集合
-            investReturnList = this.filterInvestReturnListByLending(investReturnList,arriveDate);
-            if(!investReturnList.isEmpty()){
-                //2.构建出借单对象集合
-                List<Lending> lendingList = new ArrayList<>();
-                for (InvestReturn investReturn : investReturnList) {
-                    Lending lending = this.buildAddLending(investReturn);
-                    lendingList.add(lending);
+        Integer totalCount = investDebtValService.getInvestDebtValReturnAmtCount(arriveDate);
+        if(totalCount > 0){
+            int pageCount = PageUtil.getPageCount(totalCount, PAGESIZE);
+            for(int i=1; i<=pageCount; i++){
+                List<InvestDebtVal> investDebtValList = investDebtValService.getInvestDebtValReturnAmtPageList(arriveDate, i, PAGESIZE);
+                //过滤已生成的回款出借单
+                investDebtValList = this.filterGenReturnLending(investDebtValList,arriveDate);
+                //过滤转让投资
+                investDebtValList = this.filterTransferInvest(investDebtValList);
+                if(!investDebtValList.isEmpty()){
+                    //2.构建出借单对象集合
+                    List<Lending> lendingList = new ArrayList<>();
+                    for (InvestDebtVal investDebtVal : investDebtValList) {
+                        Lending lending = this.buildAddLending(investDebtVal);
+                        lendingList.add(lending);
+                    }
+                    lendingList = lendingService.addLendingList(lendingList);
+                    //批量发送回款出借单撮合
+                    result = this.sendBatchInvestMatch(lendingList);
                 }
-                lendingList = lendingService.addLendingList(lendingList);
-                result = this.sendBatchInvestMatch(lendingList);
             }
+        }else{
+            logger.debug("【没有投资回款】arriveDate={}",arriveDate);
         }
         return result;
     }
 
-    //使用回款出借单过滤投资回款集合
-    private List<InvestReturn> filterInvestReturnListByLending(List<InvestReturn> paramInvestReturnList,Date arriveDate) {
-        logger.debug("【过滤LendingList后InvestReturn】入参：arriveDate=" + arriveDate
-                +"，paramInvestReturnList=" + paramInvestReturnList);
-        List<InvestReturn> resInvestReturnList = new ArrayList<>();
+    //过滤转让投资
+    private List<InvestDebtVal> filterTransferInvest(List<InvestDebtVal> investDebtValList) {
+        List<InvestDebtVal> resultList = null;
+        //转让投资
+        List<Invest> transferInvestList = this.getTransferInvestList();
+        if(!transferInvestList.isEmpty()){
+            //Map<investId,InvestDebtVal>
+            Map<Integer,InvestDebtVal> map = new HashMap<>();
+            //存入map中
+            for (InvestDebtVal investDebtVal : investDebtValList) {
+                map.put(investDebtVal.getInvestId(),investDebtVal);
+            }
+            //删除数据
+            for (Invest invest : transferInvestList) {
+                map.remove(invest.getId());
+            }
+            //重新存入集合
+            resultList = new ArrayList<>();
+            for (Integer investId : map.keySet()) {
+                resultList.add(map.get(investId));
+            }
+        }else{
+            resultList = investDebtValList;
+        }
+        return resultList;
+    }
+
+    private List<Invest> getTransferInvestList(){
+        List<String> bizStateList = new ArrayList<>();
+        bizStateList.add(InvestBizStateEnum.TRANSFERING.getState());
+        List<Invest> invests = investService.queryInvestList(bizStateList);
+        return invests;
+    }
+
+    //过滤已生成的回款出借单
+    private List<InvestDebtVal> filterGenReturnLending(List<InvestDebtVal> paramInvestDebtValList ,Date arriveDate) {
+        logger.debug("【过滤已生成的回款出借单】入参：arriveDate={},paramInvestDebtValList={}",
+                arriveDate, paramInvestDebtValList);
+        List<InvestDebtVal> resInvestDebtValList = new ArrayList<>();
         List<Integer> paramInvestIdList = new ArrayList<>();
-        //Map<investId,InvestReturn>
-        Map<Integer,InvestReturn> paramInvestReturnMap = new HashMap<>();
-        for (InvestReturn paramInvestReturn : paramInvestReturnList) {
-            paramInvestIdList.add(paramInvestReturn.getInvestId());
-            paramInvestReturnMap.put(paramInvestReturn.getInvestId(),paramInvestReturn);
+        //Map<investId,InvestDebtVal>
+        Map<Integer,InvestDebtVal> paramInvestDebtValMap = new HashMap<>();
+        for (InvestDebtVal paramInvestDebtVal : paramInvestDebtValList) {
+            paramInvestIdList.add(paramInvestDebtVal.getInvestId());
+            paramInvestDebtValMap.put(paramInvestDebtVal.getInvestId(),paramInvestDebtVal);
         }
         List<Lending> dbLendingList = lendingService.getReinvestLendingList(paramInvestIdList, arriveDate);
         for (Lending dbLending : dbLendingList) {
-            paramInvestReturnMap.remove(dbLending.getInvestId());
+            paramInvestDebtValMap.remove(dbLending.getInvestId());
         }
-        for (Integer investId : paramInvestReturnMap.keySet()) {
-            resInvestReturnList.add(paramInvestReturnMap.get(investId));
+        for (Integer investId : paramInvestDebtValMap.keySet()) {
+            resInvestDebtValList.add(paramInvestDebtValMap.get(investId));
         }
         paramInvestIdList = null;
-        paramInvestReturnMap = null;
-        paramInvestReturnList = null;
+        paramInvestDebtValMap = null;
+        paramInvestDebtValMap = null;
         dbLendingList = null;
-        logger.debug("【过滤LendingList后InvestReturn】结果resInvestReturnList=" + resInvestReturnList);
-        return resInvestReturnList;
+        logger.debug("【过滤LendingList后InvestReturn】结果resInvestDebtValList={}",resInvestDebtValList);
+        return resInvestDebtValList;
     }
 
-    private Lending buildAddLending(InvestReturn investReturn) {
+    private Lending buildAddLending(InvestDebtVal investDebtVal) {
         Lending lending = new Lending();
-        lending.setInvestId(investReturn.getInvestId());
-        lending.setAmount(investReturn.getTotalReturnAmt());
+        lending.setInvestId(investDebtVal.getInvestId());
+        lending.setAmount(investDebtVal.getTotalHoldReturnAmt());
         lending.setLendingType(LendingTypeEnum.RETURN_LEND.getCode());//回款出借单
-        lending.setCustomerId(investReturn.getInvestCustomerId());
-        lending.setArriveDate(investReturn.getArriveDate());
+        lending.setCustomerId(investDebtVal.getInvestCustomerId());
+        lending.setArriveDate(investDebtVal.getArriveDate());
         lending.setOrderSn(OrderUtil.genOrderSn(SystemSourceEnum.INVEST.getName()));
         BeanHelper.setAddDefaultField(lending);
         return lending;
@@ -154,11 +195,15 @@ public class ReturnLendingServiceImpl implements ReturnLendingService {
         return result;
     }
 
+    /**
+        * @return: Map<investId,Invest>
+        */
     private Map<Integer,Invest> getInvestMapByLendingList(List<Lending> lendingList) {
         List<Integer> investIdList = new ArrayList<>();
         for (Lending lending : lendingList) {
             investIdList.add(lending.getInvestId());
         }
+
         List<Invest> investList = investService.getInvestListByInvestIdList(investIdList);
         Map<Integer,Invest> investmap = new HashMap<>();
         for (Invest invest : investList) {

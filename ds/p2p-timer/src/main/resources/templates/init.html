@@ -50,7 +50,7 @@
             </tr>
             <tr>
                 <td>任务名称</td>
-                <td><input type="text" name="jobName" class="easyui-textbox" data-options="required:true" style="width:200px"/></td>
+                <td><input type="text" name="jobName" class="easyui-textbox" data-options="required:true" style="width:100px"/></td>
             </tr>
             <tr>
                 <td>任务描述</td>
@@ -83,7 +83,7 @@
         idField : 'id',//有idField保证了翻页选中不丢失
         fitColumns:true,
         rownumbers:true,
-        width: 1450,
+        width: 1350,
         url : "/task/list",
         striped:true,//隔行变色
         singleSelect:true,//只允许选中一行
@@ -103,7 +103,7 @@
                 }
             },
             {field:'jobGroup',title:'任务分组',width:100},
-            {field:'jobName',title:'任务名称',width:350},
+            {field:'jobName',title:'任务名称',width:200},
             {field:'description',title:'任务描述',width:300},
             {field:'cronExpression',title:'cron表达式',width:200},
             {field:'classFullName',title:'类全名',width:450}

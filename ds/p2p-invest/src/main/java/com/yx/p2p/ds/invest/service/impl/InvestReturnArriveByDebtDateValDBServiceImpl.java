@@ -28,14 +28,12 @@ public class InvestReturnArriveByDebtDateValDBServiceImpl implements InvestRetur
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
     static final int PAGESIZE = 500;
+
     @Reference
     private DebtDateValueServer debtDateValueServer;
 
     @Autowired
     private InvestService investService;
-
-    @Autowired
-    private InvestReturnService investReturnService;
 
     @Autowired
     private ReturnLendingService returnLendingService;
@@ -50,96 +48,121 @@ public class InvestReturnArriveByDebtDateValDBServiceImpl implements InvestRetur
         logger.debug("【处理投资还款到账，插入投资回款数据】arriveDate=" + arriveDate);
         Result result = Result.error();
         //1.分页查询现金流获得borrowid（按还款到账日期查询）
-        Integer debtDateValueTotalCount = debtDateValueServer.queryDebtDateValuePageCount(arriveDate);
+        Integer debtDateValueTotalCount = debtDateValueServer.getDebtDateValueCount(arriveDate);
         logger.debug("【债务每日价值总数量】debtDateValueTotalCount=" + debtDateValueTotalCount);
         Integer pageCount = PageUtil.getPageCount(debtDateValueTotalCount, PAGESIZE);
         logger.debug("【债务每日价值总页数】pageCount=" + pageCount);
         for (int i = 1; i <= pageCount; i++) {
-            List<DebtDateValue> debtDateValueList = debtDateValueServer.queryDebtDateValuePageList(arriveDate, i, PAGESIZE);
+            List<DebtDateValue> debtDateValueList = debtDateValueServer.getDebtDateValuePageList(arriveDate, i, PAGESIZE);
             logger.debug("【分页后债务每日价值集合】debtDateValueList=" + debtDateValueList);
             //2.根据1中borrowid查询投资持有债权
             List<Integer> returnBorrowIdList = new ArrayList<>();
-            List<Integer> addAmtBorrowIdList = new ArrayList<>();
-            Map<Integer, BigDecimal> borrowIdReturnAmtMap = new HashMap<>();//map(borrowId,returnAmt)
-            Map<Integer, BigDecimal> borrowIdAddAmtMap = new HashMap<>();//map(borrowId,addAmt)
+            List<Integer> borrowIdList = new ArrayList<>();
+            Map<Integer,BigDecimal> debtValueMap = new HashMap<>();//map(borrowId,debtValue)
+            Map<Integer, BigDecimal> returnAmtMap = new HashMap<>();//map(borrowId,returnAmt)
+            Map<Integer, BigDecimal> addAmtMap = new HashMap<>();//map(borrowId,addAmt)
             BigDecimal zero = BigDecimal.ZERO;
             for (DebtDateValue debtDateValue : debtDateValueList) {
                 Integer borrowId = debtDateValue.getBorrowId();
+                //债务价值
+                debtValueMap.put(borrowId,debtDateValue.getValue());
                 //债务增值处理：
                 BigDecimal addAmt = debtDateValue.getAddAmt();
-                borrowIdAddAmtMap.put(borrowId,addAmt);
-                addAmtBorrowIdList.add(borrowId);
+                addAmtMap.put(borrowId,addAmt);
+                borrowIdList.add(borrowId);
                 //还款处理：
                 BigDecimal returnAmt = debtDateValue.getReturnAmt();
                 if(returnAmt.compareTo(zero) == 1){
                     returnBorrowIdList.add(borrowId);
-                    borrowIdReturnAmtMap.put(borrowId, returnAmt);
+                    returnAmtMap.put(borrowId, returnAmt);
                 }
             }
-            //债务增值处理：
-            result = this.addInvestDebtValDtlList(arriveDate,addAmtBorrowIdList,borrowIdAddAmtMap);
-           //还款处理：
-           result = this.addInvestReturnDtlList(arriveDate,returnBorrowIdList,borrowIdReturnAmtMap);
+            //处理InvestDebtValDtl
+            result = this.addInvestDebtValDtlList(arriveDate,borrowIdList,addAmtMap,returnAmtMap,debtValueMap);
         }
         //6.分页插入投资债权价值
         result = this.addInvestDebtValListByPage(arriveDate);
-        //6.分页插入投资回款，生成出借单发送撮合
-        result = this.addInvestReturnListByPage(arriveDate);
-
         return result;
     }
 
-    private Result addInvestDebtValDtlList(Date arriveDate, List<Integer> addAmtBorrowIdList,
-                                        Map<Integer, BigDecimal> borrowIdAddAmtMap) {
+    /**
+        * @param: arriveDate 到账时间
+        * @param: borrowIdList
+        * @param: addAmtMap 债务增值金额Map
+        * @param: returnAmtMap 还款金额Map
+        * @param: debtValueMap 债务价值金额
+        */
+    private Result addInvestDebtValDtlList(Date arriveDate, List<Integer> borrowIdList,
+            Map<Integer, BigDecimal> addAmtMap, Map<Integer, BigDecimal> returnAmtMap, Map<Integer,BigDecimal> debtValueMap) {
         Result result = Result.error();
-        addAmtBorrowIdList = this.filterAddAmtBorrowIdList(arriveDate,addAmtBorrowIdList);
-        if(!addAmtBorrowIdList.isEmpty()){
+        borrowIdList = this.filterBorrowIdByInvestDebtValDtl(arriveDate,borrowIdList);
+        if(!borrowIdList.isEmpty()){
             //查询投资债权
-            List<InvestClaim> investClaimList = investService.getInvestClaimList(addAmtBorrowIdList);
+            List<InvestClaim> investClaimList = investService.getInvestClaimList(borrowIdList);
             List<InvestDebtValDtl> allInvestDebtValDtlList = new ArrayList<>();//所有投资还款明细集合
-            //3.按borrowid生成map(borrowId,List<投资回款明细>)
+            //3.按borrowid生成map(borrowId,List<投资债权价值明细>)
             Map<Integer, List<InvestDebtValDtl>> borrowInvestDebtValDtlListMap = new HashMap<>();//map(borrowId,List<InvestDebtValDtl>)
-            result = this.buildBorrowInvestDebtValDtlListMap(arriveDate,
-                    borrowIdAddAmtMap,allInvestDebtValDtlList,borrowInvestDebtValDtlListMap,investClaimList);
+            result = this.buildBorrowInvestDebtValDtlListMap(arriveDate,addAmtMap,returnAmtMap,debtValueMap,
+                    allInvestDebtValDtlList,borrowInvestDebtValDtlListMap,investClaimList);
             //4.计算map中List<InvestDebtValDtl>的addAmt
-            result = this.computeAddAmt(borrowInvestDebtValDtlListMap, borrowIdAddAmtMap);
-            //5.插入“投资回款明细”
+            result = this.computeAddAmtAndReturnAmt(borrowInvestDebtValDtlListMap, addAmtMap,returnAmtMap,debtValueMap);
+            //5.插入“投资债权价值明细”
             investDebtValService.insertInvestDebtValDtlList(allInvestDebtValDtlList);
-
         }
         result = Result.success();
         return result;
     }
 
-    private Result computeAddAmt(Map<Integer, List<InvestDebtValDtl>> borrowInvestDebtValDtlListMap,
-                                 Map<Integer, BigDecimal> borrowIdAddAmtMap) {
-        logger.debug("【计算map中List<InvestDebtValDtl>的增值】入参：borrowInvestDebtValDtlListMap="
-                + borrowInvestDebtValDtlListMap + ",borrowIdAddAmtMap=" + borrowIdAddAmtMap);
+    private Result computeAddAmtAndReturnAmt(Map<Integer, List<InvestDebtValDtl>> borrowInvestDebtValDtlListMap,
+      Map<Integer, BigDecimal> addAmtMap,Map<Integer, BigDecimal> returnAmtMap, Map<Integer,BigDecimal> debtValueMap) {
+        logger.debug("【计算InvestDebtValDtl】入参：borrowInvestDebtValDtlListMap={},addAmtMap={},returnAmtMap={}"
+                , borrowInvestDebtValDtlListMap,addAmtMap,returnAmtMap);
         Result result = Result.error();
+        BigDecimal zero = BigDecimal.ZERO;
         for (Integer borrowId : borrowInvestDebtValDtlListMap.keySet()) {
             List<InvestDebtValDtl> investDebtValDtls = borrowInvestDebtValDtlListMap.get(borrowId);
             int size = investDebtValDtls.size();
-            BigDecimal remainAddAmt = borrowIdAddAmtMap.get(borrowId);
+            BigDecimal remainAddAmt = addAmtMap.get(borrowId);
+            BigDecimal remainReturnAmt = zero;
+            BigDecimal remainDebtValue = debtValueMap.get(borrowId);
+            if(!returnAmtMap.isEmpty()){
+                remainReturnAmt = returnAmtMap.get(borrowId);
+            }
             if (size > 1) {//持有债权的投资大于1
                 int count = 1;
                 for (InvestDebtValDtl investDebtValDtl : investDebtValDtls) {
                     remainAddAmt = this.computeRemainAddAmt(count, size, remainAddAmt, investDebtValDtl);//处理一分钱问题
+                    remainReturnAmt = this.computeRemainReturnAmt(count, size, remainReturnAmt, investDebtValDtl);//处理一分钱问题
+                    remainDebtValue = this.computeRemainDebtValue(count, size, remainDebtValue, investDebtValDtl);//处理一分钱问题
                     ++count;
                 }
             }else{
                 investDebtValDtls.get(0).setHoldAddAmt(remainAddAmt);
+                investDebtValDtls.get(0).setHoldReturnAmt(remainReturnAmt);
+                investDebtValDtls.get(0).setHoldDebtValue(remainDebtValue);
             }
-            logger.debug("【计算map中List<InvestDebtValDtl>的增值】结果borrowId="
-                    + borrowId + ",investDebtValDtls=" + investDebtValDtls);
+            logger.debug("【计算InvestDebtValDtl】结果borrowId={},investDebtValDtls={}"
+                    , borrowId , investDebtValDtls);
         }
         result = Result.success();
         return result;
+    }
+
+    private BigDecimal computeRemainDebtValue(int count, int size, BigDecimal remainDebtValue, InvestDebtValDtl investDebtValDtl) {
+        if(count < size){
+            BigDecimal debtValueAmt = this.computeHoldAmt(investDebtValDtl.getDebtValue(),investDebtValDtl.getHoldShare());
+            investDebtValDtl.setHoldDebtValue(debtValueAmt);
+            remainDebtValue = remainDebtValue.subtract(debtValueAmt);
+        }else{
+            investDebtValDtl.setHoldDebtValue(remainDebtValue);//最后一笔=还款-前几笔的和
+        }
+        return remainDebtValue;
     }
 
     private BigDecimal computeRemainAddAmt(int count, int size, BigDecimal remainAddAmt,
                                            InvestDebtValDtl investDebtValDtl) {
         if(count < size){
-            BigDecimal addAmt = this.computeHoldAddAmt(investDebtValDtl);
+            BigDecimal addAmt = this.computeHoldAmt(investDebtValDtl.getAddAmt(),investDebtValDtl.getHoldShare());
             investDebtValDtl.setHoldAddAmt(addAmt);
             remainAddAmt = remainAddAmt.subtract(addAmt);
         }else{
@@ -148,10 +171,32 @@ public class InvestReturnArriveByDebtDateValDBServiceImpl implements InvestRetur
         return remainAddAmt;
     }
 
-    private Result buildBorrowInvestDebtValDtlListMap(Date arriveDate, Map<Integer, BigDecimal> borrowIdAddAmtMap,
-     List<InvestDebtValDtl> allInvestDebtValDtlList, Map<Integer, List<InvestDebtValDtl>> borrowInvestDebtValDtlListMap,
-                                                      List<InvestClaim> investClaimList) {
+    private BigDecimal computeRemainReturnAmt(int count, int size, BigDecimal remainReturnAmt,
+                                           InvestDebtValDtl investDebtValDtl) {
+        if(count < size){
+            BigDecimal returnAmt = this.computeHoldAmt(investDebtValDtl.getReturnAmt(),investDebtValDtl.getHoldShare());
+            investDebtValDtl.setHoldReturnAmt(returnAmt);
+            remainReturnAmt = remainReturnAmt.subtract(returnAmt);
+        }else{
+            investDebtValDtl.setHoldReturnAmt(remainReturnAmt);//最后一笔=还款-前几笔的和
+        }
+        return remainReturnAmt;
+    }
+
+    /**
+        * @param: arriveDate 到账时间
+        * @param: addAmtMap 债务增值Map
+        * @param: returnAmtMap 债务还款Map
+        * @param: debtValueMap 债务价值Map
+        * @param: allInvestDebtValDtlList
+        * @param: borrowInvestDebtValDtlListMap
+        * @param: investClaimList
+        */
+    private Result buildBorrowInvestDebtValDtlListMap(Date arriveDate, Map<Integer, BigDecimal> addAmtMap,
+            Map<Integer,BigDecimal> returnAmtMap,Map<Integer,BigDecimal> debtValueMap, List<InvestDebtValDtl> allInvestDebtValDtlList,
+           Map<Integer, List<InvestDebtValDtl>> borrowInvestDebtValDtlListMap, List<InvestClaim> investClaimList) {
         Result result = Result.error();
+        BigDecimal returnAmt = BigDecimal.ZERO;
         for (InvestClaim investClaim : investClaimList) {
             Integer borrowId = investClaim.getBorrowId();
             InvestDebtValDtl investDebtValDtl = new InvestDebtValDtl();
@@ -159,7 +204,13 @@ public class InvestReturnArriveByDebtDateValDBServiceImpl implements InvestRetur
             investDebtValDtl.setArriveDate(arriveDate);
             investDebtValDtl.setBorrowId(borrowId);
             investDebtValDtl.setInvestId(investClaim.getInvestId());
-            investDebtValDtl.setAddAmt(borrowIdAddAmtMap.get(borrowId));
+            investDebtValDtl.setDebtValue(debtValueMap.get(borrowId));
+            investDebtValDtl.setAddAmt(addAmtMap.get(borrowId));
+            if(!returnAmtMap.isEmpty()){
+                returnAmt = returnAmtMap.get(borrowId);
+            }
+            investDebtValDtl.setReturnAmt(returnAmt);
+            investDebtValDtl.setDebtValue(debtValueMap.get(borrowId));
             investDebtValDtl.setHoldShare(investClaim.getHoldShare());
             investDebtValDtl.setInvestCustomerId(investClaim.getInvestCustomerId());
             investDebtValDtl.setInvestCustomerName(investClaim.getInvestCustomerName());
@@ -187,96 +238,17 @@ public class InvestReturnArriveByDebtDateValDBServiceImpl implements InvestRetur
     }
 
 
-    private Result addInvestReturnDtlList(Date arriveDate, List<Integer> returnBorrowIdList,
-                                          Map<Integer, BigDecimal> borrowIdReturnAmtMap) {
-        Result result = Result.error();
-        // 1.过滤已经生成InvestReturnDtl数据
-        returnBorrowIdList = this.filterReturnAmtBorrowIdList(arriveDate,returnBorrowIdList);
-        if(!returnBorrowIdList.isEmpty()){
-            //查询投资债权
-            List<InvestClaim> investClaimList = investService.getInvestClaimList(returnBorrowIdList);
-            List<InvestReturnDtl> allInvestReturnDtlList = new ArrayList<>();//所有投资还款明细集合
-            //3.按borrowid生成map(borrowId,List<投资回款明细>)
-            Map<Integer, List<InvestReturnDtl>> borrowInvestReturnDtlListMap = new HashMap<>();//map(borrowId,List<InvestReturnDtl>)
-            result = this.buildBorrowInvestReturnDtlListMap(arriveDate,
-                    borrowIdReturnAmtMap,allInvestReturnDtlList,borrowInvestReturnDtlListMap,investClaimList);
-            //4.计算map中List<投资回款明细>的回款金额
-            result = this.computeReturnAmt(borrowInvestReturnDtlListMap, borrowIdReturnAmtMap);
-            //5.插入“投资回款明细”
-            investReturnService.insertInvestReturnDtlList(allInvestReturnDtlList);
-        }
-        result = Result.success();
-        return result;
-    }
-
-    private List<Integer> filterAddAmtBorrowIdList(Date arriveDate, List<Integer> addAmtBorrowIdList) {
-        List<InvestDebtValDtl> investDebtValDtlList = investDebtValService.getInvestDebtValDtlList(arriveDate, addAmtBorrowIdList);
+    private List<Integer> filterBorrowIdByInvestDebtValDtl(Date arriveDate, List<Integer> borrowIdList) {
+        List<InvestDebtValDtl> investDebtValDtlList = investDebtValService.getInvestDebtValDtlList(arriveDate, borrowIdList);
         List<Integer> dbBorrowIdList = new ArrayList<>();
         for (InvestDebtValDtl investDebtValDtl : investDebtValDtlList) {
             dbBorrowIdList.add(investDebtValDtl.getBorrowId());
         }
-        addAmtBorrowIdList.removeAll(dbBorrowIdList);
-        return addAmtBorrowIdList;
-    }
-
-    //过滤已经生成InvestReturnDtl数据
-    private List<Integer> filterReturnAmtBorrowIdList(Date arriveDate,List<Integer> borrowIdList) {
-        List<InvestReturnDtl> investReturnDtlList = investReturnService.getInvestReturnDtlList(arriveDate, borrowIdList);
-        List<Integer> dbBorrowIdList = new ArrayList<>();
-        for (InvestReturnDtl investReturnDtl : investReturnDtlList) {
-            dbBorrowIdList.add(investReturnDtl.getBorrowId());
-        }
         borrowIdList.removeAll(dbBorrowIdList);
-        logger.debug("【过滤已经生成InvestReturnDtl数据】borrowIdList=" + borrowIdList);
         return borrowIdList;
     }
 
-    //生成map(borrowId,List<投资回款明细>)
-    private Result buildBorrowInvestReturnDtlListMap(Date arriveDate,Map<Integer, BigDecimal> borrowIdReturnAmtMap,
-          List<InvestReturnDtl> allInvestReturnDtlList,Map<Integer, List<InvestReturnDtl>> borrowInvestReturnDtlListMap,
-                                                     List<InvestClaim> investClaimList) {
-        Result result = Result.error();
-        for (InvestClaim investClaim : investClaimList) {
-            Integer borrowId = investClaim.getBorrowId();
-            InvestReturnDtl investReturnDtl = new InvestReturnDtl();
-            investReturnDtl.setArriveDate(arriveDate);
-            investReturnDtl.setBorrowId(borrowId);
-            investReturnDtl.setInvestId(investClaim.getInvestId());
-            investReturnDtl.setReturnAmt(borrowIdReturnAmtMap.get(borrowId));
-            investReturnDtl.setHoldShare(investClaim.getHoldShare());
-            investReturnDtl.setInvestCustomerId(investClaim.getInvestCustomerId());
-            investReturnDtl.setInvestCustomerName(investClaim.getInvestCustomerName());
-            BeanHelper.setAddDefaultField(investReturnDtl);
-            allInvestReturnDtlList.add(investReturnDtl);
-            this.putBorrowInvestReturnDtlListMap(borrowInvestReturnDtlListMap, investReturnDtl);
-        }
-        return result;
-    }
 
-    //计算map中List<投资回款明细>的回款金额
-    private Result computeReturnAmt(Map<Integer, List<InvestReturnDtl>> borrowInvestReturnDtlListMap,
-                                    Map<Integer, BigDecimal> borrowIdReturnAmtMap) {
-        logger.debug("【计算map中List<投资回款明细>的回款金额】入参：borrowInvestReturnDtlListMap="
-            + borrowInvestReturnDtlListMap + ",borrowIdReturnAmtMap=" + borrowIdReturnAmtMap);
-        Result result = Result.error();
-        for (Integer borrowId : borrowInvestReturnDtlListMap.keySet()) {
-            List<InvestReturnDtl> investReturnDtls = borrowInvestReturnDtlListMap.get(borrowId);
-            int size = investReturnDtls.size();
-            BigDecimal remainReturnAmt = borrowIdReturnAmtMap.get(borrowId);
-            if (size > 1) {//持有债权的投资大于1
-                int count = 1;
-                for (InvestReturnDtl investReturnDtl : investReturnDtls) {
-                    remainReturnAmt = this.computeRemainReturnAmt(count, size, remainReturnAmt, investReturnDtl);//处理一分钱问题
-                    ++count;
-                }
-            }else{
-                investReturnDtls.get(0).setHoldReturnAmt(remainReturnAmt);
-            }
-            logger.debug("【计算map中List<投资回款明细>的回款金额】结果borrowId="
-                    + borrowId + ",investReturnDtls=" + investReturnDtls);
-        }
-        return result;
-    }
 
     //分页插入投资债权价值，生成出借单发送撮合
     private Result addInvestDebtValListByPage(Date arriveDate) {
@@ -306,7 +278,7 @@ public class InvestReturnArriveByDebtDateValDBServiceImpl implements InvestRetur
         for (InvestDebtVal investDebtVal : paramInvestDebtValList) {
             investIdList.add(investDebtVal.getInvestId());
         }
-        List<InvestDebtVal> dbInvestDebtValList = investReturnService.getInvestDebtValList(arriveDate, investIdList);
+        List<InvestDebtVal> dbInvestDebtValList = investDebtValService.getInvestDebtValList(arriveDate, investIdList);
         //生成参数Map<investId,InvestDebtVal>
         Map<Integer,InvestDebtVal> paramInvestDebtValMap =  new HashMap<>();
         for (InvestDebtVal investDebtVal : paramInvestDebtValList) {
@@ -345,110 +317,13 @@ public class InvestReturnArriveByDebtDateValDBServiceImpl implements InvestRetur
         return resultInvestDebtValList;
     }
 
-    //分页插入投资回款，生成出借单发送撮合
-    private Result addInvestReturnListByPage(Date arriveDate) {
-        Result result = Result.error();
-        Integer investReturnGroupListCount = investReturnService.getInvestReturnGroupListCount(arriveDate);
-        int groupPageCount = PageUtil.getPageCount(investReturnGroupListCount, PAGESIZE);
-        for(int i=1; i<=groupPageCount; i++){
-            List<InvestReturn> investReturnGroupList =
-                    investReturnService.getInvestReturnGroupList(arriveDate, i, PAGESIZE);
-            //过滤已插入的InvestReturn
-            investReturnGroupList = this.filterInvestReturnList(arriveDate,investReturnGroupList);
-            if(!investReturnGroupList.isEmpty()){
-                for (InvestReturn investReturn : investReturnGroupList) {
-                    investReturn.setArriveDate(arriveDate);
-                    BeanHelper.setAddDefaultField(investReturn);
-                }
-                investReturnService.insertInvestReturnList(investReturnGroupList);
-            }
-        }
-        result = Result.success();
-        return result;
-    }
 
-    //过滤已经生成InvestReturn数据
-    private List<InvestReturn> filterInvestReturnList(Date arriveDate, List<InvestReturn> paramInvestReturnList) {
-        List<Integer> investIdList = new ArrayList<>();
-        for (InvestReturn investReturn : paramInvestReturnList) {
-            investIdList.add(investReturn.getInvestId());
-        }
-        List<InvestReturn> dbInvestReturnList = investReturnService.getInvestReturnList(arriveDate, investIdList);
-        //生成参数Map<investId,InvestReturn>
-        Map<Integer,InvestReturn> paramInvestReturnMap =  new HashMap<>();
-        for (InvestReturn paramInvestReturn : paramInvestReturnList) {
-            paramInvestReturnMap.put(paramInvestReturn.getInvestId(),paramInvestReturn);
-        }
-        //生成数据库Map<investId,InvestReturn>
-        Map<Integer,InvestReturn> dbInvestReturnMap = new HashMap<>();
-        for (InvestReturn dbInvestReturn : dbInvestReturnList) {
-            dbInvestReturnMap.put(dbInvestReturn.getInvestId(),dbInvestReturn);
-        }
-        //过滤参数Map与数据库Map中重复数据：
-        //查找重复investId
-        List<Integer> existsInvestIdList = new ArrayList<>();
-        for (Integer paramInvestId : paramInvestReturnMap.keySet()) {
-            if(dbInvestReturnMap.containsKey(paramInvestId)){
-                existsInvestIdList.add(paramInvestId);
-            }
-        }
-        //删除参数map中数据
-        for (Integer existsInvestId : existsInvestIdList) {
-            paramInvestReturnMap.remove(existsInvestId);
-        }
-        //组装新的paramMap
-        List<InvestReturn> resultInvestReturnList = new ArrayList<>();
-        for (Integer paramInvestId : paramInvestReturnMap.keySet()) {
-            resultInvestReturnList.add(paramInvestReturnMap.get(paramInvestId));
-        }
-
-        //清空缓存
-        paramInvestReturnMap = null;
-        dbInvestReturnMap = null;
-        paramInvestReturnList = null;
-        dbInvestReturnList = null;
-        existsInvestIdList = null;
-        logger.debug("【过滤后已经生成InvestReturn数据】resultInvestReturnList=" + resultInvestReturnList);
-        return resultInvestReturnList;
-    }
-
-    //处理持有还款金额一分钱问题
-    private BigDecimal computeRemainReturnAmt(Integer count, Integer size, BigDecimal remainReturnAmt, InvestReturnDtl investReturnDtl) {
-        if(count < size){
-            BigDecimal holdAmt = this.computeHoldReturnAmt(investReturnDtl);
-            investReturnDtl.setHoldReturnAmt(holdAmt);
-            remainReturnAmt = remainReturnAmt.subtract(holdAmt);
-        }else{
-            investReturnDtl.setHoldReturnAmt(remainReturnAmt);//最后一笔=还款-前几笔的和
-        }
-        return remainReturnAmt;
-    }
-
-    private BigDecimal computeHoldAddAmt(InvestDebtValDtl investDebtValDtl){
-        BigDecimal holdAddAmt = investDebtValDtl.getAddAmt().multiply(investDebtValDtl.getHoldShare());
-        holdAddAmt = BigDecimalUtil.round2In45(holdAddAmt);
-        return holdAddAmt;
-    }
-
-    private BigDecimal computeHoldReturnAmt(InvestReturnDtl investReturnDtl){
-        BigDecimal holdAmt = investReturnDtl.getReturnAmt().multiply(investReturnDtl.getHoldShare());
+    private BigDecimal computeHoldAmt(BigDecimal amt,BigDecimal holdShare){
+        BigDecimal holdAmt = amt.multiply(holdShare);
         holdAmt = BigDecimalUtil.round2In45(holdAmt);
         return holdAmt;
     }
 
-    private void putBorrowInvestReturnDtlListMap(Map<Integer, List<InvestReturnDtl>> borrowInvestReturnDtlListMap,
-                                                 InvestReturnDtl investReturnDtl) {
-        Integer borrowId = investReturnDtl.getBorrowId();
-        List<InvestReturnDtl> investReturnDtlList = null;
-        Object investReturnDtlListObj = null;
-        if( (investReturnDtlListObj=borrowInvestReturnDtlListMap.get(borrowId)) == null){
-            investReturnDtlList = new ArrayList<>();
-            investReturnDtlList.add(investReturnDtl);
-            borrowInvestReturnDtlListMap.put(borrowId,investReturnDtlList);
-        }else{
-            investReturnDtlList = (List<InvestReturnDtl>)investReturnDtlListObj;
-            investReturnDtlList.add(investReturnDtl);
-        }
-    }
+
 
 }

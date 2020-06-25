@@ -7,13 +7,16 @@ import com.yx.p2p.ds.model.invest.InvestProduct;
 import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.investsale.InvestSaleService;
+import com.yx.p2p.ds.util.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -98,10 +101,12 @@ public class InvestController {
     //转让赎回申请
     @RequestMapping(value="transferApply")
     @ResponseBody
-    public Result transferApply(Integer investId){
-        logger.debug("【转让赎回申请】入参：investId=" + investId);
-        Result result = investServer.transferApply(investId);
-        logger.debug("【转让赎回申请】结果：result=" + result);
+    public Result transferApply(@RequestParam(value="investId") Integer investId,
+                                @RequestParam(value="transferDate") String transferDate){
+        logger.debug("【转让赎回申请】入参：investId={},transferDate={}" , investId,transferDate);
+        Date arriveDate = new Date();
+        Result result = investServer.transferApply(investId, DateUtil.str2Date(transferDate));
+        logger.debug("【转让赎回申请】结果：result={}" , result);
         return result;
     }
 
@@ -118,16 +123,6 @@ public class InvestController {
     //获得转让协议文本
     @RequestMapping(value="getTransferContractText")
     @ResponseBody
-    /*public List<Map<String,String>> getTransferContractText(Integer investId) {
-        logger.debug("【转让协议文本】入参：investId=" + investId);
-        Map<String, Object> contractMap = investServer.getTransferContractText(investId);
-        Map<String,String> financerMap = (Map<String,String>)contractMap.get("financer");//转让人
-        List<Map<String,String>> financerMapList = new ArrayList<>();
-        financerMapList.add(financerMap);
-        logger.debug("【转让协议文本】结果：financerMapList=" + financerMapList);
-        return financerMapList;
-    }*/
-
     public Map<String,Object> getTransferContractText(Integer investId) {
         logger.debug("【转让协议文本】入参：investId=" + investId);
         Map<String, Object> contractMap = investServer.getTransferContractText(investId);

@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -67,8 +69,8 @@ public class InvestServerImpl implements InvestServer {
 
     //转让赎回申请
     @Override
-    public Result transferApply(Integer investId) {
-        return transferService.transferApply(investId);
+    public Result transferApply(Integer investId,Date arriveDate) {
+        return transferService.transferApply(investId,arriveDate);
     }
 
     //投资提现申请

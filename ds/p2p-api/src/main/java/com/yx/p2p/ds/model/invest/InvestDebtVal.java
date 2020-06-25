@@ -19,7 +19,8 @@ public class InvestDebtVal extends BaseModel2 implements Serializable {
     private Integer investId;//投资编号
     private Integer investCustomerId;//投资客户编号
     private String investCustomerName;//投资客户姓名
-    private BigDecimal totalHoldAddAmt;//总增值
+    private BigDecimal totalHoldAddAmt;//总持有增值金额
+    private BigDecimal totalHoldReturnAmt;//总持有还款金额
 
     public Integer getInvestId() {
         return investId;
@@ -61,14 +62,23 @@ public class InvestDebtVal extends BaseModel2 implements Serializable {
         this.arriveDate = arriveDate;
     }
 
+    public BigDecimal getTotalHoldReturnAmt() {
+        return totalHoldReturnAmt;
+    }
+
+    public void setTotalHoldReturnAmt(BigDecimal totalHoldReturnAmt) {
+        this.totalHoldReturnAmt = totalHoldReturnAmt;
+    }
+
     @Override
     public String toString() {
         return "InvestDebtVal{" +
-                "investId=" + investId +
+                "arriveDate=" + arriveDate +
+                ", investId=" + investId +
                 ", investCustomerId=" + investCustomerId +
                 ", investCustomerName='" + investCustomerName + '\'' +
-                ", arriveDate='" + arriveDate + '\'' +
                 ", totalHoldAddAmt=" + totalHoldAddAmt +
+                ", totalHoldReturnAmt=" + totalHoldReturnAmt +
                 '}' + super.toString();
     }
 }

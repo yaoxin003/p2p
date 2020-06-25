@@ -266,7 +266,7 @@ public class AccountCoreServiceImpl implements AccountCoreService {
             //更新主账户债权金额
             MasterAcc paramMasterAcc = new MasterAcc();
             paramMasterAcc.setId(dbMasterAcc.getId());
-            paramMasterAcc.setClaimAmt(dbMasterAcc.getClaimAmt().add(subAccFlow.getAmount()));
+            paramMasterAcc.setCashAmt(dbMasterAcc.getCashAmt().add(subAccFlow.getAmount()));
             this.updateMasterAcc(paramMasterAcc);
             subAccFlow.setCashSubId(subAcc.getId());
         }

@@ -21,4 +21,27 @@ public class OrderUtil {
         logger.debug("【orderSn=】"+ orderSn);
         return orderSn;
     }
+
+    public static final String ORDERSN_PREFIX_DEBTDATEVALUE_DEBT_ADD = "debtDateValAdd";
+
+    public static final String ORDERSN_PREFIX_DEBTDATEVALUE_RETURN_ARR = "debtDateValReturnArr";
+
+    public static final String ORDERSN_PREFIX_LENDING = "lending";
+
+    public static final String ORDERSN_PREFIX_INVEST_DEBT_VAL_ADD = "investDebtValAdd";
+
+    public static final String ORDERSN_PREFIX_INVEST_DEBT_VAL_RETURN = "investDebtValReturn";
+
+    public static final String ORDERSN_PREFIX_INVEST_RETURN = "investReturn";
+
+
+    public static Integer getLendingId(String orderSn){
+        Integer bizId = null;
+        if(orderSn.startsWith(OrderUtil.ORDERSN_PREFIX_LENDING)){
+            bizId = Integer.valueOf(orderSn.replace(OrderUtil.ORDERSN_PREFIX_LENDING,""));
+        }else{
+            bizId = Integer.valueOf(orderSn);
+        }
+        return bizId;
+    }
 }

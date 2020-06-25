@@ -2,13 +2,16 @@ package com.yx.p2p.ds.invest.server.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.model.invest.InvestDebtVal;
 import com.yx.p2p.ds.server.InvestReturnArriveServer;
+import com.yx.p2p.ds.service.invest.InvestDebtValService;
 import com.yx.p2p.ds.service.invest.InvestReturnArriveService;
 import com.yx.p2p.ds.service.invest.ReturnLendingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @description:投资回款到账
@@ -26,6 +29,9 @@ public class InvestReturnArriveServerImpl implements InvestReturnArriveServer {
     @Autowired
     private ReturnLendingService returnLendingService;
 
+    @Autowired
+    private InvestDebtValService investDebtValService;
+
     //处理投资还款到账，插入投资回款数据
     public Result dealInvestReturn(Date arriveDate){
         return investReturnArriveService.dealInvestReturn(arriveDate);
@@ -35,4 +41,23 @@ public class InvestReturnArriveServerImpl implements InvestReturnArriveServer {
     public Result dealInvestReturnLending(Date arriveDate){
         return returnLendingService.dealInvestReturnLending(arriveDate);
     }
+
+    public Integer getInvestDebtValCount(Date arriveDate){
+        return investDebtValService.getInvestDebtValCount(arriveDate);
+    }
+
+    public List<InvestDebtVal> getInvestDebtValPageList(Date arriveDate, int page, int rows){
+        return investDebtValService.getInvestDebtValPageList(arriveDate, page, rows);
+    }
+
+    @Override
+    public Integer getInvestDebtValReturnAmtCount(Date arriveDate) {
+        return investDebtValService.getInvestDebtValReturnAmtCount(arriveDate);
+    }
+
+    @Override
+    public List<InvestDebtVal> getInvestDebtValReturnAmtPageList(Date arriveDate, int page, int rows) {
+        return investDebtValService.getInvestDebtValReturnAmtPageList(arriveDate, page, rows);
+    }
+
 }

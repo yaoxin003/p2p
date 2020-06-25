@@ -108,7 +108,7 @@ public class DebtDateValueServiceImplTest {
         System.out.println("==============================");
         Date date = DateUtil.str2Date("2020-05-20");
 
-       Integer total = debtDateValueService.queryDebtDateValuePageCount(date);
+       Integer total = debtDateValueService.queryDebtDateValueCount(date);
         System.out.println("【total=】" + total);
 
       Integer pageSize = PageUtil.getPageCount(total,SysConstant.DEBT_DAILY_VALUE_MONGO_PAGE_COUNT);
@@ -120,29 +120,6 @@ public class DebtDateValueServiceImplTest {
                     date,i, SysConstant.DEBT_DAILY_VALUE_MONGO_PAGE_COUNT);
             System.out.println("------------------------------");
         }
-    }
-
-   private DebtDailyValue buildMongoDebtDailyValue(Date occurDate, BigDecimal npv) {
-        DebtDailyValue debtDailyValue = new DebtDailyValue();
-        //debtDailyValue.setId(ObjectId.get());
-/*        debtDailyValue.setCreateTime(new Date());
-        debtDailyValue.setDaily(occurDate);
-        debtDailyValue.setBorrowId(100);
-        debtDailyValue.setValue(npv.doubleValue());*/
-
-        return debtDailyValue;
-    }
-
-    @Test
-    public void testGetSumDebtAndReturnByBorrowIdList(){
-        Date daily = DateUtil.str2Date("2020-06-16");
-        List<Integer> borrowIdList = new ArrayList<>();
-        borrowIdList.add(103);
-        borrowIdList.add(105);
-        Map<String, BigDecimal> sumDebtAndReturnByBorrowIdList =
-                debtDateValueService.getSumDebtAndReturnByBorrowIdList(daily, borrowIdList);
-        System.out.println(sumDebtAndReturnByBorrowIdList.get("sumValue"));
-        System.out.println(sumDebtAndReturnByBorrowIdList.get("sumReturnAmt"));
     }
 
 

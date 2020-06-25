@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = P2pCrmApplication.class)
+@SpringBootTest
 public class P2pCrmApplicationTests {
 
 	@Autowired

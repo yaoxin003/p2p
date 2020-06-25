@@ -4,14 +4,13 @@ import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.borrow.Borrow;
 import com.yx.p2p.ds.model.borrow.Cashflow;
 import com.yx.p2p.ds.model.borrow.DebtDateValue;
-
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 /**
- * @description:
+ * @description:使用Mycat保存DebtDateValue数据
  * @author: yx
  * @date: 2020/05/30/15:27
  */
@@ -32,8 +31,6 @@ public interface DebtDateValueService {
     public List<DebtDateValue> queryDebtDateValuePageList(Date daily, Integer page, Integer rows);
 
     //查询债务某日价值数量
-    public Integer queryDebtDateValuePageCount(Date daily);
+    public Integer queryDebtDateValueCount(Date daily);
 
-    //获得债权和还款价值总和
-    public Map<String,BigDecimal> getSumDebtAndReturnByBorrowIdList(Date daily,List<Integer> borrowIdList);
 }

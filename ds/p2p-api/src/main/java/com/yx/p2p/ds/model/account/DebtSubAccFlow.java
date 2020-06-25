@@ -1,7 +1,6 @@
 package com.yx.p2p.ds.model.account;
 
 import com.yx.p2p.ds.model.base.BaseModel;
-
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -77,6 +76,6 @@ public class DebtSubAccFlow extends BaseModel implements Serializable {
                 ", orderSn='" + orderSn + '\'' +
                 ", amount=" + amount +
                 ", remark='" + remark + '\'' +
-                '}';
+                '}' + super.toString();
     }
 }

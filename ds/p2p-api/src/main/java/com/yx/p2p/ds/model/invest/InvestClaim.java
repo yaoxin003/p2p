@@ -1,8 +1,6 @@
 package com.yx.p2p.ds.model.invest;
 
 import com.yx.p2p.ds.model.base.BaseModel;
-import com.yx.p2p.ds.model.match.InvestMatchReq;
-
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -17,7 +15,6 @@ public class InvestClaim extends BaseModel implements Serializable{
 
     //----------------撮合信息----------------
     private BigDecimal buyAmt;//买入金额
-    private BigDecimal claimAmt;//债权金额：会增值变化
     private BigDecimal holdShare;//持有比例
     private Integer parentId;//父投资债权编号：新借款为0/转让为父编号
     private Integer investCustomerId;//投资客户编号
@@ -75,14 +72,6 @@ public class InvestClaim extends BaseModel implements Serializable{
 
     public void setBuyAmt(BigDecimal buyAmt) {
         this.buyAmt = buyAmt;
-    }
-
-    public BigDecimal getClaimAmt() {
-        return claimAmt;
-    }
-
-    public void setClaimAmt(BigDecimal claimAmt) {
-        this.claimAmt = claimAmt;
     }
 
     public BigDecimal getHoldShare() {
@@ -161,7 +150,6 @@ public class InvestClaim extends BaseModel implements Serializable{
     public String toString() {
         return "InvestClaim{" +
                 "buyAmt=" + buyAmt +
-                ", claimAmt=" + claimAmt +
                 ", holdShare=" + holdShare +
                 ", parentId=" + parentId +
                 ", investCustomerId=" + investCustomerId +

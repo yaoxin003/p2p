@@ -13,17 +13,17 @@
                 and a.id = #{customerVo.id}
             </if>
             <if test="customerVo.name != null and customerVo.name != '' ">
-                <bind name="pattern1" value="'%' + customerVo.name + '%'"/>
+                <bind name="pattern1" value="customerVo.name + '%'"/>
                 and a.name like #{pattern1}
             </if>
             <if test="customerVo.gender != null">
                 and a.gender = #{customerVo.gender}
             </if>
-            <if test="customerVo.birthdayStr != null and customerVo.birthdayStr != ''">
-                and a.birthday=str_to_date(#{customerVo.birthdayStr},'%Y-%m-%d')
-            </if>
             <if test="customerVo.idCard != null and customerVo.idCard != ''">
                 and a.id_card = #{customerVo.idCard}
+            </if>
+            <if test="customerVo.birthday != null">
+                and a.birthday =  #{customerVo.birthday}
             </if>
         </if>
     </sql>

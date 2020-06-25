@@ -4,14 +4,10 @@ import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.enums.invest.InvestBizStateEnum;
 import com.yx.p2p.ds.model.invest.Invest;
 import com.yx.p2p.ds.model.invest.InvestClaim;
-import com.yx.p2p.ds.model.invest.InvestReturnDtl;
-import com.yx.p2p.ds.model.invest.Lending;
 import com.yx.p2p.ds.mq.InvestMQVo;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @description:
@@ -44,4 +40,5 @@ public interface InvestService {
 
     public List<InvestClaim> getInvestClaimList(List<Integer> borrowIdList);
 
+    public List<Invest> queryInvestList(List<String> bizStateList);
 }
