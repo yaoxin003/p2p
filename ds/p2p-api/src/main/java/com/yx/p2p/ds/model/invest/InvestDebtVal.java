@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * @description:投资债权价值
+ * @description:投资债权价值（Mycat）
  * @author: yx
  * @date: 2020/06/12/17:36
  */

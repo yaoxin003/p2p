@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 /**
- * @description:借款
+ * @description:借款（Mycat）
  * @author: yx
  * @date: 2020/04/28/19:02
  */
@@ -53,12 +53,12 @@ public class Borrow extends BaseModel implements Serializable {
     private Date startDate;//借款开始日期
 
     @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
-    private Date endDate;//借款结束日期
+    private Date endDate;//借款结束日期（借款开始日期+借款期限）
 
     @JsonFormat(shape= JsonFormat.Shape.STRING,pattern="yyyy-MM-dd",timezone="GMT+8")
     private Date firstReturnDate;//首期还款日期
 
-    private Integer monthReturnDay;//月还款日15/28
+    private Integer monthReturnDay;//月还款日15/28（借款开始日期1-15日则还款日为“借款开始日期”的28日，借款开始日期16-31则还款日为“借款开始日期”下月的15日）
 
     private BigDecimal monthPayment;//月供=月本息+月管理费
 

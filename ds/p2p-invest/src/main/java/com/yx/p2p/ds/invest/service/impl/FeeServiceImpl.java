@@ -85,7 +85,7 @@ public class FeeServiceImpl implements FeeService {
         return zero;
     }
 
-    //非固定期限：服务费(根据客户投资总金额计算，<10万为2%，>=10万且<100万为1.5%,>=100万为1%)
+    //非固定期限：服务费(根据客户投资总金额计算，<10万为转让金额2%，>=10万且<100万为1.5%,>=100万为转让金额1%)
     private BigDecimal noFixedServiceFee(Invest invest, Transfer transfer){
         BigDecimal sumAmt = investMapper.querySumInvestAmt(invest.getCustomerId());
         BigDecimal feeRate = zero;
@@ -97,7 +97,7 @@ public class FeeServiceImpl implements FeeService {
         }else{// >=100万为1%
             feeRate = new BigDecimal("0.01");
         }
-        BigDecimal serviceFee = BigDecimalUtil.round2In45(transfer.getInvestAmt().multiply(feeRate));
+        BigDecimal serviceFee = BigDecimalUtil.round2In45(transfer.getTransferAmt().multiply(feeRate));
         return serviceFee;
     }
 
