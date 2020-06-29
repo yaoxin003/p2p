@@ -1,5 +1,6 @@
 package com.yx.p2p.ds.server;
 
+import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.borrow.Cashflow;
 
 import java.util.Date;
@@ -19,5 +20,8 @@ public interface CashflowServer {
 
     //arriveDate 还款到账日期
     public Integer getCashflowListCount(Date arriveDate);
+
+    //借款人还款支付
+    public Result borrowReturnPayment(Date returnDate);
 
 }

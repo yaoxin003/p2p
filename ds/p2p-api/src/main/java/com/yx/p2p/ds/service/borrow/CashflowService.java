@@ -1,5 +1,7 @@
 package com.yx.p2p.ds.service.borrow;
 
+import com.yx.p2p.ds.easyui.Result;
+import com.yx.p2p.ds.enums.borrow.CashflowBizStateEnum;
 import com.yx.p2p.ds.model.borrow.Cashflow;
 
 import java.util.Date;
@@ -20,5 +22,10 @@ public interface CashflowService {
 
     //arriveDate 还款到账日期
     public Integer getCashflowListCount(Date arriveDate);
+
+    //借款人还款支付
+    public Result borrowReturnPayment(Date returnDate);
+
+    public Result dealCashflowReturnPayment(List<String> cashflowIdList,CashflowBizStateEnum bizStateEnum);
 
 }

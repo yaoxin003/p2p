@@ -951,6 +951,7 @@ create table quartz_task (
 
 INSERT INTO p2p_timer.quartz_task (id, job_name, description, cron_expression, class_full_name, job_group, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('1', 'investAddJob', '投资每日增值', '0 0 10 * * ?', 'com.yx.p2p.ds.timer.biz.job.InvestAddJob', 'invest', '2020-06-09 11:59:44', '2020-06-18 19:10:05', '12', '12', '1', '1');
 INSERT INTO p2p_timer.quartz_task (id, job_name, description, cron_expression, class_full_name, job_group, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('2', 'debtAddJob', '债务每日增值', '0 0 10 * * ?', 'com.yx.p2p.ds.timer.biz.job.DebtAddJob', 'borrow', '2020-06-18 18:53:56', '2020-06-18 19:10:12', '12', '12', '1', '1');
+INSERT INTO p2p_timer.quartz_task (id, job_name, description, cron_expression, class_full_name, job_group, create_time, update_time, creator, reviser, logic_state, biz_state) VALUES ('3', 'BorrowReturnPayJob', '借款人还款支付', '0 0 10 * * ?', 'com.yx.p2p.ds.timer.biz.job.BorrowReturnPayJob', 'borrow', '2020-06-29 07:53:23', '2020-06-29 07:53:23', '12', '12', '1', '1');
 
 
 -- 192.168.1.122

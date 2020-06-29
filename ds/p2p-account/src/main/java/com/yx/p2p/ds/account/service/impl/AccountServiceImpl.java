@@ -40,8 +40,6 @@ public class AccountServiceImpl implements AccountService {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private BlockingQueue<String> queue = new ArrayBlockingQueue<String>(1);
-
     @Autowired
     private MasterAccMapper masterAccMapper;
 
@@ -273,46 +271,22 @@ public class AccountServiceImpl implements AccountService {
     public Result loanNotice(HashMap<String, String> loanMap) {
         logger.debug("【账户管理：放款】入参：loadMap={}" ,loanMap);
         Result result = Result.error();
-        try {
-            String orderSn = loanMap.get("orderSn");//都是借款编号borrowId
-            String borrowId = loanMap.get("bizId");//都是借款编号borrowId
-            String financeCustomerId = loanMap.get("customerId");//融资客户
-            String status = loanMap.get("status");
+        String orderSn = loanMap.get("orderSn");//都是借款编号borrowId
+        String borrowId = loanMap.get("bizId");//都是借款编号borrowId
+        String financeCustomerId = loanMap.get("customerId");//融资客户
+        String status = loanMap.get("status");
 
-            queue.put(borrowId);
-            logger.debug("【阻塞队列，入队列】borrowId={}", borrowId);
-
-
-
-            //1.验证是否已经插入过放款数据(借款人债务子账户流水)
-            result = this.checkNoLoanNotice(orderSn);
-            if(Result.checkStatus(result)){
-                Integer financeCustomerIdInt = Integer.valueOf(financeCustomerId);
-                //查询借款撮合数据
-                List<FinanceMatchRes> borrowMatchResList = financeMatchReqServer.getBorrowMatchResList(
-                        financeCustomerIdInt, borrowId);
-                result = this.dealLoanNoticeData(financeCustomerIdInt,borrowId,borrowMatchResList);
-            }
-            result = Result.success();
-            logger.debug("【账户管理：放款】结果：result=" + result);
-
-
-
-
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }finally {
-            try {
-                String queueBorrowId = queue.take();
-                logger.debug("【阻塞队列，出队列】{}", queueBorrowId);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        //1.验证是否已经插入过放款数据(借款人债务子账户流水)
+        result = this.checkNoLoanNotice(orderSn);
+        if(Result.checkStatus(result)){
+            Integer financeCustomerIdInt = Integer.valueOf(financeCustomerId);
+            //查询借款撮合数据
+            List<FinanceMatchRes> borrowMatchResList = financeMatchReqServer.getBorrowMatchResList(
+                    financeCustomerIdInt, borrowId);
+            result = this.dealLoanNoticeData(financeCustomerIdInt,borrowId,borrowMatchResList);
         }
-
-
-
+        result = Result.success();
+        logger.debug("【账户管理：放款】结果：result=" + result);
         return result;
     }
 

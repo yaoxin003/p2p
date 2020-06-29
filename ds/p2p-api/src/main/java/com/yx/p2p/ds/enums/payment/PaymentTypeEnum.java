@@ -8,7 +8,8 @@ package com.yx.p2p.ds.enums.payment;
 public enum PaymentTypeEnum {
     INVEST_RECHARGE(1,"投资充值"),
     BORROW_LOAN(2,"借款代付"),
-    TRANSFER_WITHDRAW(3,"转让提现");
+    BORROW_RETURN(3,"借款人还款"),
+    TRANSFER_WITHDRAW(4,"转让提现");
 
     private Integer code;
     private String codeDesc;

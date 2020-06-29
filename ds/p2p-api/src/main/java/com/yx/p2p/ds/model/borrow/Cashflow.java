@@ -120,7 +120,7 @@ public class Cashflow extends BaseModel2 implements Serializable{
     public String toString() {
         return "Cashflow{" +
                 "borrowId=" + borrowId +
-                "returnDateNo=" + returnDateNo +
+                ", returnDateNo=" + returnDateNo +
                 ", tradeDate=" + tradeDate +
                 ", arriveDate=" + arriveDate +
                 ", monthPayment=" + monthPayment +

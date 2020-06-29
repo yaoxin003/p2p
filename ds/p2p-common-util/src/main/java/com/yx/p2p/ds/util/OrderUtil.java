@@ -32,8 +32,7 @@ public class OrderUtil {
 
     public static final String ORDERSN_PREFIX_INVEST_DEBT_VAL_RETURN = "investDebtValReturn";
 
-    public static final String ORDERSN_PREFIX_INVEST_RETURN = "investReturn";
-
+    public static final String ORDERSN_PREFIX_CASH_FLOW = "cashflow";
 
     public static Integer getLendingId(String orderSn){
         Integer bizId = null;

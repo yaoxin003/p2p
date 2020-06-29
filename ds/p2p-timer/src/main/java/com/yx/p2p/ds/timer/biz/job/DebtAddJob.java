@@ -34,7 +34,7 @@ public class DebtAddJob implements Job {
 
     Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    static final int PAGE_SIZE = 500;
+    static final Integer PAGE_SIZE = 500;
 
     @Autowired
     private BorrowJobService borrowJobService;

@@ -1,6 +1,7 @@
 package com.yx.p2p.ds.borrow.server.impl;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.yx.p2p.ds.easyui.Result;
 import com.yx.p2p.ds.model.borrow.Cashflow;
 import com.yx.p2p.ds.server.CashflowServer;
 import com.yx.p2p.ds.service.borrow.CashflowService;
@@ -40,5 +41,10 @@ public class CashflowServerImpl implements CashflowServer {
     // @return: 总页数
     public Integer getPageCountByTotalCountAndPageSize(Integer totalCount,Integer pageSize){
         return PageUtil.getPageCount(totalCount, pageSize);
+    }
+
+    //借款人还款支付
+    public Result borrowReturnPayment(Date returnDate){
+        return cashflowService.borrowReturnPayment(returnDate);
     }
 }

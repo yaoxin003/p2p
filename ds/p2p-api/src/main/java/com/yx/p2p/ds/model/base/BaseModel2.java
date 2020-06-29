@@ -15,6 +15,7 @@ import java.util.Date;
  */
 public class BaseModel2 {
 
+    @Id
     //用于Mycat插入全局唯一主键 next value for MYCATSEQ_*****
     @Column(name="id")
     private String idStr;
