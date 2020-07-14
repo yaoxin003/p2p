@@ -27,6 +27,7 @@ import com.yx.p2p.ds.server.InvestServer;
 import com.yx.p2p.ds.server.PaymentServer;
 import com.yx.p2p.ds.service.borrow.BorrowProductService;
 import com.yx.p2p.ds.service.borrow.BorrowService;
+import com.yx.p2p.ds.service.borrow.BorrowThreadService;
 import com.yx.p2p.ds.service.borrow.DebtDateValueService;
 import com.yx.p2p.ds.util.BigDecimalUtil;
 import com.yx.p2p.ds.util.DateUtil;
@@ -73,6 +74,9 @@ public class BorrowServiceImpl implements BorrowService {
     private DebtDailyValueService debtDailyValueService;*/
 
     @Autowired
+    private BorrowThreadService borrowThreadService;
+
+    @Autowired
     private DebtDateValueService debtDateValueService;
 
     @Reference
@@ -88,41 +92,29 @@ public class BorrowServiceImpl implements BorrowService {
     private InvestServer investServer;
 
     /**
-        * @description: 借款签约
-        *  1.事务操作：添加借款数据,借款和现金流
-         *  2.添加债务每日价值(MongoDB)不抛出异常，不影响其他业务
-        *  2.调用撮合系统发送借款撮合（幂等性接口：多次调用若撮合成功反复调用都为成功且返回撮合结果）
-        * 3.更新借款状态为已签约，借款状态更新失败不会影响添加借款和调用借款撮合
-        * @author:  YX
-        * @date:    2020/04/30 10:11
-        * @param: borrow
-        * @return: java.util.List<com.yx.p2p.ds.model.match.FinanceMatchRes> 融资撮合结果
-        */
+     * @description: 借款签约
+     *  1.事务操作：添加借款数据,借款和现金流
+     *  2.添加债务每日价值(MongoDB)不抛出异常，不影响其他业务
+     *  2.调用撮合系统发送借款撮合（幂等性接口：多次调用若撮合成功反复调用都为成功且返回撮合结果）
+     * 3.更新借款状态为已签约，借款状态更新失败不会影响添加借款和调用借款撮合
+     * @author:  YX
+     * @date:    2020/04/30 10:11
+     * @param: borrow
+     * @return: java.util.List<com.yx.p2p.ds.model.match.FinanceMatchRes> 融资撮合结果
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Result sign(Borrow borrow) {
         logger.debug("【借款签约】borrow=" + borrow);
-        //事务操作：添加借款数据,借款和现金流
-        List<Cashflow> cashflows = new ArrayList<>();
-        Result result = this.addBorrowAndCashflow(borrow,cashflows);
+        //添加借款数据
+        Result result = this.addNewBorrow(borrow);
+        //线程池事务操作：添加现金流和债务每日价值
+        this.addCashflowAndDebtDateValue(borrow);
         if(Result.checkStatus(result)){
-            //添加债务每日价值(开启新线程插入MongoDB)
-            //this.addBatchDebtDailyValueByNewThread(borrow, cashflows);
             //发送借款撮合并签约
             result = this.sendBorrowMatchAndSign(borrow);
         }
         return result;
-    }
-
-    //开启新线程：向MongoDB插入数据，暂不使用，而是使用Mycat保存债务每日增值
-    private void addBatchDebtDailyValueByNewThread(Borrow borrow, List<Cashflow> cashflows) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                logger.debug("【开启一个新线程：批量添加债务每日价值】");
-               // debtDailyValueService.addBatchDebtDailyValue(borrow, cashflows);
-            }
-        }).start();
     }
 
     //发送借款撮合并签约
@@ -214,15 +206,9 @@ public class BorrowServiceImpl implements BorrowService {
         return result;
     }
 
-    //事务操作：添加借款数据,借款和现金流
-    private Result addBorrowAndCashflow(Borrow borrow,List<Cashflow> cashflows) {
-        //添加借款数据
-        Result result = this.addNewBorrow(borrow);
-        //添加现金流
-        result = this.addCashflow(borrow,cashflows);
-        //添加债务每日价值
-        debtDateValueService.addBatchDebtDateValue(borrow,cashflows);
-        return result;
+    //线程池事务操作：添加现金流和债务每日价值
+    private void addCashflowAndDebtDateValue(Borrow borrow) {
+        borrowThreadService.addCashflowAndDebtDateValue(borrow);
     }
 
     //调用发送借款撮合
@@ -258,96 +244,6 @@ public class BorrowServiceImpl implements BorrowService {
         result = Result.success();
         logger.debug("【构建借款撮合】borrowMatchReq=" + borrowMatchReq);
         return result;
-    }
-
-    //添加现金流
-    private Result addCashflow(Borrow borrow,List<Cashflow> cashflows) {
-        //构建现金流
-        Result result = this.buildCashflow(borrow,cashflows);
-        this.insertCashFlowList2DB(cashflows);
-        return result;
-    }
-
-    private Result insertCashFlowList2DB(List<Cashflow> cashflows) {
-        logger.debug("【现金流插入数据库开始】cashflows=" + cashflows);
-        Result result = Result.error();
-        cashflowMapper.insertList(cashflows);
-        result = Result.success();
-        return result;
-    }
-
-    //构建现金流
-    //cashflows作为返回结果
-    private Result buildCashflow(Borrow borrow,List<Cashflow> cashflows) {
-        logger.debug("【构建现金流开始】borrow=" + borrow);
-        Result result = Result.error();
-        Integer borrowMonthCount = borrow.getBorrowMonthCount();//借款期限
-        Integer monthReturnDay = borrow.getMonthReturnDay();//还款日
-        BigDecimal zero = BigDecimal.ZERO;
-        //第0期：借款
-        Cashflow borrowFlow = new Cashflow();
-        borrowFlow.setIdStr("next value for MYCATSEQ_P2P_CASH_FLOW");
-        borrowFlow.setBorrowId(borrow.getId());
-        borrowFlow.setReturnDateNo(0);//还款日期编号(借款为0，还款从1开始)
-        borrowFlow.setTradeDate(borrow.getStartDate());//交易日期：借款开始日期/还款日期
-        borrowFlow.setArriveDate(DateUtil.addDay(borrowFlow.getTradeDate(),1));
-        borrowFlow.setMonthPayment(borrow.getBorrowAmt());//月供：借款金额/月供
-        borrowFlow.setPrincipal(zero);//本金
-        borrowFlow.setInterest(zero);//利息
-        borrowFlow.setManageFee(zero);//管理费
-        borrowFlow.setRemainPrincipal(borrow.getBorrowAmt());//剩余本金
-        borrowFlow.setPaidPrincipal(zero);//已还本金
-        BeanHelper.setAddDefaultField(borrowFlow);
-        cashflows.add(borrowFlow);
-        //还款
-        BigDecimal remainPrincipal = borrow.getBorrowAmt();//总剩余本金
-        BigDecimal paidPrincipal = zero;//已还本金
-        Date tradeDate =  borrow.getFirstReturnDate();
-        for(int i=1; i <= borrowMonthCount; i++){
-            Cashflow returnFlow = new Cashflow();
-            returnFlow.setIdStr("next value for MYCATSEQ_P2P_CASH_FLOW");
-            returnFlow.setBorrowId(borrow.getId());
-            returnFlow.setReturnDateNo(i);//还款日期编号(借款为0，还款从1开始)
-            //交易日期：借款开始日期/还款日期
-            if(i==1){
-                returnFlow.setTradeDate(tradeDate);//交易日期：借款开始日期
-            }else{
-                tradeDate = DateUtil.addMonth(tradeDate,1);
-                returnFlow.setTradeDate(tradeDate);//交易日期：还款日期
-            }
-            returnFlow.setArriveDate(DateUtil.addDay(returnFlow.getTradeDate(),1));
-            returnFlow.setManageFee(borrow.getMonthManageFee());//月管理费
-            returnFlow.setMonthPayment(borrow.getMonthPayment());//月供：借款金额/月供
-            //月利息=总剩余本金*月利率
-            BigDecimal monthRate =
-                    BigDecimalUtil.divide4(borrow.getMonthRate(),new BigDecimal("100"));//月利率
-            BigDecimal monthInterest = BigDecimalUtil.round2In45(remainPrincipal.multiply(monthRate));
-            returnFlow.setInterest(monthInterest);//月利息
-            //月本金=月本息-月利息
-            BigDecimal monthPrincipal =
-                    borrow.getMonthPrincipalInterest().subtract(monthInterest);
-            returnFlow.setPrincipal(monthPrincipal);//本金
-
-            //总剩余本金=总剩余本金-月本金
-            remainPrincipal = remainPrincipal.subtract(monthPrincipal);
-            //总已还本金=借款金额-总剩余本金
-            paidPrincipal = borrow.getBorrowAmt().subtract(remainPrincipal);
-            //最后一期：剩余本金,总已还本金
-            if(i==borrowMonthCount){
-                //总已还本金=总已还本金+剩余本金
-                paidPrincipal = paidPrincipal.add(remainPrincipal);
-                //剩余本金=0
-                remainPrincipal = zero;
-            }
-            returnFlow.setRemainPrincipal(remainPrincipal);//总剩余本金
-            returnFlow.setPaidPrincipal(paidPrincipal);//总已还本金
-            BeanHelper.setAddDefaultField(returnFlow);
-            cashflows.add(returnFlow);
-        }
-        result = Result.success();
-        logger.debug("【构建现金流】cashflows=" + cashflows);
-        return result;
-
     }
 
     //添加借款数据
@@ -423,7 +319,7 @@ public class BorrowServiceImpl implements BorrowService {
         logger.debug("【月管理费1】" + monthManageFee1);
         //月管理费2=月供-月本息//未使用该值
         BigDecimal monthManageFee2 = monthPay.subtract(monthPrincipalInterest);
-       logger.debug("【月管理费2】" + monthManageFee2);
+        logger.debug("【月管理费2】" + monthManageFee2);
         //借款开始时间
         Date startDate = borrow.getStartDate();
         //借款结束时间
@@ -447,15 +343,15 @@ public class BorrowServiceImpl implements BorrowService {
     }
 
     /**
-        * @description:构建还款日和首个还款日期
-        * 借款开始日期1-15日则还款日为本月28，
-        * 借款开始日期16-31则还款日为下月15日
-        * @author:  YX
-        * @date:    2020/04/29 17:12
-        * @param: startDate 借款开始日期
-        * @return: void
-        * @throws: 
-        */
+     * @description:构建还款日和首个还款日期
+     * 借款开始日期1-15日则还款日为本月28，
+     * 借款开始日期16-31则还款日为下月15日
+     * @author:  YX
+     * @date:    2020/04/29 17:12
+     * @param: startDate 借款开始日期
+     * @return: void
+     * @throws:
+     */
     private void buildMonthReturnDayAndFirstReturnDate(Date startDate,Borrow borrow) {
         int monthReturnDay = DateUtil.getDay(startDate);
 
@@ -490,15 +386,15 @@ public class BorrowServiceImpl implements BorrowService {
     }
 
     /**
-        * @description: 借款费用=月供*借款月数-借款金额
-        * @author:  YX
-        * @date:    2020/04/29 13:59
-        * @param: monthPay 月供
-        * @param: borrowMonthCount 借款月数
-        * @param: borrowAmt 借款金额
-        * @return: java.math.BigDecimal
-        * @throws:
-        */
+     * @description: 借款费用=月供*借款月数-借款金额
+     * @author:  YX
+     * @date:    2020/04/29 13:59
+     * @param: monthPay 月供
+     * @param: borrowMonthCount 借款月数
+     * @param: borrowAmt 借款金额
+     * @return: java.math.BigDecimal
+     * @throws:
+     */
     private BigDecimal calTotalBorrowFee(BigDecimal monthPay, Integer borrowMonthCount, BigDecimal borrowAmt) {
         logger.debug("【计算借款费用】月供=" + monthPay + ",借款期限" + borrowMonthCount + ",借款金额" + borrowAmt);
         BigDecimal borrowFee = monthPay.multiply(new BigDecimal(borrowMonthCount)).subtract(borrowAmt);
@@ -508,16 +404,16 @@ public class BorrowServiceImpl implements BorrowService {
 
 
     /**
-        * @description: 计算月供(月本息+月管理费)或计算月本息
-        * 月供=[借款金额×月费率×(1+月费率)^借款月数]÷[(1+月费率)^借款月数-1]
-        * 月本息=[借款金额×月费率×(1+月利率)^借款月数]÷[(1+月利率)^借款月数-1]
-        * @author:  YX
-        * @date:    2020/04/29 13:03
-        * @param: borrowAmt 借款金额
-        * @param: monthRate 月利率
-        * @param: borrowMonthCount 借款月数（借款期限）
-        * @return: java.math.BigDecimal 月供
-        */
+     * @description: 计算月供(月本息+月管理费)或计算月本息
+     * 月供=[借款金额×月费率×(1+月费率)^借款月数]÷[(1+月费率)^借款月数-1]
+     * 月本息=[借款金额×月费率×(1+月利率)^借款月数]÷[(1+月利率)^借款月数-1]
+     * @author:  YX
+     * @date:    2020/04/29 13:03
+     * @param: borrowAmt 借款金额
+     * @param: monthRate 月利率
+     * @param: borrowMonthCount 借款月数（借款期限）
+     * @return: java.math.BigDecimal 月供
+     */
     private BigDecimal calMonthPayOrMonthPrincipalInterest(BigDecimal borrowAmt, BigDecimal rate, Integer borrowMonthCount) {
         logger.debug("【计算月供/月本息】借款金额=" + borrowAmt + ",月费率/月利率=" + rate + ",借款期数=" + borrowMonthCount);
         BigDecimal one = new BigDecimal("1");
@@ -559,7 +455,7 @@ public class BorrowServiceImpl implements BorrowService {
         logger.debug("【补偿调用发送借款撮合，入参】borrowId=" + borrowId);
         Borrow borrow = this.getBorrowByBorrowId(borrowId);
         if(BorrowBizStateEnum.NEW_ADD.getState().equals(borrow.getBizState())){//新增
-             result =this.sendBorrowMatchAndSign(borrow);
+            result =this.sendBorrowMatchAndSign(borrow);
         }else{
             logger.debug("【补偿调用发送借款撮合，借款业务状态非“新增”，不能发送借款撮合】borrowId=" + borrowId);
         }
@@ -696,6 +592,13 @@ public class BorrowServiceImpl implements BorrowService {
         example.createCriteria().andIn("id",idSet);
         List<Borrow> borrowList = borrowMapper.selectByExample(example);
         return borrowList;
+    }
+
+    public List<Borrow> queryBorrowListByBorrowIdList(List<Integer> borrowIdList){
+        Example example = new Example(Borrow.class);
+        example.createCriteria().andIn("id",borrowIdList);
+        List<Borrow> borrows = borrowMapper.selectByExample(example);
+        return borrows;
     }
 
 }
