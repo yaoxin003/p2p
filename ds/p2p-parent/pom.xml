@@ -28,7 +28,7 @@
         <alibaba.dubbo.version>2.0.0</alibaba.dubbo.version>
         <dubbo.zkclient.version>0.10</dubbo.zkclient.version>
         <commons-codec.version>1.6</commons-codec.version>
-        <httpclient.version>4.5.5</httpclient.version>
+        <httpclient.version>4.5.13</httpclient.version>
         <springboot.apache.rocketmq.version>2.0.3</springboot.apache.rocketmq.version>
     </properties>
 
